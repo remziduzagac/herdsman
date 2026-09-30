@@ -1111,6 +1111,9 @@ impl App {
             Method::PaneFocusStacked(params) => {
                 return self.handle_pane_focus_stacked(request.id, params);
             }
+            Method::PaneFocusStackedAt(params) => {
+                return self.handle_pane_focus_stacked_at(request.id, params);
+            }
             Method::PaneSwap(params) => return self.handle_pane_swap(request.id, params),
             Method::PaneMove(params) => return self.handle_pane_move(request.id, params),
             Method::PaneZoom(params) => return self.handle_pane_zoom(request.id, params),

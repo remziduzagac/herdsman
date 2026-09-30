@@ -62,6 +62,25 @@ pub struct PaneFocusStackedParams {
     pub index: usize,
 }
 
+/// Focus the stack member drawn at a point of the strip beside `pane_id`'s
+/// content: `column` cells from the content's left edge, in a strip `width`
+/// cells wide, on the row just above (`top`) or below (`bottom`) the content.
+/// Any point that is not on a strip focuses `pane_id` itself, like `pane.focus`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+pub struct PaneFocusStackedAtParams {
+    pub pane_id: String,
+    pub column: u16,
+    pub width: u16,
+    pub edge: PaneContentEdge,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum PaneContentEdge {
+    Top,
+    Bottom,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct PaneInputSetParams {
     pub pane_id: String,

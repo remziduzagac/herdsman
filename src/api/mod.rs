@@ -55,6 +55,7 @@ pub(crate) fn request_changes_ui(request: &Request) -> bool {
             | Method::PaneSplit(_)
             | Method::PaneStack(_)
             | Method::PaneFocusStacked(_)
+            | Method::PaneFocusStackedAt(_)
             | Method::PaneSwap(_)
             | Method::PaneMove(_)
             | Method::PaneZoom(_)

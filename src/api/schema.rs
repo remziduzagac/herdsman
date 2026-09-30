@@ -145,6 +145,8 @@ pub enum Method {
     PaneStack(PaneStackParams),
     #[serde(rename = "pane.focus_stacked")]
     PaneFocusStacked(PaneFocusStackedParams),
+    #[serde(rename = "pane.focus_stacked_at")]
+    PaneFocusStackedAt(PaneFocusStackedAtParams),
     #[serde(rename = "pane.swap")]
     PaneSwap(PaneSwapParams),
     #[serde(rename = "pane.move")]

@@ -120,6 +120,38 @@ fn member_label(app: &AppState, tab: &Tab, pane_id: PaneId, index: usize) -> Mem
     }
 }
 
+fn member_labels(app: &AppState, tab: &Tab, members: &[PaneId]) -> Vec<MemberLabel> {
+    members
+        .iter()
+        .enumerate()
+        .map(|(index, member)| member_label(app, tab, *member, index))
+        .collect()
+}
+
+fn natural_widths(labels: &[MemberLabel]) -> Vec<u16> {
+    labels.iter().map(MemberLabel::natural_width).collect()
+}
+
+/// The stack member whose segment covers `column`, counted from the left edge
+/// of the pane's content in a strip `width` cells wide. Segments are laid out
+/// over the content width, which clients also know, so a click resolves to the
+/// segment that was drawn under it.
+pub(crate) fn stack_member_at(
+    app: &AppState,
+    tab: &Tab,
+    pane_id: PaneId,
+    column: u16,
+    width: u16,
+) -> Option<PaneId> {
+    let (members, _) = tab.layout.stack_members(pane_id)?;
+    let widths = natural_widths(&member_labels(app, tab, members));
+    segment_spans(width, &widths)
+        .into_iter()
+        .zip(members)
+        .find(|((offset, span), _)| column >= *offset && column - offset < *span)
+        .map(|(_, member)| *member)
+}
+
 /// Draw the strip of every stack visible in a rendered tab.
 pub(super) fn render_stack_strips(
     app: &AppState,
@@ -134,26 +166,20 @@ pub(super) fn render_stack_strips(
         let Some((members, active)) = tab.layout.stack_members(info.id) else {
             continue;
         };
-        let Some((strip, _)) = split_strip(
+        let Some((row, _)) = split_strip(
             pane_inner_rect(info.rect, info.borders),
             app.stack_strip_position,
         ) else {
             continue;
         };
-        let strip = strip.intersection(buf.area);
+        let row = row.intersection(buf.area);
+        let strip = Rect::new(info.inner_rect.x, row.y, info.inner_rect.width, 1).intersection(row);
         if strip.is_empty() {
             continue;
         }
-        let labels = members
-            .iter()
-            .enumerate()
-            .map(|(index, member)| member_label(app, tab, *member, index))
-            .collect::<Vec<_>>();
-        let widths = labels
-            .iter()
-            .map(MemberLabel::natural_width)
-            .collect::<Vec<_>>();
-        buf.set_style(strip, Style::default().bg(app.palette.panel_bg));
+        let labels = member_labels(app, tab, members);
+        let widths = natural_widths(&labels);
+        buf.set_style(row, Style::default().bg(app.palette.panel_bg));
         for (index, ((offset, width), label)) in segment_spans(strip.width, &widths)
             .into_iter()
             .zip(&labels)
@@ -271,6 +297,43 @@ mod tests {
                 text.contains("1 agent") && text.contains("2 shell"),
                 "{position:?}: {text:?}"
             );
+        }
+    }
+
+    #[test]
+    fn a_strip_column_resolves_to_the_member_whose_segment_covers_it() {
+        // " 1 agent " and " 2 shell " are nine cells each.
+        let (app, [editor, agent, shell]) = stacked_app(TabBarPositionConfig::Top);
+        let tab = &app.workspaces[0].tabs[0];
+        let at = |column, width| stack_member_at(&app, tab, shell, column, width);
+
+        assert_eq!(
+            [at(0, 40), at(8, 40), at(9, 40), at(17, 40), at(18, 40)],
+            [Some(agent), Some(agent), Some(shell), Some(shell), None]
+        );
+        assert_eq!([at(4, 10), at(5, 10)], [Some(agent), Some(shell)]);
+        assert_eq!(stack_member_at(&app, tab, editor, 0, 40), None);
+    }
+
+    #[test]
+    fn each_rendered_label_resolves_to_its_own_member() {
+        for position in [TabBarPositionConfig::Top, TabBarPositionConfig::Bottom] {
+            let (app, [_, agent, shell]) = stacked_app(position);
+            let (infos, buffer) = render(&app);
+            let info = infos.iter().find(|info| info.id == shell).unwrap();
+            let (row, _) = split_strip(pane_inner_rect(info.rect, info.borders), position).unwrap();
+            let content = info.inner_rect;
+            let text = row_text(&buffer, Rect::new(content.x, row.y, content.width, 1));
+            let tab = &app.workspaces[0].tabs[0];
+
+            for (label, member) in [("1 agent", agent), ("2 shell", shell)] {
+                let column = u16::try_from(text.find(label).unwrap()).unwrap();
+                assert_eq!(
+                    stack_member_at(&app, tab, shell, column, content.width),
+                    Some(member),
+                    "{position:?} {label}: {text:?}"
+                );
+            }
         }
     }
 

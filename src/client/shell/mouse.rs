@@ -2266,12 +2266,7 @@ impl ClientShellState {
                             ));
                         }
                     }
-                    self.push_endpoint_method(
-                        crate::api::schema::Method::PaneFocus(crate::api::schema::PaneTarget {
-                            pane_id: hit.pane_id,
-                        }),
-                        outcome,
-                    );
+                    self.push_endpoint_method(self.pane_press_method(hit, mouse), outcome);
                 }
             }
             MouseEventKind::Down(MouseButton::Middle) => {
@@ -2329,6 +2324,36 @@ impl ClientShellState {
             }
             _ => {}
         }
+    }
+
+    /// Pressing a pane focuses it. A press on the row just outside its content,
+    /// within its columns, may land on a stack strip the endpoint drew there, so
+    /// the endpoint resolves it when it can; otherwise it is a plain focus.
+    fn pane_press_method(&self, hit: PaneHit, mouse: MouseEvent) -> crate::api::schema::Method {
+        use crate::api::schema::{Method, PaneContentEdge, PaneFocusStackedAtParams, PaneTarget};
+
+        let inner = hit.inner_rect;
+        let edge = if mouse.row.saturating_add(1) == inner.y {
+            Some(PaneContentEdge::Top)
+        } else if mouse.row == inner.y.saturating_add(inner.height) {
+            Some(PaneContentEdge::Bottom)
+        } else {
+            None
+        };
+        let beside_content = mouse.column >= inner.x && mouse.column - inner.x < inner.width;
+        edge.filter(|_| beside_content && !hit.popup)
+            .map(|edge| {
+                Method::PaneFocusStackedAt(PaneFocusStackedAtParams {
+                    pane_id: hit.pane_id.clone(),
+                    column: mouse.column - inner.x,
+                    width: inner.width,
+                    edge,
+                })
+            })
+            .filter(|method| self.supports_endpoint_method(method))
+            .unwrap_or(Method::PaneFocus(PaneTarget {
+                pane_id: hit.pane_id,
+            }))
     }
 
     fn pane_mouse_position(&self, hit: &PaneHit, mouse: MouseEvent) -> ClientMousePosition {

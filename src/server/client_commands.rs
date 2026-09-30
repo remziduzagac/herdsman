@@ -26,6 +26,7 @@ const CLIENT_SHELL_METHODS: &[&str] = &[
     "pane.focus",
     "pane.focus_direction",
     "pane.focus_stacked",
+    "pane.focus_stacked_at",
     "pane.input.set",
     "pane.link.activate",
     "pane.link.resolve",
@@ -307,6 +308,10 @@ mod tests {
         assert_eq!(
             actual.remove("pane.focus_stacked").as_deref(),
             Some("205b9d8908749fcfe34c510fca1db94a0c12a40ff1c29014f06c453eb9488b43")
+        );
+        assert_eq!(
+            actual.remove("pane.focus_stacked_at").as_deref(),
+            Some("ec4aa0fc311d09a9c46e1550000180ed5c6887b6b9d4b614dfb2aabe12599bb6")
         );
 
         assert_eq!(
