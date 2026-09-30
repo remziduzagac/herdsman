@@ -29,7 +29,23 @@ fn focus_stacked_asks_the_endpoint_to_resolve_the_focused_stack_member() {
         panic!("focus stacked should use the pane.focus_stacked endpoint method");
     };
     assert_eq!(params.pane_id.as_deref(), Some("pane_1"));
-    assert_eq!(params.index, 2);
+    assert_eq!((params.index, params.step), (Some(2), None));
+}
+
+#[test]
+fn next_and_previous_stacked_ask_the_endpoint_to_step_through_members() {
+    let mut state = state();
+
+    for (action, step) in [
+        (KeybindAction::NextStacked, 1),
+        (KeybindAction::PreviousStacked, -1),
+    ] {
+        let Some(Method::PaneFocusStacked(params)) = endpoint_method(&mut state, action) else {
+            panic!("{action:?} should use the pane.focus_stacked endpoint method");
+        };
+        assert_eq!(params.pane_id.as_deref(), Some("pane_1"));
+        assert_eq!((params.index, params.step), (None, Some(step)));
+    }
 }
 
 #[test]

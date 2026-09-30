@@ -159,6 +159,12 @@ pub(crate) fn keybind_help_groups(
                 ),
                 entry(binding_label(&keybinds.stack_pane), "stack pane"),
                 entry(indexed_label(&keybinds.focus_stacked), "focus stacked 1-9"),
+                entry(binding_label(&keybinds.next_stacked), "next stacked"),
+                entry(
+                    binding_label(&keybinds.previous_stacked),
+                    "previous stacked",
+                ),
+                entry(binding_label(&keybinds.close_stacked), "close stacked"),
                 entry(binding_label(&keybinds.close_pane), "close pane"),
                 entry(binding_label(&keybinds.rename_pane), "rename pane"),
                 entry(binding_label(&keybinds.edit_scrollback), "edit scrollback"),

@@ -2700,23 +2700,30 @@
           "type": "object"
         },
         "PaneFocusStackedParams": {
-          "description": "Show and focus member `index` (zero-based) of the stack holding `pane_id`,\nor of the focused pane's stack. A pane outside a stack or an index past its\nlast member leaves focus unchanged, as switching to a missing tab does.",
+          "description": "Show and focus a member of the stack holding `pane_id`, or of the focused\npane's stack: member `index` (zero-based), or the member `step` places from\nthe visible one, wrapping. Pass exactly one. A pane outside a stack or an\nindex past its last member leaves focus unchanged, as a missing tab does.",
           "properties": {
             "index": {
               "format": "uint",
               "minimum": 0,
-              "type": "integer"
+              "type": [
+                "integer",
+                "null"
+              ]
             },
             "pane_id": {
               "type": [
                 "string",
                 "null"
               ]
+            },
+            "step": {
+              "format": "int32",
+              "type": [
+                "integer",
+                "null"
+              ]
             }
           },
-          "required": [
-            "index"
-          ],
           "type": "object"
         },
         "PaneInputSetParams": {

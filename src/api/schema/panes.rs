@@ -52,14 +52,18 @@ pub struct PaneStackParams {
     pub env: HashMap<String, String>,
 }
 
-/// Show and focus member `index` (zero-based) of the stack holding `pane_id`,
-/// or of the focused pane's stack. A pane outside a stack or an index past its
-/// last member leaves focus unchanged, as switching to a missing tab does.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+/// Show and focus a member of the stack holding `pane_id`, or of the focused
+/// pane's stack: member `index` (zero-based), or the member `step` places from
+/// the visible one, wrapping. Pass exactly one. A pane outside a stack or an
+/// index past its last member leaves focus unchanged, as a missing tab does.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema, Default)]
 pub struct PaneFocusStackedParams {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pane_id: Option<String>,
-    pub index: usize,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub index: Option<usize>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub step: Option<i32>,
 }
 
 /// Focus the stack member drawn at a point of the strip beside `pane_id`'s

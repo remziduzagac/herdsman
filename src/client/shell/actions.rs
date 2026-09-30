@@ -1060,7 +1060,19 @@ impl ClientShellState {
             KeybindAction::FocusStacked(index) => {
                 Some(Method::PaneFocusStacked(PaneFocusStackedParams {
                     pane_id: focused_pane,
-                    index,
+                    index: Some(index),
+                    step: None,
+                }))
+            }
+            KeybindAction::NextStacked | KeybindAction::PreviousStacked => {
+                Some(Method::PaneFocusStacked(PaneFocusStackedParams {
+                    pane_id: focused_pane,
+                    index: None,
+                    step: Some(if action == KeybindAction::NextStacked {
+                        1
+                    } else {
+                        -1
+                    }),
                 }))
             }
             KeybindAction::ClosePane => Some(Method::PaneClose(PaneTarget {

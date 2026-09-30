@@ -307,7 +307,7 @@ mod tests {
         );
         assert_eq!(
             actual.remove("pane.focus_stacked").as_deref(),
-            Some("205b9d8908749fcfe34c510fca1db94a0c12a40ff1c29014f06c453eb9488b43")
+            Some("01d2d20ff540b72125aeed4aa91ce3d73d92ba5594e403aef98099a3186af5dc")
         );
         assert_eq!(
             actual.remove("pane.focus_stacked_at").as_deref(),

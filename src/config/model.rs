@@ -387,6 +387,10 @@ pub struct KeysConfig {
     pub focus_agent: BindingConfig,
     /// Show and focus member 1-9 of the focused pane's stack. Default: "prefix+alt+1..9".
     pub focus_stacked: BindingConfig,
+    /// Show the next member of the focused pane's stack, wrapping. Default: "prefix+alt+n".
+    pub next_stacked: BindingConfig,
+    /// Show the previous member of the focused pane's stack, wrapping. Default: "prefix+alt+p".
+    pub previous_stacked: BindingConfig,
     /// Local-client shortcut that sends a clipboard image to a remote Herdsman session. Default: "ctrl+v".
     pub remote_image_paste: String,
     /// Create a new tab in the active workspace. Default: "prefix+c"
@@ -440,8 +444,11 @@ pub struct KeysConfig {
     pub split_vertical: BindingConfig,
     /// Split pane horizontally (stacked). Default: "prefix+minus"
     pub split_horizontal: BindingConfig,
-    /// Open a new pane in the focused pane's slot, one visible at a time. Default: "prefix+a"
+    /// Open a new pane in the focused pane's slot, one visible at a time. Default: "prefix+alt+c"
     pub stack_pane: BindingConfig,
+    /// Close the focused pane, which in a stack is its visible member; the same action as
+    /// close_pane, on the stack key family. Default: "prefix+alt+x"
+    pub close_stacked: BindingConfig,
     /// Close the focused pane. Default: "prefix+x"
     pub close_pane: BindingConfig,
     /// Toggle zoom for the focused pane. Default: "prefix+z"
@@ -529,6 +536,10 @@ pub(crate) struct KeysConfigOverlay {
     #[serde(skip_serializing_if = "Option::is_none")]
     focus_stacked: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    next_stacked: Option<BindingConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    previous_stacked: Option<BindingConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     remote_image_paste: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     new_tab: Option<BindingConfig>,
@@ -583,6 +594,8 @@ pub(crate) struct KeysConfigOverlay {
     split_horizontal: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     stack_pane: Option<BindingConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    close_stacked: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     close_pane: Option<BindingConfig>,
     #[serde(alias = "fullscreen", skip_serializing_if = "Option::is_none")]
@@ -677,6 +690,8 @@ impl<'de> Deserialize<'de> for KeysConfig {
         apply_field!(next_agent);
         apply_field!(focus_agent);
         apply_field!(focus_stacked);
+        apply_field!(next_stacked);
+        apply_field!(previous_stacked);
         apply_field!(remote_image_paste);
         apply_field!(new_tab);
         apply_field!(rename_tab);
@@ -705,6 +720,7 @@ impl<'de> Deserialize<'de> for KeysConfig {
         apply_field!(split_vertical);
         apply_field!(split_horizontal);
         apply_field!(stack_pane);
+        apply_field!(close_stacked);
         apply_field!(close_pane);
         apply_field!(zoom);
         apply_field!(resize_mode);
@@ -784,6 +800,8 @@ impl KeysConfig {
         copy_effective_action_field!(next_agent, keybinds.next_agent);
         copy_effective_indexed_field!(focus_agent, keybinds.focus_agent);
         copy_effective_indexed_field!(focus_stacked, keybinds.focus_stacked);
+        copy_effective_action_field!(next_stacked, keybinds.next_stacked);
+        copy_effective_action_field!(previous_stacked, keybinds.previous_stacked);
         copy_user_field!(remote_image_paste);
         copy_effective_action_field!(new_tab, keybinds.new_tab);
         copy_effective_action_field!(rename_tab, keybinds.rename_tab);
@@ -812,6 +830,7 @@ impl KeysConfig {
         copy_effective_action_field!(split_vertical, keybinds.split_vertical);
         copy_effective_action_field!(split_horizontal, keybinds.split_horizontal);
         copy_effective_action_field!(stack_pane, keybinds.stack_pane);
+        copy_effective_action_field!(close_stacked, keybinds.close_stacked);
         copy_effective_action_field!(close_pane, keybinds.close_pane);
         copy_effective_action_field!(zoom, keybinds.zoom);
         copy_effective_action_field!(resize_mode, keybinds.resize_mode);
@@ -1157,6 +1176,8 @@ impl Default for KeysConfig {
             next_agent: BindingConfig::empty(),
             focus_agent: BindingConfig::empty(),
             focus_stacked: BindingConfig::one("prefix+alt+1..9"),
+            next_stacked: BindingConfig::one("prefix+alt+n"),
+            previous_stacked: BindingConfig::one("prefix+alt+p"),
             remote_image_paste: "ctrl+v".into(),
             new_tab: BindingConfig::one("prefix+c"),
             rename_tab: BindingConfig::one("prefix+shift+t"),
@@ -1184,7 +1205,8 @@ impl Default for KeysConfig {
             last_pane: BindingConfig::empty(),
             split_vertical: BindingConfig::one("prefix+v"),
             split_horizontal: BindingConfig::one("prefix+minus"),
-            stack_pane: BindingConfig::one("prefix+a"),
+            stack_pane: BindingConfig::one("prefix+alt+c"),
+            close_stacked: BindingConfig::one("prefix+alt+x"),
             close_pane: BindingConfig::one("prefix+x"),
             zoom: BindingConfig::one("prefix+z"),
             resize_mode: BindingConfig::one("prefix+r"),

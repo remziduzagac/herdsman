@@ -28,6 +28,8 @@ pub(crate) enum KeybindAction {
     SwitchTab(usize),
     FocusAgent(usize),
     FocusStacked(usize),
+    NextStacked,
+    PreviousStacked,
     WorkspacePicker,
     PreviousWorkspace,
     NextWorkspace,
@@ -142,6 +144,9 @@ pub(crate) fn resolve_non_indexed_action(
         (&keybinds.split_vertical, KeybindAction::SplitVertical),
         (&keybinds.split_horizontal, KeybindAction::SplitHorizontal),
         (&keybinds.stack_pane, KeybindAction::StackPane),
+        (&keybinds.close_stacked, KeybindAction::ClosePane),
+        (&keybinds.next_stacked, KeybindAction::NextStacked),
+        (&keybinds.previous_stacked, KeybindAction::PreviousStacked),
         (&keybinds.close_pane, KeybindAction::ClosePane),
         (&keybinds.zoom, KeybindAction::Zoom),
         (&keybinds.resize_mode, KeybindAction::EnterResizeMode),
@@ -331,26 +336,45 @@ mod tests {
     }
 
     #[test]
-    fn stack_bindings_default_to_prefix_a_and_prefix_alt_digits_without_conflicts() {
+    fn stack_bindings_mirror_tab_bindings_on_alt_without_conflicts() {
         let config = crate::config::Config::default();
         assert!(config.collect_diagnostics().is_empty());
         let keybinds = config.keybinds();
-        let prefix = |code, modifiers| {
-            resolve_prefix_binding(&keybinds, &TerminalKey::new(KeyCode::Char(code), modifiers))
+        let action = |code, modifiers| match resolve_prefix_binding(
+            &keybinds,
+            &TerminalKey::new(KeyCode::Char(code), modifiers),
+        ) {
+            Some(KeybindMatch::Action(action)) => Some(action),
+            _ => None,
         };
 
-        assert!(matches!(
-            prefix('a', KeyModifiers::empty()),
-            Some(KeybindMatch::Action(KeybindAction::StackPane))
-        ));
-        assert!(matches!(
-            prefix('3', KeyModifiers::ALT),
-            Some(KeybindMatch::Action(KeybindAction::FocusStacked(2)))
-        ));
-        assert!(matches!(
-            prefix('3', KeyModifiers::empty()),
-            Some(KeybindMatch::Action(KeybindAction::SwitchTab(2)))
-        ));
+        // Tabs on plain keys, stack members on the same keys with alt.
+        for (code, tab, stacked) in [
+            (
+                '3',
+                KeybindAction::SwitchTab(2),
+                KeybindAction::FocusStacked(2),
+            ),
+            ('n', KeybindAction::NextTab, KeybindAction::NextStacked),
+            (
+                'p',
+                KeybindAction::PreviousTab,
+                KeybindAction::PreviousStacked,
+            ),
+            ('c', KeybindAction::NewTab, KeybindAction::StackPane),
+            ('x', KeybindAction::ClosePane, KeybindAction::ClosePane),
+        ] {
+            assert_eq!(
+                action(code, KeyModifiers::empty()),
+                Some(tab),
+                "prefix+{code}"
+            );
+            assert_eq!(
+                action(code, KeyModifiers::ALT),
+                Some(stacked),
+                "prefix+alt+{code}"
+            );
+        }
     }
 
     #[test]

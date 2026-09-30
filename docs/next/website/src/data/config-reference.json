@@ -632,6 +632,18 @@
           "description": "Show and focus member 1-9 of the focused pane's stack."
         },
         {
+          "key": "keys.next_stacked",
+          "type": "keybinding",
+          "default": "\"prefix+alt+n\"",
+          "description": "Show the next member of the focused pane's stack, wrapping."
+        },
+        {
+          "key": "keys.previous_stacked",
+          "type": "keybinding",
+          "default": "\"prefix+alt+p\"",
+          "description": "Show the previous member of the focused pane's stack, wrapping."
+        },
+        {
           "key": "keys.remote_image_paste",
           "type": "string",
           "default": "\"ctrl+v\"",
@@ -796,8 +808,14 @@
         {
           "key": "keys.stack_pane",
           "type": "keybinding",
-          "default": "\"prefix+a\"",
+          "default": "\"prefix+alt+c\"",
           "description": "Open a new pane in the focused pane's slot, one visible at a time."
+        },
+        {
+          "key": "keys.close_stacked",
+          "type": "keybinding",
+          "default": "\"prefix+alt+x\"",
+          "description": "Close the focused pane, a stack's visible member; the same action as close_pane."
         },
         {
           "key": "keys.close_pane",

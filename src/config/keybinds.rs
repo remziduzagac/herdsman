@@ -370,6 +370,8 @@ pub struct Keybinds {
     pub next_agent: ActionKeybinds,
     pub focus_agent: Vec<IndexedKeybind>,
     pub focus_stacked: Vec<IndexedKeybind>,
+    pub next_stacked: ActionKeybinds,
+    pub previous_stacked: ActionKeybinds,
     pub new_tab: ActionKeybinds,
     pub rename_tab: ActionKeybinds,
     pub previous_tab: ActionKeybinds,
@@ -397,6 +399,7 @@ pub struct Keybinds {
     pub split_vertical: ActionKeybinds,
     pub split_horizontal: ActionKeybinds,
     pub stack_pane: ActionKeybinds,
+    pub close_stacked: ActionKeybinds,
     pub close_pane: ActionKeybinds,
     pub zoom: ActionKeybinds,
     pub resize_mode: ActionKeybinds,
@@ -555,6 +558,8 @@ impl Config {
             next_agent: empty_action!(),
             focus_agent: Vec::new(),
             focus_stacked: Vec::new(),
+            next_stacked: empty_action!(),
+            previous_stacked: empty_action!(),
             new_tab: empty_action!(),
             rename_tab: empty_action!(),
             previous_tab: empty_action!(),
@@ -582,6 +587,7 @@ impl Config {
             split_vertical: empty_action!(),
             split_horizontal: empty_action!(),
             stack_pane: empty_action!(),
+            close_stacked: empty_action!(),
             close_pane: empty_action!(),
             zoom: empty_action!(),
             resize_mode: empty_action!(),
@@ -695,6 +701,8 @@ impl Config {
                 source
             );
             apply_indexed!(keybinds.focus_stacked, focus_stacked, "", source);
+            apply_action!(keybinds.next_stacked, next_stacked, source);
+            apply_action!(keybinds.previous_stacked, previous_stacked, source);
             apply_action!(keybinds.new_tab, new_tab, source);
             apply_action!(keybinds.rename_tab, rename_tab, source);
             apply_action!(keybinds.previous_tab, previous_tab, source);
@@ -732,6 +740,7 @@ impl Config {
             apply_action!(keybinds.split_vertical, split_vertical, source);
             apply_action!(keybinds.split_horizontal, split_horizontal, source);
             apply_action!(keybinds.stack_pane, stack_pane, source);
+            apply_action!(keybinds.close_stacked, close_stacked, source);
             apply_action!(keybinds.close_pane, close_pane, source);
             apply_action!(keybinds.zoom, zoom, source);
             apply_action!(keybinds.resize_mode, resize_mode, source);

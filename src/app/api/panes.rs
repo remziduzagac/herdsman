@@ -538,13 +538,26 @@ impl App {
         id: String,
         params: PaneFocusStackedParams,
     ) -> String {
+        if params.index.is_some() == params.step.is_some() {
+            return encode_error(id, "invalid_params", "pass exactly one of index or step");
+        }
         let Some((ws_idx, pane_id)) = self.resolve_optional_pane(params.pane_id.as_deref()) else {
             return encode_error(id, "pane_not_found", "pane not found");
         };
         let member = self.state.workspaces.get(ws_idx).and_then(|ws| {
             let tab = ws.tabs.get(ws.find_tab_index_for_pane(pane_id)?)?;
-            let (members, _) = tab.layout.stack_members(pane_id)?;
-            members.get(params.index).copied()
+            let (members, active) = tab.layout.stack_members(pane_id)?;
+            let index = match (params.index, params.step) {
+                (Some(index), _) => index,
+                // Wraps both ways, as next_tab and previous_tab do.
+                (None, Some(step)) => {
+                    let len = i64::try_from(members.len()).ok()?;
+                    let from = i64::try_from(active).ok()?;
+                    usize::try_from((from + i64::from(step)).rem_euclid(len)).ok()?
+                }
+                (None, None) => return None,
+            };
+            members.get(index).copied()
         });
         if let Some(member) = member {
             self.state.focus_pane_in_workspace(ws_idx, member);
@@ -2569,8 +2582,8 @@ mod tests {
         let response = app.handle_pane_focus_stacked(
             "req".into(),
             PaneFocusStackedParams {
-                pane_id: None,
-                index: 0,
+                index: Some(0),
+                ..Default::default()
             },
         );
 
@@ -2584,16 +2597,67 @@ mod tests {
     }
 
     #[test]
+    fn pane_focus_stacked_steps_through_members_wrapping_both_ways() {
+        let (mut app, _, a, b) = app_with_stack();
+        let step = |app: &mut App, step| {
+            let response = app.handle_pane_focus_stacked(
+                "req".into(),
+                PaneFocusStackedParams {
+                    step: Some(step),
+                    ..Default::default()
+                },
+            );
+            stacked_pane(app, &response)
+        };
+
+        // Focus starts on b, the last of [a, b].
+        assert_eq!(step(&mut app, 1), a);
+        assert_eq!(step(&mut app, 1), b);
+        assert_eq!(step(&mut app, -1), a);
+        assert_eq!(step(&mut app, -1), b);
+        assert_eq!(step(&mut app, 4), b);
+        app.state.assert_invariants_for_test();
+    }
+
+    #[test]
     fn pane_focus_stacked_leaves_focus_alone_without_a_member_there() {
         let (mut app, root, _, b) = app_with_stack();
         let root_public = app.public_pane_id(0, root).unwrap();
 
-        for (pane_id, index) in [(None, 2), (Some(root_public), 0)] {
-            let response = app
-                .handle_pane_focus_stacked("req".into(), PaneFocusStackedParams { pane_id, index });
+        for (pane_id, index, step) in [
+            (None, Some(2), None),
+            (Some(root_public.clone()), Some(0), None),
+            (Some(root_public), None, Some(1)),
+        ] {
+            let response = app.handle_pane_focus_stacked(
+                "req".into(),
+                PaneFocusStackedParams {
+                    pane_id,
+                    index,
+                    step,
+                },
+            );
             let success: SuccessResponse = serde_json::from_str(&response).unwrap();
             assert!(matches!(success.result, ResponseResult::PaneInfo { .. }));
             assert_eq!(app.state.workspaces[0].tabs[0].layout.focused(), b);
+        }
+    }
+
+    #[test]
+    fn pane_focus_stacked_needs_exactly_one_of_index_or_step() {
+        let (mut app, _, _, _) = app_with_stack();
+
+        for (index, step) in [(None, None), (Some(0), Some(1))] {
+            let response = app.handle_pane_focus_stacked(
+                "req".into(),
+                PaneFocusStackedParams {
+                    pane_id: None,
+                    index,
+                    step,
+                },
+            );
+            let error: ErrorResponse = serde_json::from_str(&response).unwrap();
+            assert_eq!(error.error.code, "invalid_params");
         }
     }
 
