@@ -1062,7 +1062,7 @@ impl AppState {
             pane_scrollbars: true,
             pane_gaps: false,
             show_agent_labels_on_pane_borders: false,
-            stack_strip_position: crate::config::TabBarPositionConfig::Top,
+            stack_strip_position: crate::config::TabBarPositionConfig::Bottom,
             tab_bar_right: Vec::new(),
             tab_bar_right_separator: " ".into(),
             reveal_hidden_cursor_for_cjk_ime: false,

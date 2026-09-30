@@ -2677,14 +2677,20 @@ mod tests {
 
     #[test]
     fn pane_focus_stacked_at_focuses_the_member_under_a_strip_column() {
-        // Unlabelled members draw as " 1 " and " 2 ": columns 0-2 and 3-5.
+        // The strip defaults to the bottom edge. Unlabelled members draw as
+        // " 1 " and " 2 ": columns 0-2 and 3-5.
         let (mut app, _, a, b) = app_with_stack();
 
-        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Top), a);
+        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Bottom), a);
         let layout = &app.state.workspaces[0].tabs[0].layout;
         assert_eq!((layout.focused(), layout.is_visible(b)), (a, false));
-        assert_eq!(focus_stacked_at(&mut app, a, 4, PaneContentEdge::Top), b);
-        assert_eq!(focus_stacked_at(&mut app, b, 20, PaneContentEdge::Top), b);
+        assert_eq!(focus_stacked_at(&mut app, a, 4, PaneContentEdge::Bottom), b);
+        assert_eq!(
+            focus_stacked_at(&mut app, b, 20, PaneContentEdge::Bottom),
+            b
+        );
+        app.state.stack_strip_position = crate::config::TabBarPositionConfig::Top;
+        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Top), a);
         app.state.assert_invariants_for_test();
     }
 
@@ -2692,13 +2698,13 @@ mod tests {
     fn pane_focus_stacked_at_off_the_strip_focuses_the_pane_itself() {
         let (mut app, root, a, b) = app_with_stack();
 
-        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Bottom), b);
+        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Top), b);
         assert_eq!(
-            focus_stacked_at(&mut app, root, 1, PaneContentEdge::Top),
+            focus_stacked_at(&mut app, root, 1, PaneContentEdge::Bottom),
             root
         );
         app.state.workspaces[0].tabs[0].zoomed = true;
-        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Top), b);
+        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Bottom), b);
         assert!(!app.state.workspaces[0].tabs[0].layout.is_visible(a));
     }
 

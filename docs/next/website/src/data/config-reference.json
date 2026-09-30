@@ -1026,7 +1026,7 @@
         {
           "key": "ui.stack_strip_position",
           "type": "enum",
-          "default": "\"top\"",
+          "default": "\"bottom\"",
           "description": "Place the strip naming a stack's members at the top or bottom of its slot.",
           "values": [
             "top",

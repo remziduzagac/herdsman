@@ -356,6 +356,18 @@ mod tests {
     }
 
     #[test]
+    fn strip_defaults_to_the_bottom_of_its_slot() {
+        assert_eq!(
+            crate::config::Config::default().ui.stack_strip_position,
+            TabBarPositionConfig::Bottom
+        );
+        assert_eq!(
+            AppState::test_new().stack_strip_position,
+            TabBarPositionConfig::Bottom
+        );
+    }
+
+    #[test]
     fn strip_takes_the_first_or_last_inner_row() {
         let inner = Rect::new(2, 3, 20, 10);
 
