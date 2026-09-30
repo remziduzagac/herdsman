@@ -382,6 +382,10 @@ pub(super) fn navigator_rows(
                                 _ => format!("{pane_name} · {}", index + 1),
                             }
                         };
+                        let label =
+                            navigator
+                                .stacks
+                                .label(&endpoint.endpoint_id, &pane.pane_id, label);
                         let meta = pane
                             .foreground_cwd
                             .as_deref()

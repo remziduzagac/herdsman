@@ -120,6 +120,9 @@ pub enum ResponseResult {
     PaneList {
         panes: Vec<PaneInfo>,
     },
+    PaneStacks {
+        stacks: Vec<super::panes::PaneStackInfo>,
+    },
     PaneCurrent {
         pane: PaneInfo,
     },

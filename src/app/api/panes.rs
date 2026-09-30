@@ -16,6 +16,7 @@ use crate::api::schema::{
     PaneSwapResult, PaneTarget, PaneTextPoint, PaneTextRange, PaneZoomMode, PaneZoomParams,
     PaneZoomReason, PaneZoomResult, ResponseResult,
 };
+use crate::api::schema::{PaneStackInfo, PaneStacksParams, SuccessResponse};
 use crate::app::actions::{PaneZoomCommand, PaneZoomNoopReason};
 use crate::app::App;
 #[cfg(test)]
@@ -569,6 +570,188 @@ impl App {
             return encode_error(id, "pane_not_found", "pane not found");
         };
         encode_success(id, ResponseResult::PaneInfo { pane })
+    }
+
+    /// Every stack, in layout order, with its members and visible member.
+    pub(super) fn handle_pane_stacks(&mut self, id: String, params: PaneStacksParams) -> String {
+        let ws_indices = match params.workspace_id.as_deref() {
+            Some(workspace_id) => match self.parse_workspace_id(workspace_id) {
+                Some(ws_idx) => vec![ws_idx],
+                None => {
+                    return encode_error(
+                        id,
+                        "workspace_not_found",
+                        format!("workspace {workspace_id} not found"),
+                    )
+                }
+            },
+            None => (0..self.state.workspaces.len()).collect(),
+        };
+        let mut stacks = Vec::new();
+        for ws_idx in ws_indices {
+            let workspace_id = self.public_workspace_id(ws_idx);
+            for (tab_idx, tab) in self.state.workspaces[ws_idx].tabs.iter().enumerate() {
+                let Some(tab_id) = self.public_tab_id(ws_idx, tab_idx) else {
+                    continue;
+                };
+                for pane in tab.layout.pane_ids() {
+                    // Report each stack once, at its first member.
+                    let Some((members, active)) = tab.layout.stack_members(pane) else {
+                        continue;
+                    };
+                    if members.first() != Some(&pane) {
+                        continue;
+                    }
+                    let pane_ids = members
+                        .iter()
+                        .filter_map(|member| self.public_pane_id(ws_idx, *member))
+                        .collect::<Vec<_>>();
+                    let Some(visible_pane_id) = members
+                        .get(active)
+                        .and_then(|member| self.public_pane_id(ws_idx, *member))
+                    else {
+                        continue;
+                    };
+                    stacks.push(PaneStackInfo {
+                        workspace_id: workspace_id.clone(),
+                        tab_id: tab_id.clone(),
+                        pane_ids,
+                        visible_pane_id,
+                    });
+                }
+            }
+        }
+        encode_success(id, ResponseResult::PaneStacks { stacks })
+    }
+
+    /// `pane.move` into a stack. Within a tab the pane folds straight into the
+    /// target's slot. From another tab or workspace, the ordinary move places
+    /// it beside the target first, with all of that path's identity care, and
+    /// then it folds in.
+    fn handle_pane_move_to_stack(
+        &mut self,
+        id: String,
+        pane_id: String,
+        (source_ws_idx, source_tab_idx, source_pane): (usize, usize, PaneId),
+        raw_target: &str,
+        focus: bool,
+    ) -> String {
+        let Some((target_ws_idx, target)) = self.parse_pane_id(raw_target) else {
+            return encode_error(
+                id,
+                "target_pane_not_found",
+                format!("target pane {raw_target} not found"),
+            );
+        };
+        let Some(target_tab_idx) =
+            self.state.workspaces[target_ws_idx].find_tab_index_for_pane(target)
+        else {
+            return encode_error(
+                id,
+                "target_pane_not_found",
+                format!("target pane {raw_target} not found"),
+            );
+        };
+        if (target_ws_idx, target) == (source_ws_idx, source_pane) {
+            return encode_error(id, "invalid_target", "a pane cannot join its own stack");
+        }
+
+        if (target_ws_idx, target_tab_idx) != (source_ws_idx, source_tab_idx) {
+            let Some(tab_id) = self.public_tab_id(target_ws_idx, target_tab_idx) else {
+                return encode_error(id, "tab_not_found", "target tab not found");
+            };
+            let response = self.handle_pane_move(
+                id.clone(),
+                PaneMoveParams {
+                    pane_id,
+                    destination: PaneMoveDestination::Tab {
+                        tab_id,
+                        target_pane_id: Some(raw_target.to_owned()),
+                        split: crate::api::schema::SplitDirection::Right,
+                        ratio: None,
+                    },
+                    focus,
+                },
+            );
+            let Ok(SuccessResponse {
+                result: ResponseResult::PaneMove { mut move_result },
+                ..
+            }) = serde_json::from_str::<SuccessResponse>(&response)
+            else {
+                return response;
+            };
+            let Some((ws_idx, moved)) = self.parse_pane_id(&move_result.pane.pane_id) else {
+                return response;
+            };
+            let Some(tab_idx) = self.state.workspaces[ws_idx].find_tab_index_for_pane(moved) else {
+                return response;
+            };
+            if !move_result.changed
+                || !self.state.workspaces[ws_idx].tabs[tab_idx]
+                    .layout
+                    .move_into_stack(target, moved)
+            {
+                return response;
+            }
+            let (Some(pane), Some(layout)) = (
+                self.pane_info(ws_idx, moved),
+                self.pane_layout_snapshot(ws_idx, tab_idx),
+            ) else {
+                return response;
+            };
+            move_result.focused_pane_id = layout.focused_pane_id.clone();
+            move_result.pane = Box::new(pane);
+            move_result.target_layout = Box::new(layout);
+            self.schedule_session_save();
+            self.emit_layout_updated_event(ws_idx, tab_idx);
+            return encode_success(id, ResponseResult::PaneMove { move_result });
+        }
+
+        if !self.state.workspaces[source_ws_idx].tabs[source_tab_idx]
+            .layout
+            .move_into_stack(target, source_pane)
+        {
+            return encode_error(
+                id,
+                "already_stacked",
+                format!("{pane_id} already shares a stack with {raw_target}"),
+            );
+        }
+        if focus {
+            self.state
+                .focus_pane_in_workspace(source_ws_idx, source_pane);
+            self.state.mark_active_tab_seen();
+            self.state.mode = crate::app::Mode::Terminal;
+        }
+        self.schedule_session_save();
+        self.emit_layout_updated_event(source_ws_idx, source_tab_idx);
+        let (Some(pane), Some(layout), Some(previous_tab_id)) = (
+            self.pane_info(source_ws_idx, source_pane),
+            self.pane_layout_snapshot(source_ws_idx, source_tab_idx),
+            self.public_tab_id(source_ws_idx, source_tab_idx),
+        ) else {
+            return encode_error(id, "pane_not_found", "moved pane not found");
+        };
+        encode_success(
+            id,
+            ResponseResult::PaneMove {
+                move_result: PaneMoveResult {
+                    changed: true,
+                    reason: None,
+                    previous_pane_id: pane.pane_id.clone(),
+                    previous_workspace_id: self.public_workspace_id(source_ws_idx),
+                    previous_tab_id,
+                    focused_pane_id: layout.focused_pane_id.clone(),
+                    pane: Box::new(pane),
+                    source_layout: None,
+                    target_layout: Box::new(layout),
+                    created_workspace: None,
+                    created_tab: None,
+                    closed_workspace_id: None,
+                    closed_tab_id: None,
+                },
+            },
+        )
     }
 
     /// A click beside a pane's content: the endpoint drew any stack strip
@@ -1223,6 +1406,15 @@ impl App {
             }
             PaneMoveDestination::NewWorkspace { label, tab_label } => {
                 ResolvedPaneMoveDestination::NewWorkspace { label, tab_label }
+            }
+            PaneMoveDestination::Stack { target_pane_id } => {
+                return self.handle_pane_move_to_stack(
+                    id,
+                    pane_id,
+                    (source_ws_idx, source_tab_idx, source_pane_id),
+                    &target_pane_id,
+                    focus,
+                );
             }
         };
 
@@ -2706,6 +2898,109 @@ mod tests {
         app.state.workspaces[0].tabs[0].zoomed = true;
         assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Bottom), b);
         assert!(!app.state.workspaces[0].tabs[0].layout.is_visible(a));
+    }
+
+    fn move_to_stack(app: &mut App, pane: PaneId, target: PaneId, focus: bool) -> String {
+        let pane_id = app.public_pane_id(0, pane).unwrap();
+        let target_pane_id = app.public_pane_id(0, target).unwrap();
+        app.handle_pane_move(
+            "req".into(),
+            PaneMoveParams {
+                pane_id,
+                destination: PaneMoveDestination::Stack { target_pane_id },
+                focus,
+            },
+        )
+    }
+
+    fn moved(response: &str) -> PaneMoveResult {
+        let success: SuccessResponse = serde_json::from_str(response).unwrap();
+        let ResponseResult::PaneMove { move_result } = success.result else {
+            panic!("expected pane move response");
+        };
+        move_result
+    }
+
+    #[test]
+    fn pane_move_to_stack_within_a_tab_joins_the_target_stack() {
+        // root | S[a, *b], focus on b.
+        let (mut app, root, a, b) = app_with_stack();
+
+        let result = moved(&move_to_stack(&mut app, root, a, false));
+
+        assert!(result.changed);
+        assert_eq!(result.pane.pane_id, app.public_pane_id(0, root).unwrap());
+        let layout = &app.state.workspaces[0].tabs[0].layout;
+        assert_eq!(layout.stack_members(root), Some((&[a, b, root][..], 1)));
+        assert_eq!(layout.focused(), b);
+        assert_eq!(result.target_layout.panes.len(), 1);
+        app.state.assert_invariants_for_test();
+    }
+
+    #[test]
+    fn pane_move_to_stack_with_focus_shows_the_moved_pane() {
+        let (mut app, root, a, b) = app_with_stack();
+
+        moved(&move_to_stack(&mut app, root, b, true));
+
+        let layout = &app.state.workspaces[0].tabs[0].layout;
+        assert_eq!(layout.stack_members(root), Some((&[a, b, root][..], 2)));
+        assert_eq!(layout.focused(), root);
+    }
+
+    #[test]
+    fn pane_move_to_stack_from_another_tab_moves_then_joins() {
+        let mut app = app_with_linked_worktree();
+        let target = app.state.workspaces[0].tabs[0].root_pane;
+        let source_tab = app.state.workspaces[0].test_add_tab(Some("source"));
+        let source = app.state.workspaces[0].tabs[source_tab].root_pane;
+        seed_terminal_states(&mut app);
+
+        let result = moved(&move_to_stack(&mut app, source, target, true));
+
+        assert!(result.changed);
+        assert!(result.closed_tab_id.is_some());
+        assert_eq!(result.target_layout.panes.len(), 1);
+        let tab = &app.state.workspaces[0].tabs[0];
+        assert_eq!(
+            tab.layout.stack_members(target),
+            Some((&[target, source][..], 1))
+        );
+        assert_eq!(tab.layout.focused(), source);
+        app.state.assert_invariants_for_test();
+    }
+
+    #[test]
+    fn pane_move_to_stack_rejects_itself_and_a_current_stackmate() {
+        let (mut app, _, a, b) = app_with_stack();
+
+        for (pane, target, code) in [(a, a, "invalid_target"), (a, b, "already_stacked")] {
+            let error: ErrorResponse =
+                serde_json::from_str(&move_to_stack(&mut app, pane, target, false)).unwrap();
+            assert_eq!(error.error.code, code);
+        }
+    }
+
+    #[test]
+    fn pane_stacks_lists_each_stack_once_with_its_visible_member() {
+        let (mut app, _, a, b) = app_with_stack();
+
+        let response = app.handle_pane_stacks("req".into(), PaneStacksParams::default());
+
+        let success: SuccessResponse = serde_json::from_str(&response).unwrap();
+        let ResponseResult::PaneStacks { stacks } = success.result else {
+            panic!("expected pane stacks response");
+        };
+        let public = |id| app.public_pane_id(0, id).unwrap();
+        assert_eq!(
+            stacks,
+            [PaneStackInfo {
+                workspace_id: app.public_workspace_id(0),
+                tab_id: app.public_tab_id(0, 0).unwrap(),
+                pane_ids: vec![public(a), public(b)],
+                visible_pane_id: public(b),
+            }]
+        );
     }
 
     #[test]

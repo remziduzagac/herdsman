@@ -52,6 +52,21 @@ pub struct PaneStackParams {
     pub env: HashMap<String, String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema, Default)]
+pub struct PaneStacksParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workspace_id: Option<String>,
+}
+
+/// One stack: its members in strip order and the one currently visible.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+pub struct PaneStackInfo {
+    pub workspace_id: String,
+    pub tab_id: String,
+    pub pane_ids: Vec<String>,
+    pub visible_pane_id: String,
+}
+
 /// Show and focus a member of the stack holding `pane_id`, or of the focused
 /// pane's stack: member `index` (zero-based), or the member `step` places from
 /// the visible one, wrapping. Pass exactly one. A pane outside a stack or an
@@ -154,6 +169,8 @@ pub enum PaneMoveDestination {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         tab_label: Option<String>,
     },
+    /// Join the stack in `target_pane_id`'s slot, from any tab or workspace.
+    Stack { target_pane_id: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema, Default)]

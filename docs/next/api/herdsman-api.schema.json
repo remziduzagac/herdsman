@@ -2886,6 +2886,23 @@
                 "type"
               ],
               "type": "object"
+            },
+            {
+              "description": "Join the stack in `target_pane_id`'s slot, from any tab or workspace.",
+              "properties": {
+                "target_pane_id": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "stack",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "target_pane_id"
+              ],
+              "type": "object"
             }
           ]
         },
@@ -3419,6 +3436,17 @@
                 "null"
               ]
             },
+            "workspace_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "type": "object"
+        },
+        "PaneStacksParams": {
+          "properties": {
             "workspace_id": {
               "type": [
                 "string",
@@ -5655,6 +5683,22 @@
             },
             "params": {
               "$ref": "#/schemas/request/$defs/PaneFocusStackedAtParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "pane.stacks",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/PaneStacksParams"
             }
           },
           "required": [
@@ -8725,6 +8769,33 @@
           ],
           "type": "object"
         },
+        "PaneStackInfo": {
+          "description": "One stack: its members in strip order and the one currently visible.",
+          "properties": {
+            "pane_ids": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "tab_id": {
+              "type": "string"
+            },
+            "visible_pane_id": {
+              "type": "string"
+            },
+            "workspace_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_id",
+            "tab_id",
+            "pane_ids",
+            "visible_pane_id"
+          ],
+          "type": "object"
+        },
         "PaneSwapReason": {
           "enum": [
             "no_neighbor",
@@ -9849,6 +9920,25 @@
               "required": [
                 "type",
                 "panes"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "stacks": {
+                  "items": {
+                    "$ref": "#/schemas/success_response/$defs/PaneStackInfo"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "const": "pane_stacks",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "stacks"
               ],
               "type": "object"
             },

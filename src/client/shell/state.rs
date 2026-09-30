@@ -367,6 +367,7 @@ pub(super) struct ClientNavigatorOverlay {
     pub(super) selected: Option<ClientNavigatorTarget>,
     pub(super) scroll: usize,
     pub(super) filter: Option<ClientNavigatorFilter>,
+    pub(super) stacks: super::stack_marks::NavigatorStacks,
 }
 
 #[derive(Debug)]
@@ -653,6 +654,9 @@ pub(super) enum PendingEndpointKind {
     },
     PaneLinkResolve {
         target: super::link_hover::LinkHoverTarget,
+    },
+    NavigatorStacks {
+        endpoint_id: ClientEndpointId,
     },
     PaneLinkActivate {
         pane_id: String,

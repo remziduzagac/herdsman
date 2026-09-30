@@ -130,6 +130,84 @@ fn pressing_beside_content_is_a_plain_focus_without_the_stack_method() {
     assert!(state.visible_endpoint_notice.is_none());
 }
 
+fn open_navigator(state: &mut ClientShellState) -> Vec<ClientShellAction> {
+    let mut outcome = ClientShellInput::default();
+    state.record_binding(
+        KeybindMatch::Action(KeybindAction::OpenNavigator),
+        &mut outcome,
+    );
+    outcome.actions
+}
+
+fn pane_row_labels(state: &ClientShellState) -> Vec<String> {
+    let Some(ClientShellOverlay::Navigator(navigator)) = state.overlay.as_ref() else {
+        panic!("navigator should be open");
+    };
+    render::client_navigator_rows(&state.endpoints, &state.active_endpoint_id, navigator)
+        .into_iter()
+        .filter(|row| matches!(row.target, ClientNavigatorTarget::Pane { .. }))
+        .map(|row| row.label)
+        .collect()
+}
+
+#[test]
+fn navigator_marks_stacked_panes_once_the_endpoint_answers() {
+    let mut projected = snapshot();
+    let mut hidden = projected.panes[0].clone();
+    hidden.pane_id = "pane_2".into();
+    hidden.focused = false;
+    projected.panes.push(hidden);
+    let mut state = state();
+    state.set_snapshot(Box::new(projected));
+
+    let actions = open_navigator(&mut state);
+    let request_id = actions
+        .iter()
+        .find_map(|action| match action {
+            ClientShellAction::Endpoint { request, .. }
+                if matches!(request.method, Method::PaneStacks(_)) =>
+            {
+                Some(request.id.clone())
+            }
+            _ => None,
+        })
+        .expect("the navigator asks for stacks when it opens");
+    assert!(pane_row_labels(&state)
+        .iter()
+        .all(|label| !label.contains("stacked")));
+
+    state.handle_endpoint_result(
+        "boot-1",
+        &request_id,
+        Ok(crate::api::schema::ResponseResult::PaneStacks {
+            stacks: vec![crate::api::schema::PaneStackInfo {
+                workspace_id: "ws_1".into(),
+                tab_id: "tab_1".into(),
+                pane_ids: vec!["pane_1".into(), "pane_2".into()],
+                visible_pane_id: "pane_1".into(),
+            }],
+        }),
+    );
+
+    let labels = pane_row_labels(&state);
+    assert!(labels[0].ends_with("· stacked 1/2"), "{labels:?}");
+    assert!(labels[1].ends_with("· stacked 2/2 · hidden"), "{labels:?}");
+}
+
+#[test]
+fn navigator_does_not_ask_an_endpoint_without_pane_stacks() {
+    let mut state = state();
+    state.set_endpoint_methods(Some(vec!["pane.focus".into()]));
+
+    let actions = open_navigator(&mut state);
+
+    assert!(actions.iter().all(|action| !matches!(
+        action,
+        ClientShellAction::Endpoint { request, .. } if matches!(request.method, Method::PaneStacks(_))
+    )));
+    assert!(state.visible_endpoint_notice.is_none());
+}
+
 #[test]
 fn stack_actions_are_disabled_against_an_endpoint_without_them() {
     let mut state = state();

@@ -114,6 +114,23 @@ pub(super) fn pane_stack(params: crate::api::schema::PaneStackParams) -> std::io
     print_method_response("cli:pane:stack", Method::PaneStack(params))
 }
 
+pub(super) fn pane_stacks(params: crate::api::schema::PaneStacksParams) -> std::io::Result<i32> {
+    print_method_response("cli:pane:stacks", Method::PaneStacks(params))
+}
+
+pub(super) fn pane_focus_id(pane_id: String) -> std::io::Result<i32> {
+    print_method_response(
+        "cli:pane:focus",
+        Method::PaneFocus(crate::api::schema::PaneTarget { pane_id }),
+    )
+}
+
+pub(super) fn pane_focus_stacked(
+    params: crate::api::schema::PaneFocusStackedParams,
+) -> std::io::Result<i32> {
+    print_method_response("cli:pane:focus-stacked", Method::PaneFocusStacked(params))
+}
+
 pub(super) fn pane_swap(params: PaneSwapParams) -> std::io::Result<i32> {
     print_method_response("cli:pane:swap", Method::PaneSwap(params))
 }
