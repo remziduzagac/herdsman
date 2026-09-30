@@ -385,6 +385,8 @@ pub struct KeysConfig {
     pub next_agent: BindingConfig,
     /// Focus an agent by index 1-9. Unset by default.
     pub focus_agent: BindingConfig,
+    /// Show and focus member 1-9 of the focused pane's stack. Default: "prefix+alt+1..9".
+    pub focus_stacked: BindingConfig,
     /// Local-client shortcut that sends a clipboard image to a remote Herdsman session. Default: "ctrl+v".
     pub remote_image_paste: String,
     /// Create a new tab in the active workspace. Default: "prefix+c"
@@ -438,6 +440,8 @@ pub struct KeysConfig {
     pub split_vertical: BindingConfig,
     /// Split pane horizontally (stacked). Default: "prefix+minus"
     pub split_horizontal: BindingConfig,
+    /// Open a new pane in the focused pane's slot, one visible at a time. Default: "prefix+a"
+    pub stack_pane: BindingConfig,
     /// Close the focused pane. Default: "prefix+x"
     pub close_pane: BindingConfig,
     /// Toggle zoom for the focused pane. Default: "prefix+z"
@@ -523,6 +527,8 @@ pub(crate) struct KeysConfigOverlay {
     #[serde(skip_serializing_if = "Option::is_none")]
     focus_agent: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    focus_stacked: Option<BindingConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     remote_image_paste: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     new_tab: Option<BindingConfig>,
@@ -575,6 +581,8 @@ pub(crate) struct KeysConfigOverlay {
     split_vertical: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     split_horizontal: Option<BindingConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    stack_pane: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     close_pane: Option<BindingConfig>,
     #[serde(alias = "fullscreen", skip_serializing_if = "Option::is_none")]
@@ -668,6 +676,7 @@ impl<'de> Deserialize<'de> for KeysConfig {
         apply_field!(previous_agent);
         apply_field!(next_agent);
         apply_field!(focus_agent);
+        apply_field!(focus_stacked);
         apply_field!(remote_image_paste);
         apply_field!(new_tab);
         apply_field!(rename_tab);
@@ -695,6 +704,7 @@ impl<'de> Deserialize<'de> for KeysConfig {
         apply_field!(last_pane);
         apply_field!(split_vertical);
         apply_field!(split_horizontal);
+        apply_field!(stack_pane);
         apply_field!(close_pane);
         apply_field!(zoom);
         apply_field!(resize_mode);
@@ -773,6 +783,7 @@ impl KeysConfig {
         copy_effective_action_field!(previous_agent, keybinds.previous_agent);
         copy_effective_action_field!(next_agent, keybinds.next_agent);
         copy_effective_indexed_field!(focus_agent, keybinds.focus_agent);
+        copy_effective_indexed_field!(focus_stacked, keybinds.focus_stacked);
         copy_user_field!(remote_image_paste);
         copy_effective_action_field!(new_tab, keybinds.new_tab);
         copy_effective_action_field!(rename_tab, keybinds.rename_tab);
@@ -800,6 +811,7 @@ impl KeysConfig {
         copy_effective_action_field!(last_pane, keybinds.last_pane);
         copy_effective_action_field!(split_vertical, keybinds.split_vertical);
         copy_effective_action_field!(split_horizontal, keybinds.split_horizontal);
+        copy_effective_action_field!(stack_pane, keybinds.stack_pane);
         copy_effective_action_field!(close_pane, keybinds.close_pane);
         copy_effective_action_field!(zoom, keybinds.zoom);
         copy_effective_action_field!(resize_mode, keybinds.resize_mode);
@@ -980,6 +992,8 @@ pub struct UiConfig {
     pub pane_gaps: bool,
     /// Show agent labels in split pane borders when no manual pane label is set. Default: false.
     pub show_agent_labels_on_pane_borders: bool,
+    /// Where a stacked slot draws the strip naming its members: top or bottom. Default: top.
+    pub stack_strip_position: TabBarPositionConfig,
     /// Hide the tab row when the workspace has one tab. Default: false.
     pub hide_tab_bar_when_single_tab: bool,
     /// Desktop tab row placement. Default: top.
@@ -1142,6 +1156,7 @@ impl Default for KeysConfig {
             previous_agent: BindingConfig::empty(),
             next_agent: BindingConfig::empty(),
             focus_agent: BindingConfig::empty(),
+            focus_stacked: BindingConfig::one("prefix+alt+1..9"),
             remote_image_paste: "ctrl+v".into(),
             new_tab: BindingConfig::one("prefix+c"),
             rename_tab: BindingConfig::one("prefix+shift+t"),
@@ -1169,6 +1184,7 @@ impl Default for KeysConfig {
             last_pane: BindingConfig::empty(),
             split_vertical: BindingConfig::one("prefix+v"),
             split_horizontal: BindingConfig::one("prefix+minus"),
+            stack_pane: BindingConfig::one("prefix+a"),
             close_pane: BindingConfig::one("prefix+x"),
             zoom: BindingConfig::one("prefix+z"),
             resize_mode: BindingConfig::one("prefix+r"),
@@ -1215,6 +1231,7 @@ impl Default for UiConfig {
             pane_scrollbars: true,
             pane_gaps: true,
             show_agent_labels_on_pane_borders: false,
+            stack_strip_position: TabBarPositionConfig::Top,
             hide_tab_bar_when_single_tab: false,
             tab_bar_position: TabBarPositionConfig::Top,
             tab_bar_right: Vec::new(),

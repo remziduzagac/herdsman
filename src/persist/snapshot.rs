@@ -144,6 +144,10 @@ pub enum LayoutSnapshot {
         first: Box<LayoutSnapshot>,
         second: Box<LayoutSnapshot>,
     },
+    Stack {
+        panes: Vec<u32>,
+        active: usize,
+    },
 }
 
 #[derive(Serialize, Deserialize)]
@@ -256,6 +260,7 @@ fn first_pane_id_in_layout(layout: &LayoutSnapshot) -> Option<u32> {
         LayoutSnapshot::Split { first, second, .. } => {
             first_pane_id_in_layout(first).or_else(|| first_pane_id_in_layout(second))
         }
+        LayoutSnapshot::Stack { panes, .. } => panes.first().copied(),
     }
 }
 
@@ -478,6 +483,10 @@ pub(super) fn capture_node(node: &Node) -> LayoutSnapshot {
             first: Box::new(capture_node(first)),
             second: Box::new(capture_node(second)),
         },
+        Node::Stack { panes, active } => LayoutSnapshot::Stack {
+            panes: panes.iter().map(|id| id.raw()).collect(),
+            active: *active,
+        },
     }
 }
 
@@ -590,7 +599,7 @@ mod tests {
     fn root_split_ratio(tab: &TabSnapshot) -> Option<f32> {
         match &tab.layout {
             LayoutSnapshot::Split { ratio, .. } => Some(*ratio),
-            LayoutSnapshot::Pane(_) => None,
+            LayoutSnapshot::Pane(_) | LayoutSnapshot::Stack { .. } => None,
         }
     }
 

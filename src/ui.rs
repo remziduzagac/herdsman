@@ -5,6 +5,7 @@ mod panes;
 mod release_notes;
 mod scrollbar;
 mod sidebar;
+mod stack_strip;
 mod status;
 mod tab_surface;
 mod text;

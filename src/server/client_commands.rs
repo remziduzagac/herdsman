@@ -25,6 +25,7 @@ const CLIENT_SHELL_METHODS: &[&str] = &[
     "pane.edit_scrollback",
     "pane.focus",
     "pane.focus_direction",
+    "pane.focus_stacked",
     "pane.input.set",
     "pane.link.activate",
     "pane.link.resolve",
@@ -33,6 +34,7 @@ const CLIENT_SHELL_METHODS: &[&str] = &[
     "pane.scroll",
     "pane.selection.read",
     "pane.split",
+    "pane.stack",
     "pane.swap",
     "pane.zoom",
     "product_announcement.dismiss",
@@ -296,6 +298,15 @@ mod tests {
         assert_eq!(
             actual.remove("pane.link.resolve").as_deref(),
             Some("f5e4a3e01453ae7b188f127ce951c12c20e0bebcc17cc364eeb6d1a01fd5bf81")
+        );
+        // herdsman: stacked panes.
+        assert_eq!(
+            actual.remove("pane.stack").as_deref(),
+            Some("22022fd55ee193a7c54694fbcadaf9724f37f3f7f171833150bfca55595fdb8d")
+        );
+        assert_eq!(
+            actual.remove("pane.focus_stacked").as_deref(),
+            Some("205b9d8908749fcfe34c510fca1db94a0c12a40ff1c29014f06c453eb9488b43")
         );
 
         assert_eq!(

@@ -626,6 +626,12 @@
           "description": "Focus an agent by index 1-9. Unset by default."
         },
         {
+          "key": "keys.focus_stacked",
+          "type": "keybinding",
+          "default": "\"prefix+alt+1..9\"",
+          "description": "Show and focus member 1-9 of the focused pane's stack."
+        },
+        {
           "key": "keys.remote_image_paste",
           "type": "string",
           "default": "\"ctrl+v\"",
@@ -786,6 +792,12 @@
           "type": "keybinding",
           "default": "\"prefix+minus\"",
           "description": "Split pane horizontally (stacked)."
+        },
+        {
+          "key": "keys.stack_pane",
+          "type": "keybinding",
+          "default": "\"prefix+a\"",
+          "description": "Open a new pane in the focused pane's slot, one visible at a time."
         },
         {
           "key": "keys.close_pane",
@@ -992,6 +1004,16 @@
           "type": "boolean",
           "default": "false",
           "description": "Show agent labels in split pane borders when no manual pane label is set."
+        },
+        {
+          "key": "ui.stack_strip_position",
+          "type": "enum",
+          "default": "\"top\"",
+          "description": "Place the strip naming a stack's members at the top or bottom of its slot.",
+          "values": [
+            "top",
+            "bottom"
+          ]
         },
         {
           "key": "ui.hide_tab_bar_when_single_tab",

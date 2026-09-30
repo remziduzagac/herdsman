@@ -4,9 +4,9 @@ use crate::api::schema::{
     PaneMoveDestination, PaneMoveParams, PaneNeighborParams, PaneProcessInfoParams, PaneReadParams,
     PaneReleaseAgentParams, PaneRenameParams, PaneReportAgentParams, PaneReportAgentSessionParams,
     PaneReportMetadataParams, PaneResizeParams, PaneRightClickTarget, PaneSendInputParams,
-    PaneSendKeysParams, PaneSendTextParams, PaneSplitParams, PaneSwapParams, PaneTarget,
-    PaneWaitForOutputParams, PaneZoomMode, PaneZoomParams, ReadFormat, ReadSource, Request,
-    SplitDirection,
+    PaneSendKeysParams, PaneSendTextParams, PaneSplitParams, PaneStackParams, PaneSwapParams,
+    PaneTarget, PaneWaitForOutputParams, PaneZoomMode, PaneZoomParams, ReadFormat, ReadSource,
+    Request, SplitDirection,
 };
 
 pub(super) fn run_pane_command(args: &[String]) -> std::io::Result<i32> {
@@ -30,6 +30,7 @@ pub(super) fn run_pane_command(args: &[String]) -> std::io::Result<i32> {
         "rename" => pane_rename(&args[1..]),
         "input" => pane_input(&args[1..]),
         "split" => pane_split(&args[1..]),
+        "stack" => pane_stack(&args[1..]),
         "swap" => pane_swap(&args[1..]),
         "move" => pane_move(&args[1..]),
         "close" => pane_close(&args[1..]),
@@ -626,6 +627,43 @@ fn pane_split(args: &[String]) -> std::io::Result<i32> {
     };
 
     super::runtime::pane_split(params)
+}
+
+fn pane_stack(args: &[String]) -> std::io::Result<i32> {
+    let env_pane_id = super::target::caller_pane_id();
+    let params = match parse_pane_stack_args(args, env_pane_id.as_deref()) {
+        Ok(params) => params,
+        Err(message) => {
+            eprintln!("{message}");
+            return Ok(2);
+        }
+    };
+
+    super::runtime::pane_stack(params)
+}
+
+/// Stack takes split's options minus the geometry ones.
+fn parse_pane_stack_args(
+    args: &[String],
+    env_pane_id: Option<&str>,
+) -> Result<PaneStackParams, String> {
+    if let Some(geometry) = args
+        .iter()
+        .find(|arg| matches!(arg.as_str(), "--direction" | "--ratio"))
+    {
+        return Err(format!("unknown option: {geometry}"));
+    }
+    let mut split_args = args.to_vec();
+    split_args.extend(["--direction".into(), "right".into()]);
+    let split = parse_pane_split_args(&split_args, env_pane_id)?;
+    Ok(PaneStackParams {
+        workspace_id: split.workspace_id,
+        target_pane_id: split.target_pane_id,
+        cwd: split.cwd,
+        focus: split.focus,
+        right_click: split.right_click,
+        env: split.env,
+    })
 }
 
 fn parse_pane_split_args(
@@ -1692,6 +1730,9 @@ fn print_pane_help() {
     eprintln!(
         "  herdsman pane split [<pane_id>|--pane ID|--current] --direction right|down [--ratio FLOAT] [--cwd PATH] [--env KEY=VALUE] [--right-click herdsman|pane] [--focus] [--no-focus]"
     );
+    eprintln!(
+        "  herdsman pane stack [<pane_id>|--pane ID|--current] [--cwd PATH] [--env KEY=VALUE] [--right-click herdsman|pane] [--focus] [--no-focus]"
+    );
     eprintln!("  herdsman pane swap --direction left|right|up|down [--pane ID|--current]");
     eprintln!("  herdsman pane swap --source-pane ID --target-pane ID");
     eprintln!("  herdsman pane move <pane_id> --tab <tab_id> --split right|down [--target-pane ID] [--ratio FLOAT] [--focus|--no-focus]");
@@ -1739,6 +1780,39 @@ mod tests {
         .unwrap();
 
         assert_eq!(params.right_click, PaneRightClickTarget::Pane);
+    }
+
+    #[test]
+    fn parse_pane_stack_args_takes_split_options_without_geometry() {
+        let params = parse_pane_stack_args(
+            &args(&[
+                "--current",
+                "--cwd",
+                "/repo",
+                "--env",
+                "ROLE=agent",
+                "--focus",
+            ]),
+            Some("issue-1:p1"),
+        )
+        .unwrap();
+
+        assert_eq!(params.target_pane_id, Some("issue-1:p1".into()));
+        assert_eq!(params.cwd.as_deref(), Some("/repo"));
+        assert_eq!(params.env.get("ROLE").map(String::as_str), Some("agent"));
+        assert!(params.focus);
+        assert_eq!(
+            parse_pane_stack_args(&args(&["issue-1", "--no-focus"]), None)
+                .unwrap()
+                .target_pane_id,
+            Some("issue-1".into())
+        );
+        for geometry in ["--direction", "--ratio"] {
+            assert_eq!(
+                parse_pane_stack_args(&args(&[geometry, "right"]), None).unwrap_err(),
+                format!("unknown option: {geometry}")
+            );
+        }
     }
 
     #[test]

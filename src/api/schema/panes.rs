@@ -34,6 +34,34 @@ pub struct PaneSplitParams {
     pub env: HashMap<String, String>,
 }
 
+/// Open a new pane in the target pane's slot, stacked with it rather than split
+/// beside it. Without `focus` the new member starts hidden behind the visible one.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema, Default)]
+pub struct PaneStackParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workspace_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_pane_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cwd: Option<String>,
+    #[serde(default)]
+    pub focus: bool,
+    #[serde(default)]
+    pub right_click: PaneRightClickTarget,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub env: HashMap<String, String>,
+}
+
+/// Show and focus member `index` (zero-based) of the stack holding `pane_id`,
+/// or of the focused pane's stack. A pane outside a stack or an index past its
+/// last member leaves focus unchanged, as switching to a missing tab does.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+pub struct PaneFocusStackedParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pane_id: Option<String>,
+    pub index: usize,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct PaneInputSetParams {
     pub pane_id: String,
@@ -188,6 +216,12 @@ pub enum LayoutNode {
         ratio: f32,
         first: Box<LayoutNode>,
         second: Box<LayoutNode>,
+    },
+    /// Panes sharing one slot, with `panes[active]` visible.
+    Stack {
+        panes: Vec<LayoutPane>,
+        #[serde(default)]
+        active: usize,
     },
 }
 

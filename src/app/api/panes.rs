@@ -4,17 +4,17 @@ use crate::api::schema::{
     EventData, EventEnvelope, EventKind, PaneClearAgentAuthorityParams, PaneCopyMotion,
     PaneCopyMotionParams, PaneCopySearchDirection, PaneCopySearchParams, PaneCurrentParams,
     PaneDirection, PaneEdgesParams, PaneEdgesResult, PaneFocusDirectionParams,
-    PaneFocusDirectionReason, PaneFocusDirectionResult, PaneInfo, PaneInputSetParams,
-    PaneLayoutPane, PaneLayoutParams, PaneLayoutRect, PaneLayoutSnapshot, PaneLayoutSplit,
-    PaneListParams, PaneMoveDestination, PaneMoveParams, PaneMoveReason, PaneMoveResult,
-    PaneNeighborParams, PaneNeighborResult, PaneProcessInfo, PaneProcessInfoParams,
+    PaneFocusDirectionReason, PaneFocusDirectionResult, PaneFocusStackedParams, PaneInfo,
+    PaneInputSetParams, PaneLayoutPane, PaneLayoutParams, PaneLayoutRect, PaneLayoutSnapshot,
+    PaneLayoutSplit, PaneListParams, PaneMoveDestination, PaneMoveParams, PaneMoveReason,
+    PaneMoveResult, PaneNeighborParams, PaneNeighborResult, PaneProcessInfo, PaneProcessInfoParams,
     PaneProcessInfoProcess, PaneReadParams, PaneReadResult, PaneReleaseAgentParams,
     PaneRenameParams, PaneReportAgentParams, PaneReportAgentSessionParams,
     PaneReportMetadataParams, PaneResizeParams, PaneResizeReason, PaneResizeResult,
     PaneScrollParams, PaneSelectionReadParams, PaneSendInputParams, PaneSendKeysParams,
-    PaneSendTextParams, PaneSplitParams, PaneSwapParams, PaneSwapReason, PaneSwapResult,
-    PaneTarget, PaneTextPoint, PaneTextRange, PaneZoomMode, PaneZoomParams, PaneZoomReason,
-    PaneZoomResult, ResponseResult,
+    PaneSendTextParams, PaneSplitParams, PaneStackParams, PaneSwapParams, PaneSwapReason,
+    PaneSwapResult, PaneTarget, PaneTextPoint, PaneTextRange, PaneZoomMode, PaneZoomParams,
+    PaneZoomReason, PaneZoomResult, ResponseResult,
 };
 use crate::app::actions::{PaneZoomCommand, PaneZoomNoopReason};
 use crate::app::App;
@@ -32,6 +32,31 @@ use super::responses::{encode_error, encode_success};
 
 impl App {
     pub(super) fn handle_pane_split(&mut self, id: String, params: PaneSplitParams) -> String {
+        self.handle_pane_split_or_stack(id, params, false)
+    }
+
+    /// Spawn exactly as a split does, then fold the new pane into the target's
+    /// slot, so stacking shares the split path's spawn, focus, and rollback.
+    pub(super) fn handle_pane_stack(&mut self, id: String, params: PaneStackParams) -> String {
+        let split = PaneSplitParams {
+            workspace_id: params.workspace_id,
+            target_pane_id: params.target_pane_id,
+            direction: crate::api::schema::SplitDirection::Right,
+            ratio: None,
+            cwd: params.cwd,
+            focus: params.focus,
+            right_click: params.right_click,
+            env: params.env,
+        };
+        self.handle_pane_split_or_stack(id, split, true)
+    }
+
+    fn handle_pane_split_or_stack(
+        &mut self,
+        id: String,
+        params: PaneSplitParams,
+        stack: bool,
+    ) -> String {
         let target = if let Some(target_pane_id) = params.target_pane_id.as_deref() {
             self.parse_pane_id(target_pane_id)
         } else if let Some(workspace_id) = params.workspace_id.as_deref() {
@@ -104,6 +129,13 @@ impl App {
             Some(Err(err)) => return encode_error(id, "pane_split_failed", err.to_string()),
             None => return encode_error(id, "pane_not_found", "pane not found"),
         };
+        if stack
+            && !self.state.workspaces[ws_idx].tabs[target_tab_idx]
+                .layout
+                .move_into_stack(target_pane_id, new_pane.pane_id)
+        {
+            tracing::warn!(pane = ?new_pane.pane_id, "new pane could not join its target stack");
+        }
         if let Some(pane) = self.state.workspaces[ws_idx].pane_state_mut(new_pane.pane_id) {
             pane.right_click_passthrough = matches!(
                 params.right_click,
@@ -495,6 +527,33 @@ impl App {
 
         let Some(pane) = self.pane_info(ws_idx, pane_id) else {
             return pane_not_found(id, &target.pane_id);
+        };
+        encode_success(id, ResponseResult::PaneInfo { pane })
+    }
+
+    /// Resolve a stack member by index and focus it like `pane.focus`, which
+    /// reveals it. With no such member this answers with the pane unchanged.
+    pub(super) fn handle_pane_focus_stacked(
+        &mut self,
+        id: String,
+        params: PaneFocusStackedParams,
+    ) -> String {
+        let Some((ws_idx, pane_id)) = self.resolve_optional_pane(params.pane_id.as_deref()) else {
+            return encode_error(id, "pane_not_found", "pane not found");
+        };
+        let member = self.state.workspaces.get(ws_idx).and_then(|ws| {
+            let tab = ws.tabs.get(ws.find_tab_index_for_pane(pane_id)?)?;
+            let (members, _) = tab.layout.stack_members(pane_id)?;
+            members.get(params.index).copied()
+        });
+        if let Some(member) = member {
+            self.state.focus_pane_in_workspace(ws_idx, member);
+            self.state.mark_active_tab_seen();
+            self.state.mode = crate::app::Mode::Terminal;
+        }
+
+        let Some(pane) = self.pane_info(ws_idx, member.unwrap_or(pane_id)) else {
+            return encode_error(id, "pane_not_found", "pane not found");
         };
         encode_success(id, ResponseResult::PaneInfo { pane })
     }
@@ -2360,6 +2419,169 @@ mod tests {
                 .unwrap()
                 .right_click_passthrough
         );
+    }
+
+    /// A workspace whose new panes spawn a short-lived real process.
+    fn app_that_spawns_panes() -> (App, PaneId, String) {
+        let (mut app, public_pane_id) = app_with_test_workspace();
+        app.state.default_shell = super::super::test_support::exiting_test_command().into();
+        app.state.shell_mode = crate::config::ShellModeConfig::NonLogin;
+        app.state.active = Some(0);
+        app.state.selected = 0;
+        let root = app.state.workspaces[0].tabs[0].root_pane;
+        (app, root, public_pane_id)
+    }
+
+    fn stacked_pane(app: &App, response: &str) -> PaneId {
+        let success: SuccessResponse = serde_json::from_str(response).unwrap();
+        let ResponseResult::PaneInfo { pane } = success.result else {
+            panic!("expected pane info response");
+        };
+        app.parse_pane_id(&pane.pane_id).unwrap().1
+    }
+
+    #[tokio::test]
+    async fn pane_stack_opens_a_hidden_member_in_the_target_slot() {
+        let (mut app, root, root_public) = app_that_spawns_panes();
+
+        let response = app.handle_pane_stack(
+            "req".into(),
+            PaneStackParams {
+                target_pane_id: Some(root_public),
+                ..Default::default()
+            },
+        );
+
+        let member = stacked_pane(&app, &response);
+        let layout = &app.state.workspaces[0].tabs[0].layout;
+        assert_eq!(layout.stack_members(root), Some((&[root, member][..], 0)));
+        assert_eq!(layout.focused(), root);
+        assert!(!layout.is_visible(member));
+        assert!(matches!(
+            &app.event_hub.events_after(0).last().expect("layout event").1.data,
+            EventData::LayoutUpdated { layout } if layout.panes.len() == 1
+        ));
+        app.state.assert_invariants_for_test();
+        super::super::test_support::shutdown_test_runtimes(&mut app);
+    }
+
+    #[tokio::test]
+    async fn pane_stack_with_focus_shows_and_focuses_the_new_member() {
+        let (mut app, root, root_public) = app_that_spawns_panes();
+
+        let response = app.handle_pane_stack(
+            "req".into(),
+            PaneStackParams {
+                target_pane_id: Some(root_public),
+                focus: true,
+                ..Default::default()
+            },
+        );
+
+        let member = stacked_pane(&app, &response);
+        let layout = &app.state.workspaces[0].tabs[0].layout;
+        assert_eq!(layout.stack_members(root), Some((&[root, member][..], 1)));
+        assert_eq!(layout.focused(), member);
+        app.state.assert_invariants_for_test();
+        super::super::test_support::shutdown_test_runtimes(&mut app);
+    }
+
+    #[tokio::test]
+    async fn pane_stack_onto_a_member_joins_the_same_stack() {
+        let (mut app, root, root_public) = app_that_spawns_panes();
+        let response = app.handle_pane_stack(
+            "req".into(),
+            PaneStackParams {
+                target_pane_id: Some(root_public),
+                ..Default::default()
+            },
+        );
+        let first = stacked_pane(&app, &response);
+        let first_public = app.public_pane_id(0, first).unwrap();
+
+        let response = app.handle_pane_stack(
+            "req".into(),
+            PaneStackParams {
+                target_pane_id: Some(first_public),
+                ..Default::default()
+            },
+        );
+        let second = stacked_pane(&app, &response);
+
+        let layout = &app.state.workspaces[0].tabs[0].layout;
+        assert_eq!(
+            layout.stack_members(second),
+            Some((&[root, first, second][..], 0))
+        );
+        super::super::test_support::shutdown_test_runtimes(&mut app);
+    }
+
+    /// `root | S[a, *b]` in the active tab, focus on `b`.
+    fn app_with_stack() -> (App, PaneId, PaneId, PaneId) {
+        let (mut app, _) = app_with_test_workspace();
+        app.state.active = Some(0);
+        let root = app.state.workspaces[0].tabs[0].root_pane;
+        let a = app.state.workspaces[0].test_split(ratatui::layout::Direction::Horizontal);
+        let b = app.state.workspaces[0].test_split(ratatui::layout::Direction::Horizontal);
+        app.state.ensure_test_terminals();
+        assert!(app.state.workspaces[0].tabs[0].layout.move_into_stack(a, b));
+        (app, root, a, b)
+    }
+
+    #[test]
+    fn pane_focus_stacked_reveals_and_focuses_the_member_at_an_index() {
+        let (mut app, _, a, b) = app_with_stack();
+        app.state.workspaces[0].tabs[0]
+            .panes
+            .get_mut(&a)
+            .unwrap()
+            .seen = false;
+
+        let response = app.handle_pane_focus_stacked(
+            "req".into(),
+            PaneFocusStackedParams {
+                pane_id: None,
+                index: 0,
+            },
+        );
+
+        let member = stacked_pane(&app, &response);
+        let tab = &app.state.workspaces[0].tabs[0];
+        assert_eq!(member, a);
+        assert_eq!(tab.layout.focused(), a);
+        assert!(tab.layout.is_visible(a) && !tab.layout.is_visible(b));
+        assert!(tab.panes[&a].seen);
+        app.state.assert_invariants_for_test();
+    }
+
+    #[test]
+    fn pane_focus_stacked_leaves_focus_alone_without_a_member_there() {
+        let (mut app, root, _, b) = app_with_stack();
+        let root_public = app.public_pane_id(0, root).unwrap();
+
+        for (pane_id, index) in [(None, 2), (Some(root_public), 0)] {
+            let response = app
+                .handle_pane_focus_stacked("req".into(), PaneFocusStackedParams { pane_id, index });
+            let success: SuccessResponse = serde_json::from_str(&response).unwrap();
+            assert!(matches!(success.result, ResponseResult::PaneInfo { .. }));
+            assert_eq!(app.state.workspaces[0].tabs[0].layout.focused(), b);
+        }
+    }
+
+    #[test]
+    fn pane_stack_rejects_a_missing_target() {
+        let (mut app, _) = app_with_test_workspace();
+
+        let response = app.handle_pane_stack(
+            "req".into(),
+            PaneStackParams {
+                target_pane_id: Some("w9:p9".into()),
+                ..Default::default()
+            },
+        );
+
+        let error: ErrorResponse = serde_json::from_str(&response).unwrap();
+        assert_eq!(error.error.code, "pane_not_found");
     }
 
     fn app_with_send_key_runtime(

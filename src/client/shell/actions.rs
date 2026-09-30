@@ -352,10 +352,12 @@ impl ClientShellState {
             crate::api::schema::Method::WorkspaceFocus(_)
             | crate::api::schema::Method::TabFocus(_)
             | crate::api::schema::Method::PaneFocus(_)
-            | crate::api::schema::Method::PaneFocusDirection(_) => true,
+            | crate::api::schema::Method::PaneFocusDirection(_)
+            | crate::api::schema::Method::PaneFocusStacked(_) => true,
             crate::api::schema::Method::WorkspaceCreate(params) => params.focus,
             crate::api::schema::Method::TabCreate(params) => params.focus,
             crate::api::schema::Method::PaneSplit(params) => params.focus,
+            crate::api::schema::Method::PaneStack(params) => params.focus,
             _ => false,
         };
         if changes_focus {
@@ -848,9 +850,10 @@ impl ClientShellState {
         action: crate::input::KeybindAction,
     ) -> Option<crate::api::schema::Method> {
         use crate::api::schema::{
-            Method, PaneDirection, PaneFocusDirectionParams, PaneResizeParams, PaneSplitParams,
-            PaneSwapParams, PaneTarget, PaneZoomMode, PaneZoomParams, SplitDirection,
-            TabCreateParams, TabMoveParams, TabTarget, WorkspaceTarget,
+            Method, PaneDirection, PaneFocusDirectionParams, PaneFocusStackedParams,
+            PaneResizeParams, PaneSplitParams, PaneStackParams, PaneSwapParams, PaneTarget,
+            PaneZoomMode, PaneZoomParams, SplitDirection, TabCreateParams, TabMoveParams,
+            TabTarget, WorkspaceTarget,
         };
         use crate::input::KeybindAction;
 
@@ -1044,6 +1047,19 @@ impl ClientShellState {
                     focus: true,
                     right_click: Default::default(),
                     env: Default::default(),
+                }))
+            }
+            KeybindAction::StackPane => Some(Method::PaneStack(PaneStackParams {
+                workspace_id: Some(focused_workspace),
+                target_pane_id: focused_pane,
+                focus: true,
+                ..Default::default()
+            })),
+            // Stack membership is server layout, so the endpoint resolves the index.
+            KeybindAction::FocusStacked(index) => {
+                Some(Method::PaneFocusStacked(PaneFocusStackedParams {
+                    pane_id: focused_pane,
+                    index,
                 }))
             }
             KeybindAction::ClosePane => Some(Method::PaneClose(PaneTarget {

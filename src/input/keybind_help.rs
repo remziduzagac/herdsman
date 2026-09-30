@@ -157,6 +157,8 @@ pub(crate) fn keybind_help_groups(
                     binding_label(&keybinds.split_horizontal),
                     "split horizontal",
                 ),
+                entry(binding_label(&keybinds.stack_pane), "stack pane"),
+                entry(indexed_label(&keybinds.focus_stacked), "focus stacked 1-9"),
                 entry(binding_label(&keybinds.close_pane), "close pane"),
                 entry(binding_label(&keybinds.rename_pane), "rename pane"),
                 entry(binding_label(&keybinds.edit_scrollback), "edit scrollback"),

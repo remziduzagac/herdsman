@@ -2320,8 +2320,72 @@
                 "second"
               ],
               "type": "object"
+            },
+            {
+              "description": "Panes sharing one slot, with `panes[active]` visible.",
+              "properties": {
+                "active": {
+                  "default": 0,
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "panes": {
+                  "items": {
+                    "$ref": "#/schemas/request/$defs/LayoutPane"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "const": "stack",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "panes"
+              ],
+              "type": "object"
             }
           ]
+        },
+        "LayoutPane": {
+          "properties": {
+            "command": {
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "array",
+                "null"
+              ]
+            },
+            "cwd": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "env": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "label": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "pane_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "type": "object"
         },
         "LayoutSetSplitRatioParams": {
           "properties": {
@@ -2595,6 +2659,26 @@
           },
           "required": [
             "direction"
+          ],
+          "type": "object"
+        },
+        "PaneFocusStackedParams": {
+          "description": "Show and focus member `index` (zero-based) of the stack holding `pane_id`,\nor of the focused pane's stack. A pane outside a stack or an index past its\nlast member leaves focus unchanged, as switching to a missing tab does.",
+          "properties": {
+            "index": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "pane_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "index"
           ],
           "type": "object"
         },
@@ -3260,6 +3344,44 @@
           "required": [
             "direction"
           ],
+          "type": "object"
+        },
+        "PaneStackParams": {
+          "description": "Open a new pane in the target pane's slot, stacked with it rather than split\nbeside it. Without `focus` the new member starts hidden behind the visible one.",
+          "properties": {
+            "cwd": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "env": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "focus": {
+              "default": false,
+              "type": "boolean"
+            },
+            "right_click": {
+              "$ref": "#/schemas/request/$defs/PaneRightClickTarget",
+              "default": "herdsman"
+            },
+            "target_pane_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "workspace_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
           "type": "object"
         },
         "PaneSwapParams": {
@@ -5441,6 +5563,38 @@
             },
             "params": {
               "$ref": "#/schemas/request/$defs/PaneSplitParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "pane.stack",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/PaneStackParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "pane.focus_stacked",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/PaneFocusStackedParams"
             }
           },
           "required": [
@@ -7771,8 +7925,72 @@
                 "second"
               ],
               "type": "object"
+            },
+            {
+              "description": "Panes sharing one slot, with `panes[active]` visible.",
+              "properties": {
+                "active": {
+                  "default": 0,
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "panes": {
+                  "items": {
+                    "$ref": "#/schemas/success_response/$defs/LayoutPane"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "const": "stack",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "panes"
+              ],
+              "type": "object"
             }
           ]
+        },
+        "LayoutPane": {
+          "properties": {
+            "command": {
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "array",
+                "null"
+              ]
+            },
+            "cwd": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "env": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "label": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "pane_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "type": "object"
         },
         "NotificationShowReason": {
           "enum": [

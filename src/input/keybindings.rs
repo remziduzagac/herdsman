@@ -27,6 +27,7 @@ pub(crate) enum KeybindAction {
     SwitchWorkspace(usize),
     SwitchTab(usize),
     FocusAgent(usize),
+    FocusStacked(usize),
     WorkspacePicker,
     PreviousWorkspace,
     NextWorkspace,
@@ -50,6 +51,7 @@ pub(crate) enum KeybindAction {
     SwapPaneRight,
     SplitVertical,
     SplitHorizontal,
+    StackPane,
     ClosePane,
     EditScrollback,
     ClearPane,
@@ -139,6 +141,7 @@ pub(crate) fn resolve_non_indexed_action(
         ),
         (&keybinds.split_vertical, KeybindAction::SplitVertical),
         (&keybinds.split_horizontal, KeybindAction::SplitHorizontal),
+        (&keybinds.stack_pane, KeybindAction::StackPane),
         (&keybinds.close_pane, KeybindAction::ClosePane),
         (&keybinds.zoom, KeybindAction::Zoom),
         (&keybinds.resize_mode, KeybindAction::EnterResizeMode),
@@ -212,6 +215,13 @@ pub(crate) fn resolve_indexed_action(
             if trigger_matches(binding) {
                 if let Some(index) = binding.matched_index(key) {
                     return Some(KeybindAction::FocusAgent(index));
+                }
+            }
+        }
+        for binding in &keybinds.focus_stacked {
+            if trigger_matches(binding) {
+                if let Some(index) = binding.matched_index(key) {
+                    return Some(KeybindAction::FocusStacked(index));
                 }
             }
         }
@@ -318,6 +328,46 @@ mod tests {
             resolve_prefix_binding(&keybinds, &one),
             Some(KeybindMatch::Action(KeybindAction::SwitchTab(0)))
         ));
+    }
+
+    #[test]
+    fn stack_bindings_default_to_prefix_a_and_prefix_alt_digits_without_conflicts() {
+        let config = crate::config::Config::default();
+        assert!(config.collect_diagnostics().is_empty());
+        let keybinds = config.keybinds();
+        let prefix = |code, modifiers| {
+            resolve_prefix_binding(&keybinds, &TerminalKey::new(KeyCode::Char(code), modifiers))
+        };
+
+        assert!(matches!(
+            prefix('a', KeyModifiers::empty()),
+            Some(KeybindMatch::Action(KeybindAction::StackPane))
+        ));
+        assert!(matches!(
+            prefix('3', KeyModifiers::ALT),
+            Some(KeybindMatch::Action(KeybindAction::FocusStacked(2)))
+        ));
+        assert!(matches!(
+            prefix('3', KeyModifiers::empty()),
+            Some(KeybindMatch::Action(KeybindAction::SwitchTab(2)))
+        ));
+    }
+
+    #[test]
+    fn focus_stacked_can_be_rebound_to_direct_keys() {
+        let config: crate::config::Config =
+            toml::from_str("[keys]\nfocus_stacked = \"alt+1..9\"\nstack_pane = []").unwrap();
+        assert!(config.collect_diagnostics().is_empty());
+        let keybinds = config.keybinds();
+
+        assert!(matches!(
+            resolve_direct_binding(
+                &keybinds,
+                &TerminalKey::new(KeyCode::Char('1'), KeyModifiers::ALT)
+            ),
+            Some(KeybindMatch::Action(KeybindAction::FocusStacked(0)))
+        ));
+        assert!(keybinds.stack_pane.bindings.is_empty());
     }
 
     #[test]

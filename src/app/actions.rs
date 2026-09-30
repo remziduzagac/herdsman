@@ -382,6 +382,10 @@ impl AppState {
         self.workspaces[ws_idx]
             .find_tab_index_for_pane(pane_id)
             .is_some_and(|tab_idx| tab_idx == self.workspaces[ws_idx].active_tab)
+            // A hidden stack member is off screen even in the active tab.
+            && self.workspaces[ws_idx].tabs[self.workspaces[ws_idx].active_tab]
+                .layout
+                .is_visible(pane_id)
     }
 
     pub fn switch_workspace(&mut self, idx: usize) {
@@ -463,8 +467,8 @@ impl AppState {
         };
 
         let mut changed = false;
-        for pane in tab.panes.values_mut() {
-            if !pane.seen {
+        for (pane_id, pane) in &mut tab.panes {
+            if !pane.seen && tab.layout.is_visible(*pane_id) {
                 pane.seen = true;
                 changed = true;
             }
@@ -3037,6 +3041,41 @@ mod tests {
         assert_eq!(terminal.state, AgentState::Idle);
         let pane = state.workspaces[0].panes.get(&pane_id).unwrap();
         assert!(pane.seen);
+    }
+
+    #[test]
+    fn hidden_stack_member_completion_stays_done_until_it_is_revealed() {
+        let mut state = app_with_workspaces(&["active"]);
+        state.active = Some(0);
+        state.outer_terminal_focus = Some(true);
+        let visible = state.workspaces[0].tabs[0].root_pane;
+        let hidden = state.workspaces[0].test_split(ratatui::layout::Direction::Horizontal);
+        state.ensure_test_terminals();
+        let tab = &mut state.workspaces[0].tabs[0];
+        tab.layout.focus_pane(visible);
+        assert!(tab.layout.move_into_stack(visible, hidden));
+        let terminal_id = tab.panes[&hidden].attached_terminal_id.clone();
+        state.terminals.get_mut(&terminal_id).unwrap().state = AgentState::Working;
+        assert!(!state.pane_is_in_active_tab(0, hidden));
+        assert!(state.pane_is_in_active_tab(0, visible));
+
+        state.handle_app_event(AppEvent::StateChanged {
+            pane_id: hidden,
+            agent: Some(Agent::Pi),
+            state: AgentState::Idle,
+            visible_blocker: false,
+            visible_working: false,
+            process_exited: false,
+            observed_at: std::time::Instant::now(),
+        });
+        state.mark_active_tab_seen();
+        state.workspaces[0].switch_tab(0);
+
+        assert!(!state.workspaces[0].tabs[0].panes[&hidden].seen);
+        assert!(state.focus_pane_in_workspace(0, hidden));
+        assert!(state.mark_active_tab_seen());
+        assert!(state.workspaces[0].tabs[0].panes[&hidden].seen);
+        assert!(state.workspaces[0].tabs[0].layout.is_visible(hidden));
     }
 
     #[test]
