@@ -1,0 +1,301 @@
+#!/usr/bin/env python3
+"""Rename a herdr source tree to herdsman.
+
+    upstream/rename apply DIR   rename an exported herdr tree in place, then check it
+    upstream/rename check DIR   list herdr names left in DIR; exit 1 if there are any
+
+`apply` expects a fresh export of a herdr revision, which is what upstream/import
+hands it, and refuses a git checkout. `check` also works on a checkout: it reads
+the files git would track there.
+
+The transform is deterministic, so the same herdr revision always gives the same
+tree. That is what lets each imported release merge against the previous one.
+In order, it:
+
+1. deletes DROP: herdr's own project files, which herdsman replaces or does not
+   carry;
+2. turns links to herdr's issues, pull requests and discussions into plain
+   references such as "base project issue #1282", because herdsman's tracker has
+   no such issue. "Upstream" is not used for this: herdr already uses it for the
+   libraries it vendors. In Rust string literals, where a link is only sample
+   data, the link is renamed like everything else;
+3. rewrites file contents: herdr.dev becomes SITE, herdrdev/herdr becomes REPO,
+   herdrdev becomes OWNER, then HERDR, Herdr and herdr become HERDSMAN, Herdsman
+   and herdsman;
+4. renames files and directories the same way, and rewrites symlink targets;
+5. sets the package version to 0.0.0, so herdr's version bumps never conflict
+   with herdsman's own; upstream/import records herdr's version instead;
+6. runs `cargo fmt`, because the longer name re-wraps some lines.
+
+KEEP is never touched, and neither is any binary file.
+"""
+
+import os
+import re
+import shutil
+import subprocess
+import sys
+
+# Placeholders until herdsman has a home. To change one, edit it here, commit,
+# and re-import the current herdr release so the new value arrives through
+# herdr-import like any other upstream change.
+SITE = "herdsman.invalid"  # serves latest.json, install.sh, agent-detection/
+OWNER = "OWNER_TBD"  # GitHub owner; the underscore keeps it from naming a real account
+REPO = f"{OWNER}/herdsman"
+
+# Paths as herdr names them, since this runs before the rename.
+DROP = [
+    # Identity and governance: README, sponsors, logo, contribution policy,
+    # maintainer lists, issue templates and herdr's own automation.
+    "CONTRIBUTING.md",
+    "README.md",
+    "README.zh-CN.md",
+    "SPONSORS.md",
+    "assets/logo.png",
+    "assets/logo.svg",
+    "assets/og-card.png",
+    "assets/screenshot.png",
+    "assets/sponsors",
+    ".github/APPROVED_CONTRIBUTORS",
+    ".github/DISCUSSION_TEMPLATE",
+    ".github/ISSUE_TEMPLATE",
+    ".github/MAINTAINERS",
+    ".github/dependabot.yml",
+    ".github/workflows/distribution.yml",
+    ".github/workflows/label-next-release-issues.yml",
+    ".github/workflows/pr-gate.yml",
+    ".github/workflows/preview.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/website-deploy.yml",
+    # Release history: herdr's changelogs, manifests, versioned and translated docs.
+    "CHANGELOG.md",
+    "distribution/latest.json",
+    "distribution/preview.json",
+    "docs/next/CHANGELOG.md",
+    "docs/next/README.md",
+    "docs/next/README.zh-CN.md",
+    "docs/next/product-announcement.json",
+    "docs/next/website/src/content/docs/ja",
+    "docs/next/website/src/content/docs/zh-cn",
+    "docs/preview",
+    "docs/versions",
+    # Release and publishing process.
+    ".agents/skills/herdr-pre-release-audit",
+    ".agents/skills/triage",
+    ".pi",
+    "scripts/docs",
+    "scripts/docs_translation_parity.py",
+    "scripts/preview.py",
+    "scripts/release-workflows.test.ts",
+    "scripts/release.py",
+    "scripts/test_docs_translation_parity.py",
+    "scripts/test_preview.py",
+    "scripts/test_release.py",
+]
+
+# Never renamed, never reported: the licence, and herdsman's own files, which
+# credit herdr or handle its code by name. README.md and CONTRIBUTING.md are
+# herdsman's own once DROP has removed herdr's.
+KEEP = [
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "MAINTAINING.md",
+    "NOTICE",
+    "README.md",
+    "upstream",
+]
+
+PROVENANCE = re.compile(
+    r"https?://github\.com/herdrdev/herdr/(?:"
+    r"(?P<kind>issues|pull|discussions)/(?P<number>\d+)"
+    r"|commit/(?P<commit>[0-9a-f]{7,40})"
+    r"|compare/(?P<range>(?:v\d[\w.-]*|[0-9a-f]{7,40})\.\.\.(?:v\d[\w.-]*|[0-9a-f]{7,40}))"
+    r")(?:#[\w-]+)?"
+)
+MARKDOWN_LINK = re.compile(r"\[[^\]\n]*\]\(\s*(?P<url>" + PROVENANCE.pattern + r")\s*\)")
+LABELLED = re.compile(r"\b(?P<who>[Hh]erdr) (?P<label>issues?|PRs?|pull requests?)(?P<sep>:\s*)" + PROVENANCE.pattern)
+LABEL = re.compile(r"\b(?P<who>[Hh]erdr) (?P<label>issues?|PRs?|pull requests?)\b")
+KINDS = {"issues": "issue", "pull": "PR", "discussions": "discussion"}
+NAME = re.compile("herdr", re.IGNORECASE)
+
+
+def rename_name(name):
+    return name.replace("HERDR", "HERDSMAN").replace("Herdr", "Herdsman").replace("herdr", "herdsman")
+
+
+def reference(match):
+    if match.group("number"):
+        return f"base project {KINDS[match.group('kind')]} #{match.group('number')}"
+    if match.group("commit"):
+        return f"base project commit {match.group('commit')}"
+    return f"base project changes {match.group('range')}"
+
+
+def in_rust_string(text, start, path):
+    if not path.endswith(".rs"):
+        return False
+    line = text[text.rfind("\n", 0, start) + 1 : start]
+    return line.count('"') % 2 == 1
+
+
+def rename_links(text, path):
+    def base(match):
+        return "Base project" if match.group("who")[0] == "H" else "base project"
+
+    def labelled(match):
+        target = f"#{match.group('number')}" if match.group("number") else reference(match).split(" ", 3)[3]
+        return f"{base(match)} {match.group('label')}{match.group('sep')}{target}"
+
+    def bare(match):
+        return match.group(0) if in_rust_string(text, match.start(), path) else reference(match)
+
+    text = MARKDOWN_LINK.sub(lambda match: reference(match), text)
+    text = LABELLED.sub(labelled, text)
+    text = LABEL.sub(lambda match: f"{base(match)} {match.group('label')}", text)
+    return PROVENANCE.sub(bare, text)
+
+
+def rename_text(text, path):
+    text = rename_links(text, path)
+    text = re.sub(r"herdr\.dev\b", SITE, text)
+    text = text.replace("herdrdev/herdr", REPO)
+    text = text.replace("herdrdev", OWNER)
+    return rename_name(text)
+
+
+def is_kept(rel):
+    return any(rel == path or rel.startswith(path + "/") for path in KEEP)
+
+
+def read_text(path):
+    """Return the file as text, or None for a binary file."""
+    with open(path, "rb") as handle:
+        data = handle.read()
+    if b"\0" in data:
+        return None
+    return data.decode("utf-8", "surrogateescape")
+
+
+def write_text(path, text):
+    with open(path, "wb") as handle:
+        handle.write(text.encode("utf-8", "surrogateescape"))
+
+
+def walk(root):
+    """Yield every file and symlink under root as a relative path."""
+    if os.path.exists(os.path.join(root, ".git")):
+        listed = subprocess.run(
+            ["git", "-C", root, "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+            check=True,
+            capture_output=True,
+        ).stdout
+        yield from sorted(
+            rel for rel in listed.decode().split("\0") if rel and os.path.lexists(os.path.join(root, rel))
+        )
+        return
+    for parent, dirs, files in os.walk(root):
+        dirs.sort()
+        for name in sorted(files + [d for d in dirs if os.path.islink(os.path.join(parent, d))]):
+            yield os.path.relpath(os.path.join(parent, name), root)
+
+
+def zero_version(root):
+    for name, pattern in (
+        ("Cargo.toml", r'(?ms)(^\[package\]\n(?:(?!^\[).)*?^version = ")[^"]*(")'),
+        ("Cargo.lock", r'(?m)(^name = "herdsman"\nversion = ")[^"]*(")'),
+    ):
+        path = os.path.join(root, name)
+        if os.path.exists(path):
+            text = read_text(path)
+            write_text(path, re.sub(pattern, r"\g<1>0.0.0\g<2>", text, count=1))
+
+
+def apply(root):
+    if os.path.exists(os.path.join(root, ".git")):
+        sys.exit(f"rename: {root} is a git checkout; apply only works on an exported tree")
+
+    for rel in DROP:
+        path = os.path.join(root, rel)
+        if os.path.isdir(path) and not os.path.islink(path):
+            shutil.rmtree(path)
+        elif os.path.lexists(path):
+            os.unlink(path)
+        else:
+            print(f"rename: {rel} is not in this revision; has herdr moved it?", file=sys.stderr)
+
+    for rel in list(walk(root)):
+        if is_kept(rel):
+            continue
+        path = os.path.join(root, rel)
+        if os.path.islink(path):
+            target = os.readlink(path)
+            if rename_name(target) != target:
+                os.unlink(path)
+                os.symlink(rename_name(target), path)
+            continue
+        text = read_text(path)
+        if text is None:
+            continue
+        renamed = rename_text(text, rel)
+        if renamed != text:
+            write_text(path, renamed)
+
+    # Deepest paths first, so a directory is renamed after everything inside it.
+    for parent, dirs, files in os.walk(root, topdown=False):
+        for name in files + dirs:
+            if rename_name(name) == name:
+                continue
+            source = os.path.join(parent, name)
+            if is_kept(os.path.relpath(source, root)):
+                continue
+            target = os.path.join(parent, rename_name(name))
+            if os.path.lexists(target):
+                sys.exit(f"rename: {os.path.relpath(source, root)} would overwrite {os.path.relpath(target, root)}")
+            os.rename(source, target)
+
+    zero_version(root)
+
+    # The longer name re-wraps some Rust lines. Formatting here, with the
+    # toolchain the tree pins, keeps those changes out of dev.
+    if os.path.exists(os.path.join(root, "Cargo.toml")):
+        subprocess.run(["cargo", "fmt", "--all"], cwd=root, check=True)
+
+
+def check(root):
+    found = 0
+    for rel in walk(root):
+        if is_kept(rel):
+            continue
+        path = os.path.join(root, rel)
+        if NAME.search(rel):
+            print(f"{rel}: path")
+            found += 1
+        if os.path.islink(path):
+            if NAME.search(os.readlink(path)):
+                print(f"{rel}: symlink -> {os.readlink(path)}")
+                found += 1
+            continue
+        text = read_text(path)
+        if text is None:
+            continue
+        for number, line in enumerate(text.splitlines(), 1):
+            if NAME.search(line):
+                print(f"{rel}:{number}: {line.strip()[:160]}")
+                found += 1
+    if found:
+        print(f"rename: {found} herdr name(s) left in {root}", file=sys.stderr)
+    return found == 0
+
+
+def main(argv):
+    if len(argv) != 3 or argv[1] not in ("apply", "check") or not os.path.isdir(argv[2]):
+        sys.exit(__doc__.split("\n\n")[1])
+    root = argv[2]
+    if argv[1] == "apply":
+        apply(root)
+    sys.exit(0 if check(root) else 1)
+
+
+if __name__ == "__main__":
+    main(sys.argv)

@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# Import a herdr revision into the herdr-import branch, renamed to herdsman.
+#
+#   upstream/import <ref>    e.g. upstream/import v0.9.4
+#
+# <ref> is resolved in the plain herdr clone at $UPSTREAM_DIR (default
+# ~/Projects/herdr); fetch there first. The revision is exported, renamed by
+# upstream/rename, and committed on $IMPORT_BRANCH (default herdr-import) with the
+# previous import as its parent. That parent chain is what gives each merge
+# into dev a base, so never commit to the branch by hand.
+#
+# Nothing here touches the checkout you run it from. MAINTAINING.md describes
+# the merge that follows.
+set -euo pipefail
+
+usage() { sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
+[ $# -eq 1 ] || usage
+
+ref=$1
+upstream=${UPSTREAM_DIR:-$HOME/Projects/herdr}
+branch=${IMPORT_BRANCH:-herdr-import}
+here=$(cd "$(dirname "$0")" && pwd)
+git_dir=$(git rev-parse --absolute-git-dir)
+
+sha=$(git -C "$upstream" rev-parse --verify --quiet "$ref^{commit}") \
+    || { echo "import: $ref is not a commit in $upstream" >&2; exit 1; }
+name=$(git -C "$upstream" describe --tags "$sha" 2>/dev/null || git -C "$upstream" rev-parse --short=12 "$sha")
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+# Export exactly the tracked files of the revision, nothing from the work tree.
+GIT_INDEX_FILE="$tmp/upstream.index" git -C "$upstream" read-tree "$sha"
+GIT_INDEX_FILE="$tmp/upstream.index" git -C "$upstream" checkout-index --all --prefix="$tmp/tree/"
+
+# The rename sets the package version to 0.0.0, so read herdr's first.
+version=$(sed -n 's/^version = "\(.*\)"/\1/p' "$tmp/tree/Cargo.toml" | head -n1)
+"$here/rename" apply "$tmp/tree"
+
+# Build the commit with plumbing so no checkout is involved. --force adds files
+# the tree's own .gitignore would skip; the export holds only tracked files.
+tree=$(cd "$tmp/tree" && export GIT_DIR="$git_dir" GIT_WORK_TREE="$tmp/tree" \
+    GIT_INDEX_FILE="$tmp/import.index" && git add --all --force . && git write-tree)
+
+parent=$(git rev-parse --verify --quiet "refs/heads/$branch" || true)
+if [ -n "$parent" ] && [ "$(git rev-parse "$parent^{tree}")" = "$tree" ]; then
+    echo "import: $branch already holds herdr $name; nothing to do"
+    exit 0
+fi
+
+commit=$(git commit-tree "$tree" ${parent:+-p "$parent"} -F - <<EOF
+chore: import herdr $name
+
+Upstream: https://github.com/herdrdev/herdr/commit/$sha
+Version: $version
+Renamed by: upstream/rename $(git hash-object "$here/rename" | cut -c1-12)
+EOF
+)
+git update-ref -m "import herdr $name" "refs/heads/$branch" "$commit" "${parent:-}"
+
+echo "import: herdr $name is $branch $(git rev-parse --short "$commit")"
+[ -z "$parent" ] || git --no-pager diff --shortstat "$parent" "$commit"
+cat <<EOF
+
+Next, merge it in its own worktree (MAINTAINING.md has the details):
+
+    scripts/worktree merge-v$version
+    cd ~/Projects/worktrees/herdsman/merge-v$version && git merge $branch
+EOF

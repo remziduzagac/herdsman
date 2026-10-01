@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Create a worktree for a feature or a herdr merge.
+#
+#   scripts/worktree <name> [<base>]  e.g. scripts/worktree stack-colors
+#                                          scripts/worktree merge-v0.9.4
+#
+# Makes ~/Projects/worktrees/herdsman/<name> (or $WORKTREES_DIR/<name>) on a new
+# branch <name> from <base>, default dev. It copies the main checkout's
+# git-excluded mise.local.toml so Zig 0.16 applies there too, and points cargo
+# at the main checkout's target/ so dependencies are built once. Builds in two
+# worktrees then wait for each other; delete the [env] table in the worktree's
+# mise.local.toml to give it its own target/ instead.
+#
+# When the branch is merged:
+#   git worktree remove <path> && git branch -d <name>
+set -euo pipefail
+
+usage() { sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
+[ $# -ge 1 ] && [ $# -le 2 ] || usage
+
+name=$1
+base=${2:-dev}
+main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
+dir=${WORKTREES_DIR:-$HOME/Projects/worktrees/$(basename "$main")}/$name
+
+[ ! -e "$dir" ] || { echo "worktree: $dir already exists" >&2; exit 1; }
+mkdir -p "$(dirname "$dir")"
+git -C "$main" worktree add -b "$name" "$dir" "$base"
+
+if [ -f "$main/mise.local.toml" ]; then
+    cp "$main/mise.local.toml" "$dir/mise.local.toml"
+    if ! grep -q '^\[env\]' "$dir/mise.local.toml"; then
+        printf '\n[env]\nCARGO_TARGET_DIR = "%s"\n' "$main/target" >> "$dir/mise.local.toml"
+    fi
+    if command -v mise >/dev/null; then
+        (cd "$dir" && mise trust -q)
+    fi
+fi
+
+echo "worktree: $dir is branch $name from $base"
