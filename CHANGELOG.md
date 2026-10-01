@@ -3,6 +3,18 @@
 Each herdsman release names the herdr release it is built on. Versions are herdsman's own;
 `MAINTAINING.md` explains how they are numbered.
 
+## Unreleased
+
+### Changed
+
+- `herdsman update` and the in-app update notice point installs from the apt, dnf and pacman
+  packages at their package manager, instead of trying to replace a file it owns.
+
+### Fixed
+
+- Homebrew installs, which come from herdsman's tap, receive update notices.
+- Remote machines with herdsman installed through mise are recognised when attaching.
+
 ## [1.0.0] - 2026-10-01
 
 Based on herdr 0.9.3 (`347f9c99`).

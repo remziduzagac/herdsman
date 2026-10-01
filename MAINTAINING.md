@@ -178,9 +178,11 @@ When a merge conflicts in one of these, keep herdsman's side.
 | `build.rs` | herdr's contributor-policy warning removed |
 | `justfile` | herdr's release recipes and their tests removed; herdsman's `release` recipe added |
 | `distribution/latest.json` | herdsman's own manifest, written by herdsman's releases |
-| `docs/next/website/src/content/docs/install.mdx` | herdsman's install channels; herdr's preview channel removed |
+| `docs/next/website/src/content/docs/install.mdx` | herdsman's install channels and preview channel |
+| `docs/next/website/src/content/docs/{persistence-remote,session-state}.mdx` | system packages named with the other package managers |
+| `docs/next/website/src/content/docs/plugins.mdx` | notes that the example plugin repository is not published yet |
 | `docs/next/product-announcement.json` | herdsman's own; `null` until a release announces something |
-| `src/update.rs` | fake-update notes read herdsman's `1.0.0` changelog section |
+| `src/update.rs` | fake-update notes read herdsman's `1.0.0` changelog section; `/usr/bin` installs count as system packages |
 | `src/checksum.rs` | the test's SHA-256 re-pinned |
 | `src/api/server.rs` | test socket prefix shortened to `hs-`; the longer name overflowed macOS's 104-byte socket path limit |
 | `src/ui/text.rs` | the truncation test's width widened for the longer name |
@@ -250,6 +252,8 @@ updates the Homebrew formula.
 
    `scripts/release` dates the notes, sets the version in `Cargo.toml` and `Cargo.lock`, commits
    `release: vX.Y.Z`, tags it, fast-forwards `test` and `main`, and pushes all of them at once.
+   Pushing `test` also publishes the release commit as a preview, so the preview channel never
+   falls behind stable.
 5. **Watch the workflow**, then `git pull` on `dev` to pick up the manifest commit it made.
 6. **Check the packages.** `packages.yml` starts on its own after the release's Pages deploy and
    installs it through the install script, the Homebrew tap, mise, Nix and the apt, dnf and pacman

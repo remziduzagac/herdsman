@@ -90,7 +90,7 @@ herdsman --remote workbox --handoff
 
 If you SSH into the server first and run `herdsman` there, Herdsman runs entirely on the server and cannot access your local desktop clipboard beyond normal terminal text paste.
 
-For Linux and macOS hosts, Herdsman can copy the current local binary when the platforms match. For Homebrew, mise, and Nix installs, when the platforms differ, or for Windows hosts, it downloads the matching release asset for the current client version from `https://remziduzagac.github.io/herdsman/latest.json`.
+For Linux and macOS hosts, Herdsman can copy the current local binary when the platforms match. For Homebrew, mise, Nix, apt, dnf and pacman installs, when the platforms differ, or for Windows hosts, it downloads the matching release asset for the current client version from `https://remziduzagac.github.io/herdsman/latest.json`.
 
 For local builds or custom packages, set `HERDSMAN_REMOTE_BINARY` to a local file path before running remote attach. Use a bare Herdsman executable for Linux or macOS targets and a complete `herdsman-windows-x86_64.zip` package for Windows targets.
 

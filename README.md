@@ -12,8 +12,9 @@ herdr. See [NOTICE](NOTICE).
 
 ## Status
 
-Early, and used daily by its maintainer. [CHANGELOG.md](CHANGELOG.md) lists each release and the
-herdr release it is built on.
+Early. [CHANGELOG.md](CHANGELOG.md) lists each release and the herdr release it is built on.
+Installs made with the install script can follow preview builds of upcoming changes with
+`herdsman channel set preview`.
 
 ## Install
 
