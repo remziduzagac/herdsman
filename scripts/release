@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# Cut a herdsman release.
+#
+#   scripts/release <version>     e.g. scripts/release 1.1.0
+#
+# Run in the main checkout, on dev, clean and pushed, at a commit CI passed.
+# The release notes are the CHANGELOG.md section headed "## [<version>] -
+# Unreleased", or else the "## Unreleased" section, which becomes <version>.
+# The script dates the notes, sets the version in Cargo.toml and Cargo.lock,
+# commits "release: v<version>", tags it, fast-forwards test and main, and
+# pushes the three branches and the tag together. The Release workflow then
+# builds the binaries, publishes the GitHub release, commits latest.json to
+# main and dev, and redeploys Pages. Pull dev afterwards to pick that up.
+#
+# --skip-ci-check releases even when CI has not passed on the commit.
+set -euo pipefail
+
+usage() { sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
+die() { echo "release: $*" >&2; exit 1; }
+
+check_ci=true
+args=()
+for arg in "$@"; do
+    case $arg in
+        --skip-ci-check) check_ci=false ;;
+        -*) usage ;;
+        *) args+=("$arg") ;;
+    esac
+done
+[ ${#args[@]} -eq 1 ] || usage
+version=${args[0]}
+
+[[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "version must look like 1.2.3"
+[ "$(git branch --show-current)" = dev ] || die "run this on dev"
+[ -z "$(git status --porcelain)" ] || die "commit or stash your changes first"
+git fetch -q --tags origin
+[ "$(git rev-parse dev)" = "$(git rev-parse origin/dev)" ] || die "dev must match origin/dev; push or pull first"
+! git rev-parse -q --verify "refs/tags/v$version" >/dev/null || die "v$version already exists"
+
+current=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)
+[ "$(printf '%s\n%s\n' "$current" "$version" | sort -V | tail -n1)" = "$version" ] \
+    || die "$version is lower than the current $current"
+
+if $check_ci; then
+    head=$(git rev-parse HEAD)
+    ci=$(gh run list --commit "$head" --workflow ci.yml --json conclusion --jq '.[0].conclusion' 2>/dev/null || true)
+    [ "$ci" = success ] || die "CI has not passed on ${head:0:8} (${ci:-no run}); wait for it, or pass --skip-ci-check"
+fi
+
+python3 - "$version" "$(date +%F)" <<'EOF'
+import re
+import sys
+
+version, today = sys.argv[1:]
+dated = f"## [{version}] - {today}\n"
+
+path = "CHANGELOG.md"
+text = open(path).read()
+heading = f"## [{version}] - Unreleased\n"
+if heading in text:
+    text = text.replace(heading, dated, 1)
+else:
+    section = re.search(r"(?ms)^## Unreleased\n(.*?)(?=^## |\Z)", text)
+    if not section or not section.group(1).strip():
+        sys.exit(f"release: CHANGELOG.md has no notes for {version}")
+    text = text[: section.start()] + "## Unreleased\n\n" + dated + section.group(1) + text[section.end() :]
+open(path, "w").write(text)
+
+for path, pattern in (
+    ("Cargo.toml", r'(?ms)(^\[package\]\n(?:(?!^\[).)*?^version = ")[^"]*(")'),
+    ("Cargo.lock", r'(?m)(^name = "herdsman"\nversion = ")[^"]*(")'),
+):
+    text = open(path).read()
+    open(path, "w").write(re.sub(pattern, rf"\g<1>{version}\g<2>", text, count=1))
+EOF
+
+git commit -q -am "release: v$version"
+git tag -a "v$version" -m "herdsman $version"
+git fetch -q . dev:test
+git fetch -q . test:main
+git push --atomic origin dev test main "refs/tags/v$version"
+
+echo "release: pushed v$version; the Release workflow takes it from here:"
+echo "  gh run watch \$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')"

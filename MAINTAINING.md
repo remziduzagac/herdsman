@@ -175,7 +175,7 @@ When a merge conflicts in one of these, keep herdsman's side.
 | --- | --- |
 | `AGENTS.md` | herdr's governance and release-process sections removed; Scope and Docs rewritten |
 | `build.rs` | herdr's contributor-policy warning removed |
-| `justfile` | herdr's release recipes and their tests removed |
+| `justfile` | herdr's release recipes and their tests removed; herdsman's `release` recipe added |
 | `distribution/latest.json` | herdsman's own manifest, written by herdsman's releases |
 | `docs/next/product-announcement.json` | herdsman's own; `null` until a release announces something |
 | `src/update.rs` | fake-update notes read herdsman's `1.0.0` changelog section |
@@ -221,9 +221,35 @@ travels as positional bincode, so stack data is fetched through the new methods 
 
 ## Releasing
 
-Not set up yet. A release needs herdsman's GitHub home, a release workflow that builds the five
-binaries (Linux and macOS on x86_64 and aarch64, and Windows), and GitHub Pages serving
-`distribution/latest.json`, `install.sh` and the agent-detection catalog.
+A release is a `vX.Y.Z` tag on `main`. Pushing it starts `.github/workflows/release.yml`, which
+builds the five binaries (Linux and macOS on x86_64 and aarch64, and the Windows zip), creates the
+GitHub release with the version's `CHANGELOG.md` section as its notes, commits the new
+`distribution/latest.json` to `main` and `dev`, and redeploys GitHub Pages through `pages.yml`.
+
+1. **Write the notes.** Under `## Unreleased` in `CHANGELOG.md`, or under `## [X.Y.Z] - Unreleased`
+   once the version is known. Name the herdr version the release is built on.
+2. **Check CI** passed on the `dev` commit you will release.
+3. **Rehearse, if anything in the build changed.** This builds everything into a private draft
+   release, to try the binaries before anyone else can see them:
+
+   ```bash
+   gh workflow run release.yml --ref dev -f version=X.Y.Z
+   gh release list                       # the draft is vX.Y.Z-rehearsal.<run>
+   gh release delete vX.Y.Z-rehearsal.<run> --yes
+   ```
+
+4. **Release:**
+
+   ```bash
+   just release X.Y.Z
+   ```
+
+   `scripts/release` dates the notes, sets the version in `Cargo.toml` and `Cargo.lock`, commits
+   `release: vX.Y.Z`, tags it, fast-forwards `test` and `main`, and pushes all of them at once.
+5. **Watch the workflow**, then `git pull` on `dev` to pick up the manifest commit it made.
+
+Pages serves `latest.json`, the install scripts, the agent guide and the agent-detection catalog
+from `main`'s `distribution/` folder. A push to `main` that changes that folder redeploys it too.
 
 ## Where herdsman lives
 

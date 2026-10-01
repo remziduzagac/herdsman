@@ -124,6 +124,10 @@ libghostty-bindings *clang_args:
 build-libghostty-vt:
     scripts/build_vendored_libghostty_vt.sh
 
+# Cut a release from dev: see scripts/release
+release version *flags:
+    scripts/release {{flags}} {{version}}
+
 # Print default config
 default-config:
     cargo run --release --locked -- --default-config
