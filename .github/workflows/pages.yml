@@ -5,14 +5,17 @@ name: Pages
 # agent-detection catalog and the package signing key. It also builds the
 # signed apt, dnf and pacman repositories from the Linux packages attached to
 # recent releases, the version file Homebrew installs check, and preview.json
-# from the newest preview pre-releases. The Release and Preview workflows start
-# this when they publish; a push to main that touches distribution/ does too.
+# from the newest preview pre-releases, and the documentation site under
+# /docs/, built from docs/next/website. The Release and Preview workflows start
+# this when they publish; a push to main that touches distribution/ or the docs
+# does too.
 
 on:
   push:
     branches: [main]
     paths:
       - "distribution/**"
+      - "docs/next/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -61,6 +64,20 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y -q createrepo-c
           scripts/package-repos _site
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: docs/next/website/package-lock.json
+
+      - name: Build the documentation
+        working-directory: docs/next/website
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          mkdir -p "$GITHUB_WORKSPACE/_site/docs"
+          cp -R dist/. "$GITHUB_WORKSPACE/_site/docs/"
 
       - name: Build the preview manifest
         env:

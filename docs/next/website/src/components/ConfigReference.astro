@@ -1,0 +1,92 @@
+---
+// Every config.toml key from src/data/config-reference.json, grouped by
+// section, with a filter box that hides keys whose name and description do not
+// match.
+import data from '../data/config-reference.json';
+---
+
+<div class="config-reference">
+  <input type="search" placeholder="Filter keys, e.g. prefix or sound" aria-label="Filter config keys" data-config-filter />
+  {
+    data.sections.map((section) => (
+      <section data-config-section>
+        <h2 id={section.id}>{section.title}</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {section.keys.map((entry) => (
+              <tr data-config-row data-search={`${entry.key} ${entry.description}`.toLowerCase()}>
+                <td>
+                  <code>{entry.key}</code>
+                </td>
+                <td>{entry.type}</td>
+                <td>
+                  <code>{entry.default}</code>
+                </td>
+                <td>
+                  {entry.description}
+                  {entry.values && (
+                    <>
+                      {' '}
+                      One of{' '}
+                      {entry.values.map((value, index) => (
+                        <>
+                          {index > 0 && ', '}
+                          <code>{value}</code>
+                        </>
+                      ))}
+                      .
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    ))
+  }
+  <p data-config-empty hidden>No key matches.</p>
+</div>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>('[data-config-filter]');
+  const empty = document.querySelector<HTMLElement>('[data-config-empty]');
+  input?.addEventListener('input', () => {
+    const query = input.value.trim().toLowerCase();
+    let total = 0;
+    document.querySelectorAll<HTMLElement>('[data-config-section]').forEach((section) => {
+      let shown = 0;
+      section.querySelectorAll<HTMLElement>('[data-config-row]').forEach((row) => {
+        const match = !query || (row.dataset.search ?? '').includes(query);
+        row.hidden = !match;
+        if (match) shown += 1;
+      });
+      section.hidden = shown === 0;
+      total += shown;
+    });
+    if (empty) empty.hidden = total > 0;
+  });
+</script>
+
+<style>
+  .config-reference input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    margin-block: 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.375rem;
+    background: var(--sl-color-black);
+    color: var(--sl-color-white);
+  }
+  .config-reference td:first-child {
+    white-space: nowrap;
+  }
+</style>
