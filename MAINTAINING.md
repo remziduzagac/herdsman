@@ -180,7 +180,8 @@ When a merge conflicts in one of these, keep herdsman's side.
 | `distribution/latest.json` | herdsman's own manifest, written by herdsman's releases |
 | `docs/next/website/src/content/docs/install.mdx` | herdsman's install channels and preview channel |
 | `docs/next/website/src/content/docs/{persistence-remote,session-state}.mdx` | system packages named with the other package managers |
-| `docs/next/website/src/content/docs/plugins.mdx` | notes that the example plugin repository is not published yet |
+| `docs/next/website/src/content/docs/plugins.mdx` | example repository not published yet; "Sharing plugins" replaces the marketplace |
+| `docs/next/website/src/content/docs/index.mdx` | a Stacked panes card replaces the marketplace card |
 | `docs/next/product-announcement.json` | herdsman's own; `null` until a release announces something |
 | `src/update.rs` | fake-update notes read herdsman's `1.0.0` changelog section; `/usr/bin` installs count as system packages |
 | `src/checksum.rs` | the test's SHA-256 re-pinned |
@@ -298,6 +299,26 @@ git fetch . dev:test && git push origin test       # publish what dev has as a p
 Machines installed with the install script follow previews after `herdsman channel set preview`;
 `herdsman update` installs the newest, and attaching to a remote machine installs the same build
 there. Pre-releases never reach the package repositories, the Homebrew tap or `latest.json`.
+
+## The documentation site
+
+`docs/next/website` is an Astro Starlight project that builds the pages in
+`docs/next/website/src/content/docs`. The Pages workflow publishes it at
+https://remziduzagac.github.io/herdsman/docs/ on every deploy, and a push to `main` that changes
+`docs/next/` triggers one.
+
+```bash
+cd docs/next/website
+npm ci
+npm run dev      # live preview at http://localhost:4321/herdsman/docs/
+npm run build    # the site in dist/; fails on any broken internal link
+```
+
+The pages link to each other as `/docs/<page>/`, as herdr's site did; `scripts/rebase-links.mjs`
+adds the `/herdsman` prefix after the build, and `scripts/check-links.mjs` then fails the build on a
+missing page, heading or a path outside the site. A new page needs an entry in the sidebar in
+`astro.config.mjs`. Everything in `docs/next/website` except `src/content/docs` and `src/data` is
+herdsman's own; herdr keeps its website in a separate, private repository.
 
 ## Where herdsman lives
 

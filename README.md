@@ -25,7 +25,7 @@ mise use -g github:remziduzagac/herdsman                               # mise
 ```
 
 Signed apt, dnf and pacman repositories, Windows, Nix and manual downloads are covered in the
-[install guide](docs/next/website/src/content/docs/install.mdx).
+[install guide](https://remziduzagac.github.io/herdsman/docs/install/).
 
 ## How it differs from herdr
 
@@ -33,8 +33,8 @@ Signed apt, dnf and pacman repositories, Windows, Nix and manual downloads are c
   variables and the agent hooks all carry herdsman's name, so herdsman and herdr run side by side
   without sharing anything.
 - **Stacked panes.** `prefix+alt+c` puts a new pane behind the current one, and a strip along
-  the slot switches between them. [The stacks page](docs/next/website/src/content/docs/stacks.mdx)
-  has the keys, CLI and behaviour.
+  the slot switches between them. [The stacks page](https://remziduzagac.github.io/herdsman/docs/stacks/) has the keys, CLI and
+  behaviour.
 
 ## Building
 
@@ -47,8 +47,8 @@ the rest of the tools and how to run the tests.
 
 ## Documentation
 
-- [User docs](docs/next/website/src/content/docs/): install, configuration, keys, agents, the CLI
-  and the socket API.
+- [Documentation](https://remziduzagac.github.io/herdsman/docs/): install, configuration, keys, agents, the CLI and the socket
+  API.
 - `herdsman --help` for the CLI, and `herdsman --skill` for the agent skill.
 - [MAINTAINING.md](MAINTAINING.md): branches, versions, and how herdr releases are merged in.
 - [CONTRIBUTING.md](CONTRIBUTING.md): issues, pull requests, building and testing.

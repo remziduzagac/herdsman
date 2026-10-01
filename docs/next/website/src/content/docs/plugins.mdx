@@ -359,16 +359,14 @@ checked in manifest order inside each plugin.
 There is no Herdsman-managed plugin storage API in v1. Plugins that need durable
 state should own their files or database.
 
-## Marketplace
+## Sharing plugins
 
-Community plugins are discoverable in the [marketplace](/plugins/), an automatic
-index of public GitHub repositories tagged with `herdsman-plugin` that contain one
-or more `herdsman-plugin.toml` files whose required metadata can be parsed. Plugins
-stay ordinary GitHub repositories: publish one, then share
-`herdsman plugin install owner/repo[/subdir]`.
+Plugins are ordinary GitHub repositories: publish one, then share
+`herdsman plugin install owner/repo[/subdir]`. One repository can hold several
+separately installable plugins, with manifests at the root or in subdirectories
+of its default branch.
 
-To get plugins listed, add the GitHub topic `herdsman-plugin` and place their
-manifests at the root or in subdirectories of the repository's default branch.
-One repository card can contain multiple separately installable plugins. The
-index refreshes every 30 minutes. See
-[Marketplace](/docs/marketplace/) for how discovery works.
+Add the GitHub topic `herdsman-plugin` to the repository so others can find it
+among [the tagged repositories](https://github.com/topics/herdsman-plugin).
+herdsman has no plugin marketplace of its own.
+

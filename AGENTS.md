@@ -139,7 +139,7 @@ When updating libghostty-vt, check every active patch in `vendor/libghostty-vt.p
 
 ## Docs
 
-User documentation lives in `docs/next/website/src/content/docs/`, in English. Update it when a user-facing change needs docs.
+User documentation lives in `docs/next/website/src/content/docs/`, in English. Update it when a user-facing change needs docs. It is published as a Starlight site; add new pages to the sidebar in `docs/next/website/astro.config.mjs`, and run `npm run build` there, which fails on broken internal links.
 
 `skills/herdsman/SKILL.md` is the agent skill the binary embeds and prints with `herdsman --skill`. Keep it in step with the CLI.
 
