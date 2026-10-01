@@ -19,9 +19,11 @@ In order, it:
    no such issue. "Upstream" is not used for this: herdr already uses it for the
    libraries it vendors. In Rust string literals, where a link is only sample
    data, the link is renamed like everything else;
-3. rewrites file contents: herdr.dev becomes SITE, herdrdev/herdr becomes REPO,
-   herdrdev becomes OWNER, then HERDR, Herdr and herdr become HERDSMAN, Herdsman
-   and herdsman;
+3. rewrites file contents: herdr.dev becomes SITE (its email addresses become
+   undeliverable @herdsman.invalid ones), herdrdev/herdr becomes REPO and
+   herdrdev becomes OWNER, then HERDR, Herdr and herdr become HERDSMAN,
+   Herdsman and herdsman. herdr's default branch is master and herdsman's is
+   main, so links into the repository and workflow branch filters follow;
 4. renames files and directories the same way, and rewrites symlink targets;
 5. sets the package version to 0.0.0, so herdr's version bumps never conflict
    with herdsman's own; upstream/import records herdr's version instead;
@@ -36,11 +38,11 @@ import shutil
 import subprocess
 import sys
 
-# Placeholders until herdsman has a home. To change one, edit it here, commit,
-# and re-import the current herdr release so the new value arrives through
-# herdr-import like any other upstream change.
-SITE = "herdsman.invalid"  # serves latest.json, install.sh, agent-detection/
-OWNER = "OWNER_TBD"  # GitHub owner; the underscore keeps it from naming a real account
+# Where herdsman lives. To change one, edit it here, commit, and re-import the
+# current herdr release so the new value arrives through herdr-import like any
+# other upstream change.
+SITE = "remziduzagac.github.io/herdsman"  # GitHub Pages: latest.json, install.sh, agent-detection/
+OWNER = "remziduzagac"
 REPO = f"{OWNER}/herdsman"
 
 # Paths as herdr names them, since this runs before the rename.
@@ -158,9 +160,14 @@ def rename_links(text, path):
 
 def rename_text(text, path):
     text = rename_links(text, path)
+    text = re.sub(r"@herdr\.dev\b", "@herdsman.invalid", text)
     text = re.sub(r"herdr\.dev\b", SITE, text)
     text = text.replace("herdrdev/herdr", REPO)
     text = text.replace("herdrdev", OWNER)
+    text = re.sub(rf"(github\.com/{re.escape(REPO)}/(?:blob|tree)/)master/", r"\1main/", text)
+    text = text.replace(f"raw.githubusercontent.com/{REPO}/master/", f"raw.githubusercontent.com/{REPO}/main/")
+    if path.startswith(".github/workflows/"):
+        text = text.replace("branches: [master", "branches: [main, dev")
     return rename_name(text)
 
 
