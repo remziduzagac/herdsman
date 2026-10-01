@@ -1822,20 +1822,20 @@ mod tests {
 
     #[test]
     fn github_plugin_source_parses_root_repo() {
-        let source = GithubPluginSource::parse("ogulcancelik/herdsman-plugin-examples").unwrap();
+        let source = GithubPluginSource::parse("remziduzagac/herdsman-plugin-examples").unwrap();
         assert_eq!(source.owner, "ogulcancelik");
         assert_eq!(source.repo, "herdsman-plugin-examples");
         assert_eq!(source.subdir, None);
         assert_eq!(
             source.remote_url(),
-            "https://github.com/ogulcancelik/herdsman-plugin-examples.git"
+            "https://github.com/remziduzagac/herdsman-plugin-examples.git"
         );
     }
 
     #[test]
     fn github_plugin_source_parses_subdir() {
         let source =
-            GithubPluginSource::parse("ogulcancelik/herdsman-plugin-examples/worktree-bootstrap")
+            GithubPluginSource::parse("remziduzagac/herdsman-plugin-examples/worktree-bootstrap")
                 .unwrap();
         assert_eq!(source.owner, "ogulcancelik");
         assert_eq!(source.repo, "herdsman-plugin-examples");
@@ -1845,11 +1845,11 @@ mod tests {
     #[test]
     fn github_plugin_source_rejects_non_shorthand_sources() {
         for source in [
-            "https://github.com/ogulcancelik/herdsman-plugin-examples",
-            "git@github.com:ogulcancelik/herdsman-plugin-examples.git",
+            "https://github.com/remziduzagac/herdsman-plugin-examples",
+            "git@github.com:remziduzagac/herdsman-plugin-examples.git",
             "ogulcancelik",
-            "ogulcancelik/herdsman-plugin-examples/../bad",
-            "ogulcancelik/herdsman-plugin-examples//bad",
+            "remziduzagac/herdsman-plugin-examples/../bad",
+            "remziduzagac/herdsman-plugin-examples//bad",
         ] {
             assert!(
                 GithubPluginSource::parse(source).is_err(),
@@ -1861,7 +1861,7 @@ mod tests {
     #[test]
     fn github_source_lookup_matches_installed_plugin_source() {
         let source = GithubPluginSource::parse(
-            "ogulcancelik/herdsman-plugin-examples/agent-telegram-notify",
+            "remziduzagac/herdsman-plugin-examples/agent-telegram-notify",
         )
         .unwrap();
         let plugins = vec![
@@ -1885,7 +1885,7 @@ mod tests {
 
     #[test]
     fn github_source_lookup_requires_exact_subdir() {
-        let source = GithubPluginSource::parse("ogulcancelik/herdsman-plugin-examples").unwrap();
+        let source = GithubPluginSource::parse("remziduzagac/herdsman-plugin-examples").unwrap();
         let plugins = vec![github_plugin(
             "examples.agent-telegram-notify",
             "ogulcancelik",
@@ -1898,7 +1898,7 @@ mod tests {
 
     #[test]
     fn github_source_lookup_ignores_local_plugins() {
-        let source = GithubPluginSource::parse("ogulcancelik/herdsman-plugin-examples").unwrap();
+        let source = GithubPluginSource::parse("remziduzagac/herdsman-plugin-examples").unwrap();
         let mut plugin = github_plugin(
             "examples.local",
             "ogulcancelik",
