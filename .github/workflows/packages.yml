@@ -76,9 +76,11 @@ jobs:
         with:
           install: false
 
+      # mise holds back releases younger than a day from "latest", and this runs
+      # right after a release, so ask for the version explicitly.
       - name: Install with mise
         run: |
-          mise use -g github:remziduzagac/herdsman
+          mise use -g "github:remziduzagac/herdsman@$VERSION"
           mise exec -- herdsman --version | grep -Fx "herdsman $VERSION"
 
   nix:
