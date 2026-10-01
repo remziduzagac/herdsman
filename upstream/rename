@@ -71,7 +71,8 @@ DROP = [
     ".github/workflows/preview.yml",
     ".github/workflows/release.yml",
     ".github/workflows/website-deploy.yml",
-    # Release history: herdr's changelogs, manifests, versioned and translated docs.
+    # Release history: herdr's changelogs, manifests, versioned and translated docs,
+    # and its website's plugin marketplace, which herdsman does not have.
     "CHANGELOG.md",
     "distribution/latest.json",
     "distribution/preview.json",
@@ -80,6 +81,7 @@ DROP = [
     "docs/next/README.zh-CN.md",
     "docs/next/product-announcement.json",
     "docs/next/website/src/content/docs/ja",
+    "docs/next/website/src/content/docs/marketplace.mdx",
     "docs/next/website/src/content/docs/zh-cn",
     "docs/preview",
     "docs/versions",
