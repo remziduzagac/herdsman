@@ -12,6 +12,7 @@ also happens in herdr, report it there too: a fix in herdr reaches herdsman with
 
 ## Pull requests
 
+- Open pull requests against the `dev` branch; `main` only receives releases.
 - **Small fixes**, such as a bug, a typo or a missing test: open a pull request directly.
 - **Features and larger changes**: open an issue first, so we agree on the approach before you
   write code. A pull request for a feature nobody discussed may be declined, however good it is.

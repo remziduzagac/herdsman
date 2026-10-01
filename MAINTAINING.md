@@ -24,8 +24,12 @@ at the main checkout's `target/`, so dependencies build once.
 herdr itself is a plain clone, `~/Projects/herdr` by default (`UPSTREAM_DIR` overrides it). Make its
 `origin` fetch-only with `git remote set-url --push origin no-push`.
 
-CI checks every commit subject, merges included, so give merges a conventional subject:
+The commit-msg hook from `just install-hooks` checks every commit subject, merges included, and CI
+checks pull request titles. Give merges a conventional subject:
 `git merge -m "feat: <what the branch adds>" <branch>`.
+
+On GitHub, `main` is the default branch, so visitors see the released state, and pull requests
+target `dev`. CI runs on pushes to `main` and `dev` and on every pull request.
 
 ## Versions
 
@@ -221,15 +225,16 @@ Not set up yet. A release needs herdsman's GitHub home, a release workflow that 
 binaries (Linux and macOS on x86_64 and aarch64, and Windows), and GitHub Pages serving
 `distribution/latest.json`, `install.sh` and the agent-detection catalog.
 
-## The placeholders
+## Where herdsman lives
 
-Until herdsman has a home, `upstream/rename` maps herdr's site to `herdsman.invalid` and its GitHub
-owner to `OWNER_TBD`. Neither can resolve or be registered, so `herdsman update`, the background
-version check, remote installs and the agent-detection catalog fail without fetching anything. To
-point them somewhere real:
+`upstream/rename` sets the repository, `remziduzagac/herdsman`, and the site,
+`remziduzagac.github.io/herdsman` on GitHub Pages, for everything taken from herdr. The site serves
+`latest.json`, the installers and the agent-detection catalog. Until a release publishes them,
+`herdsman update` and remote installs find nothing to fetch.
+
+To move herdsman elsewhere:
 
 1. Set `SITE` and `OWNER` in `upstream/rename` and commit on `dev`.
 2. Re-import the revision `herdr-import` already holds. The new commit changes only those values;
    merge it as in step 3.
-3. Update `distribution/latest.json` and herdsman's own files, which the rename never touches:
-   `git grep -n 'herdsman\.invalid\|OWNER_TBD'`.
+3. Update herdsman's own files, which the rename never touches: `git grep -n remziduzagac`.
