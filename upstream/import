@@ -48,7 +48,9 @@ if [ -n "$parent" ] && [ "$(git rev-parse "$parent^{tree}")" = "$tree" ]; then
     exit 0
 fi
 
-commit=$(git commit-tree "$tree" ${parent:+-p "$parent"} -F - <<EOF
+sign=()
+[ "$(git config --bool commit.gpgsign || true)" != true ] || sign=(-S)
+commit=$(git commit-tree "${sign[@]}" "$tree" ${parent:+-p "$parent"} -F - <<EOF
 chore: import herdr $name
 
 Upstream: https://github.com/herdrdev/herdr/commit/$sha
