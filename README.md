@@ -1,6 +1,5 @@
-<p align="center"><img src="assets/logo.svg" alt="herdsman logo" width="96"></p>
-
-# herdsman
+<p align="center"><img src="assets/logo.svg" alt="" width="96"></p>
+<h1 align="center">herdsman</h1>
 
 A terminal workspace for running coding agents: workspaces, tabs and panes, SSH-connected
 machines, and agents recognised by state in the sidebar. On top of that, **stacked panes**:
