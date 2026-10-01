@@ -10,10 +10,10 @@ status: active
 
 patch: `vendor/patches/portable-pty/0001-control-conpty-loading.patch`
 
-herdsman issues:
+base project issues:
 
-- https://github.com/herdrdev/herdr/issues/761
-- https://github.com/herdrdev/herdr/issues/1533
+- base project issue #761
+- base project issue #1533
 
 upstream discussion: https://github.com/microsoft/terminal/issues/17452
 
@@ -57,7 +57,7 @@ status: active
 
 patch: `vendor/patches/portable-pty/0002-windows-raw-command-tail.patch`
 
-herdsman issue: https://github.com/herdrdev/herdr/issues/1041
+base project issue: #1041
 
 upstream discussion: none
 
@@ -91,7 +91,7 @@ status: active
 
 patch: `vendor/patches/portable-pty/0003-reject-malformed-windows-environments.patch`
 
-herdsman issue: https://github.com/herdrdev/herdr/issues/3430
+base project issue: #3430
 
 upstream discussions:
 

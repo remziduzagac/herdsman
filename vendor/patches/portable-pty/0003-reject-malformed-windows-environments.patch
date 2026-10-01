@@ -8,7 +8,7 @@ or malformed UTF-16. Decode string values into aligned storage, check Win32
 expansion failures, preserve valid drive variables, and omit entries that
 cannot form a valid environment record before calling CreateProcessW.
 
-Herdsman issue: https://github.com/herdrdev/herdr/issues/3430
+Base project issue: #3430
 Vendored base: portable-pty 0.9.0
 ---
 diff --git a/vendor/portable-pty/src/cmdbuilder.rs b/vendor/portable-pty/src/cmdbuilder.rs

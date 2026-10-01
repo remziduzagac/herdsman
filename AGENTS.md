@@ -132,7 +132,7 @@ Validate agent-specific detection behavior with live smoke tests through the man
 
 `vendor/libghostty-vt.vendor.json` records the upstream source commit currently vendored.
 
-Local patches on top of the vendored source must be tracked in `vendor/libghostty-vt.patches.md` and stored as patch files under `vendor/patches/libghostty-vt/`. Each entry should say why the patch exists, the Herdsman issue, upstream PR/discussion, vendored base commit, touched files, verification, and the exact removal condition.
+Local patches on top of the vendored source must be tracked in `vendor/libghostty-vt.patches.md` and stored as patch files under `vendor/patches/libghostty-vt/`. Each entry should say why the patch exists, the Base project issue, upstream PR/discussion, vendored base commit, touched files, verification, and the exact removal condition.
 
 When updating libghostty-vt, check every active patch in `vendor/libghostty-vt.patches.md`. If the new upstream commit contains the fix, remove the local patch and index entry, then rerun the listed verification. If not, reapply the patch on top of the new vendored source.
 
