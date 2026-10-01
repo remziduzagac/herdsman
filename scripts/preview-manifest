@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+"""Write preview.json for the preview channel from the preview pre-releases.
+
+    scripts/preview-manifest <output>
+
+Reads the newest ten GitHub pre-releases tagged preview-* in $GITHUB_REPOSITORY
+(default remziduzagac/herdsman), each with the binaries and the build-info.json
+the Preview workflow attaches, and writes the manifest the updater reads: the
+newest build at the top level, all of them under "builds". Writes nothing when
+there is no preview yet. Needs gh. pages.yml runs it.
+"""
+
+import json
+import os
+import subprocess
+import sys
+
+REPO = os.environ.get("GITHUB_REPOSITORY", "remziduzagac/herdsman")
+KEEP = 10
+ASSETS = {
+    "linux-x86_64": "herdsman-linux-x86_64",
+    "linux-aarch64": "herdsman-linux-aarch64",
+    "macos-x86_64": "herdsman-macos-x86_64",
+    "macos-aarch64": "herdsman-macos-aarch64",
+    "windows-x86_64": "herdsman-windows-x86_64.zip",
+}
+
+
+def gh(*args):
+    return subprocess.run(["gh", *args], check=True, capture_output=True, text=True).stdout
+
+
+def build(release):
+    tag = release["tag_name"]
+    assets = {asset["name"]: asset for asset in release["assets"]}
+    if "build-info.json" not in assets:
+        print(f"preview-manifest: {tag} has no build-info.json; skipped", file=sys.stderr)
+        return None
+    info = json.loads(gh("release", "download", tag, "-R", REPO, "--pattern", "build-info.json", "--output", "-"))
+    entries = {}
+    for target, name in ASSETS.items():
+        asset = assets.get(name)
+        digest = (asset or {}).get("digest") or ""
+        if not digest.startswith("sha256:"):
+            print(f"preview-manifest: {tag} lacks {name} or its digest; skipped", file=sys.stderr)
+            return None
+        entry = {"url": asset["browser_download_url"], "sha256": digest.removeprefix("sha256:")}
+        if target.startswith("windows-"):
+            entry["format"] = "zip"
+        entries[target] = entry
+    return {**info, "notes": (release.get("body") or "").strip() or f"Preview build {info['build_id']}.", "assets": entries}
+
+
+def main(argv):
+    if len(argv) != 2:
+        sys.exit(__doc__.split("\n\n")[1])
+    releases = json.loads(gh("api", f"repos/{REPO}/releases?per_page=100"))
+    previews = sorted(
+        (r for r in releases if r["prerelease"] and not r["draft"] and r["tag_name"].startswith("preview-")),
+        key=lambda r: r["created_at"],
+        reverse=True,
+    )
+    builds = [b for b in (build(r) for r in previews[:KEEP]) if b]
+    if not builds:
+        print("preview-manifest: no preview builds yet; not writing preview.json")
+        return
+    newest = builds[0]
+    manifest = {
+        "schema_version": 1,
+        "channel": "preview",
+        "base_version": newest["base_version"],
+        "build_id": newest["build_id"],
+        "commit": newest["commit"],
+        "built_at": newest["built_at"],
+        "protocol": newest["protocol"],
+        "endpoint_generation": newest["endpoint_generation"],
+        "notes": newest["notes"],
+        "assets": newest["assets"],
+        "builds": {
+            b["build_id"]: {
+                key: b[key]
+                for key in ("base_version", "commit", "built_at", "protocol", "endpoint_generation", "tag", "assets")
+            }
+            for b in builds
+        },
+    }
+    with open(argv[1], "w") as handle:
+        json.dump(manifest, handle, indent=2)
+        handle.write("\n")
+    print(f"preview-manifest: preview.json points at {newest['build_id']} ({len(builds)} builds kept)")
+
+
+if __name__ == "__main__":
+    main(sys.argv)

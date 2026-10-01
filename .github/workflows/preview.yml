@@ -1,0 +1,222 @@
+name: Preview
+
+# Every push to test publishes a preview build: the five binaries, stamped with
+# the preview channel and a build id <commit date>-<commit>, as the GitHub
+# pre-release preview-<build id>, together with a build-info.json that pages.yml
+# turns into preview.json. Installs on the preview channel then update to it.
+# Only the newest ten previews are kept. Stable releases, the package
+# repositories and the Homebrew tap ignore pre-releases.
+
+on:
+  push:
+    branches: [test]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  RUST_TOOLCHAIN_VERSION: 1.96.1
+
+concurrency:
+  group: preview
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      build_id: ${{ steps.plan.outputs.build_id }}
+      skip: ${{ steps.plan.outputs.skip }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Name the build
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          build_id="$(git show -s --format=%cs HEAD)-$(git rev-parse --short=12 HEAD)"
+          skip=false
+          if gh release view "preview-$build_id" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "preview-$build_id already exists"
+            skip=true
+          fi
+          echo "build_id=$build_id" >> "$GITHUB_OUTPUT"
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.skip == 'false'
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            name: herdsman-linux-x86_64
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            name: herdsman-linux-aarch64
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            name: herdsman-macos-x86_64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            name: herdsman-macos-aarch64
+          - target: x86_64-pc-windows-msvc
+            os: windows-2022
+            name: herdsman-windows-x86_64.zip
+
+    runs-on: ${{ matrix.os }}
+    env:
+      LIBGHOSTTY_VT_OPTIMIZE: ReleaseFast
+      LIBGHOSTTY_VT_SIMD: 'true'
+      HERDSMAN_BUILD_CHANNEL: preview
+      HERDSMAN_BUILD_ID: ${{ needs.plan.outputs.build_id }}
+      HERDSMAN_BUILD_COMMIT: ${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN_VERSION }}
+          targets: ${{ matrix.target }}
+
+      - name: Install Zig
+        uses: vercel-labs/setup-zig@83c1594f26b86da8a9a8ddd9b5ee5f3af0f96943 # v1.0.2
+        with:
+          version: 0.16.0
+
+      - name: Prefer official Ubuntu mirrors over Azure
+        if: runner.os == 'Linux'
+        run: |
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i '/azure.archive.ubuntu.com/d' /etc/apt/apt-mirrors.txt
+          fi
+
+      - name: Install Linux build tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo find /etc/apt/sources.list.d -type f \( -iname '*microsoft*' -o -iname '*azure-cli*' \) -print -delete
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build musl-tools gcc-aarch64-linux-gnu crossbuild-essential-arm64
+
+      - name: Install macOS build tools
+        if: runner.os == 'macOS'
+        run: HOMEBREW_NO_AUTO_UPDATE=1 brew install cmake ninja
+
+      - name: Set Linux aarch64 linker
+        if: matrix.target == 'aarch64-unknown-linux-musl'
+        run: echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        with:
+          key: preview-${{ matrix.target }}
+
+      - name: Remove Zig caches
+        shell: bash
+        run: rm -rf .zig-cache vendor/libghostty-vt/.zig-cache vendor/libghostty-vt/zig-out
+
+      - name: Build
+        run: cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Package artifact
+        if: runner.os != 'Windows'
+        shell: bash
+        run: cp target/${{ matrix.target }}/release/herdsman ${{ matrix.name }}
+
+      - name: Package artifact
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $package = Join-Path $env:RUNNER_TEMP "Microsoft.Windows.Console.ConPTY.nupkg"
+          $stage = Join-Path $env:RUNNER_TEMP "herdsman-windows-x86_64"
+          .\scripts\package_windows_conpty.ps1 `
+            -HerdsmanExe target\${{ matrix.target }}\release\herdsman.exe `
+            -PackagePath $package `
+            -StageDir $stage `
+            -OutputPath ${{ matrix.name }}
+          $version = (& (Join-Path $stage "herdsman.exe") --version | Out-String).Trim()
+          if ($version -notmatch [regex]::Escape("preview.$env:HERDSMAN_BUILD_ID")) {
+            throw "Packaged Windows binary has unexpected version identity: $version"
+          }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ matrix.name }}
+
+  publish:
+    needs: [plan, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BUILD_ID: ${{ needs.plan.outputs.build_id }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Download the binaries
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Describe the build
+        run: |
+          python3 - <<'PY'
+          import json, os, re, subprocess
+          def const(path, name):
+              text = open(path).read()
+              return int(re.search(rf"pub const {name}: u32 = (\d+);", text).group(1))
+          version = re.search(r'(?m)^version = "([^"]+)"', open("Cargo.toml").read()).group(1)
+          info = {
+              "build_id": os.environ["BUILD_ID"],
+              "tag": "preview-" + os.environ["BUILD_ID"],
+              "base_version": version,
+              "commit": os.environ["GITHUB_SHA"],
+              "built_at": subprocess.check_output(["date", "-u", "+%Y-%m-%dT%H:%M:%SZ"], text=True).strip(),
+              "protocol": const("src/protocol/wire.rs", "PROTOCOL_VERSION"),
+              "endpoint_generation": const("src/protocol/endpoint.rs", "ENDPOINT_PROTOCOL_GENERATION"),
+          }
+          json.dump(info, open("dist/build-info.json", "w"), indent=2)
+          PY
+          since=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
+          {
+            echo "Preview build $BUILD_ID of \`test\` at $GITHUB_SHA."
+            echo
+            echo "Changes since ${since:-the first commit}:"
+            echo
+            git log -n 100 --no-merges --format='- %s' ${since:+"$since..HEAD"}
+          } > notes.md
+
+      - name: Publish the pre-release
+        run: |
+          gh release create "preview-$BUILD_ID" dist/* -R "$GITHUB_REPOSITORY" --prerelease \
+            --target "$GITHUB_SHA" --title "herdsman preview $BUILD_ID" --notes-file notes.md
+
+      - name: Keep the newest ten previews
+        run: |
+          gh release list -R "$GITHUB_REPOSITORY" --limit 200 --json tagName,isPrerelease,createdAt \
+            --jq '[.[] | select(.isPrerelease and (.tagName | startswith("preview-")))] | sort_by(.createdAt) | reverse | .[10:] | .[].tagName' \
+            | while read -r tag; do
+                gh release delete "$tag" -R "$GITHUB_REPOSITORY" --cleanup-tag --yes
+              done
+
+      - name: Redeploy Pages from main
+        run: gh workflow run pages.yml -R "$GITHUB_REPOSITORY" --ref main

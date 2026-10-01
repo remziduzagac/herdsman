@@ -4,9 +4,9 @@ name: Pages
 # distribution/ folder: latest.json, the install scripts, the agent guide, the
 # agent-detection catalog and the package signing key. It also builds the
 # signed apt, dnf and pacman repositories from the Linux packages attached to
-# recent releases, and the version file Homebrew installs check. The Release
-# workflow starts this after it commits a new manifest; a push to main that
-# touches distribution/ does too.
+# recent releases, the version file Homebrew installs check, and preview.json
+# from the newest preview pre-releases. The Release and Preview workflows start
+# this when they publish; a push to main that touches distribution/ does too.
 
 on:
   push:
@@ -61,6 +61,11 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y -q createrepo-c
           scripts/package-repos _site
+
+      - name: Build the preview manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/preview-manifest _site/preview.json
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

@@ -11,7 +11,8 @@ merge base, and a merge conflicts only where both sides changed the same lines.
 | Branch | Holds | Written by |
 | --- | --- | --- |
 | `dev` | herdsman: where work comes together | merges and small commits |
-| `test`, `main` | herdsman, promoted from `dev` | fast-forward only |
+| `test` | herdsman to try out; every push publishes a preview build | fast-forward from `dev` |
+| `main` | herdsman as released | fast-forward from `test` |
 | `herdr-import` | herdr's code, renamed, one commit per imported revision | `upstream/import` only |
 | `<feature>` | one feature or fix, branched from `dev` | you; deleted once merged |
 | `merge-v<version>` | one herdr release being merged | you; deleted once merged |
@@ -277,6 +278,22 @@ new key, so announce it in the changelog.
 The Homebrew formula lives in [remziduzagac/homebrew-tap](https://github.com/remziduzagac/homebrew-tap).
 The release workflow regenerates it with `scripts/homebrew-formula` and pushes it with a deploy key
 that can write to that repository only, stored here as the `HOMEBREW_TAP_DEPLOY_KEY` secret.
+
+## Previews
+
+Pushing `test` starts `.github/workflows/preview.yml`. It builds the five binaries stamped as preview
+builds (`herdsman --version` prints `X.Y.Z-preview.<build id>`, the build id being the commit date
+and short hash), publishes them as the GitHub pre-release `preview-<build id>` with a
+`build-info.json`, deletes all but the newest ten previews, and redeploys Pages, where
+`scripts/preview-manifest` turns them into `preview.json`.
+
+```bash
+git fetch . dev:test && git push origin test       # publish what dev has as a preview
+```
+
+Machines installed with the install script follow previews after `herdsman channel set preview`;
+`herdsman update` installs the newest, and attaching to a remote machine installs the same build
+there. Pre-releases never reach the package repositories, the Homebrew tap or `latest.json`.
 
 ## Where herdsman lives
 
