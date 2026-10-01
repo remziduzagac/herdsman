@@ -13,8 +13,8 @@ herdr. See [NOTICE](NOTICE).
 ## Status
 
 Early. [CHANGELOG.md](CHANGELOG.md) lists each release and the herdr release it is built on.
-Installs made with the install script can follow preview builds of upcoming changes with
-`herdsman channel set preview`.
+Preview builds of upcoming changes are available to installs made with the install script, not
+to Homebrew, mise, Nix or the package repositories: `herdsman channel set preview`.
 
 ## Install
 

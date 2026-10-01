@@ -27,6 +27,10 @@ curl.exe -fsSLo install.cmd https://remziduzagac.github.io/herdsman/install.cmd 
 
 The installer downloads the release binary for your platform, checks its checksum, and places it on your PATH. On Windows, PATH points to the active versioned release directory; the installer also updates the `current` and stable `bin` compatibility aliases, so updates do not need to overwrite a running `herdsman.exe`.
 
+:::tip[Want preview builds?]
+Install with this script or a [manual download](#download-manually). Only those installs can follow [preview builds](#preview-builds); Homebrew, mise, Nix, apt, dnf and pacman installs receive releases only.
+:::
+
 ## Install with Homebrew
 
 If you already use Homebrew, on macOS or Linux, install from herdsman's tap:
@@ -180,13 +184,19 @@ Live handoff does not apply to Homebrew, mise, or Nix package-manager updates. F
 
 ### Preview builds
 
-Every push to herdsman's `test` branch publishes a preview build, ahead of the next release. To follow previews on an install made with the install script or a manual download:
+Every push to herdsman's `test` branch publishes a preview build, ahead of the next release. Previews get less testing than releases and can break.
+
+Previews need an install made with the [install script](#install) or a [manual download](#download-manually). Homebrew, mise, Nix, apt, dnf and pacman installs receive releases only, and `herdsman channel set preview` refuses to switch them.
+
+On such an install, run:
 
 ```bash
 herdsman channel set preview
 ```
 
-Switch back with `herdsman channel set stable`. Previews get less testing than releases and can break. Homebrew, mise, Nix, apt, dnf and pacman installs only receive releases.
+This switches the channel and updates to the newest preview straight away. Switch back with `herdsman channel set stable`.
+
+To move a package-manager install to previews, remove it with its package manager first, for example `brew uninstall herdsman`, so that only one `herdsman` is on your PATH. Then install with the script and switch the channel. Your configuration and sessions in `~/.config/herdsman` stay as they are.
 
 ## Requirements
 
