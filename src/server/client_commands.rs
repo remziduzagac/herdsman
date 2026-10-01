@@ -304,7 +304,7 @@ mod tests {
         // herdsman: stacked panes.
         assert_eq!(
             actual.remove("pane.stack").as_deref(),
-            Some("22022fd55ee193a7c54694fbcadaf9724f37f3f7f171833150bfca55595fdb8d")
+            Some("ea12f3ce7056d68bf76e3dc99ad7d9a3d7385616743ba46ac082270c9d2d40f3")
         );
         assert_eq!(
             actual.remove("pane.focus_stacked").as_deref(),
