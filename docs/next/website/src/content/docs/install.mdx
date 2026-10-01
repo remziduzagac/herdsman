@@ -3,7 +3,7 @@ title: Install Herdsman
 description: Install, update, and verify Herdsman on Linux, macOS, and Windows.
 ---
 
-Herdsman publishes stable-channel binaries for Linux, macOS, and Windows. Windows is generally available, with documented platform-specific limitations and ongoing fixes.
+Herdsman publishes release binaries for Linux, macOS, and Windows. Windows has platform-specific limitations; see [Windows support](/docs/windows-beta/).
 
 ## Install
 
@@ -25,37 +25,37 @@ If endpoint security blocks that fileless PowerShell command, open Command Promp
 curl.exe -fsSLo install.cmd https://remziduzagac.github.io/herdsman/install.cmd && install.cmd && del install.cmd
 ```
 
-The installer downloads the release binary for your platform and places it on your PATH. New direct installs use the stable update channel. Existing Windows preview installs stay on preview until you switch them with `herdsman channel set stable`. On Windows, PATH points to the active versioned release directory; the installer also updates the `current` and stable `bin` compatibility aliases, so updates do not need to overwrite a running `herdsman.exe`.
+The installer downloads the release binary for your platform, checks its checksum, and places it on your PATH. On Windows, PATH points to the active versioned release directory; the installer also updates the `current` and stable `bin` compatibility aliases, so updates do not need to overwrite a running `herdsman.exe`.
 
 ## Install with Homebrew
 
-If you already use Homebrew:
+If you already use Homebrew, on macOS or Linux, install from herdsman's tap:
 
 ```bash
-brew install herdsman
+brew install remziduzagac/tap/herdsman
 ```
+
+Update it with `brew upgrade herdsman`.
 
 ## Install with mise
 
-If you already use mise:
+If you already use mise, install the release binary straight from GitHub:
 
 ```bash
-mise use -g herdsman
+mise use -g github:remziduzagac/herdsman
 ```
-
-If mise reports `herdsman not found in mise tool registry`, update mise and retry. Older mise versions predate the Herdsman registry entry; `mise use -g github:remziduzagac/herdsman` works as a temporary fallback.
 
 ## Install with Nix
 
 If you already use Nix, Herdsman provides a flake that builds Herdsman from source:
 
 ```bash
-nix run github:remziduzagac/herdsman/v0.x.y
-nix build github:remziduzagac/herdsman/v0.x.y
-nix profile install github:remziduzagac/herdsman/v0.x.y
+nix run github:remziduzagac/herdsman/v1.0.0
+nix build github:remziduzagac/herdsman/v1.0.0
+nix profile install github:remziduzagac/herdsman/v1.0.0
 ```
 
-Replace `v0.x.y` with the latest release tag. You can omit the tag to track `master`, but release tags are recommended for normal installs.
+Replace `v1.0.0` with the latest release tag. You can omit the tag to track `main`, but release tags are recommended for normal installs.
 
 The flake also exposes a development shell:
 
@@ -99,7 +99,7 @@ mv herdsman-linux-x86_64 ~/.local/bin/herdsman
 
 ### Windows archive
 
-Stable releases and preview prereleases both include `herdsman-windows-x86_64.zip`. The archive contains `herdsman.exe` and its app-local ConPTY runtime. Keep the extracted directory together; do not copy only `herdsman.exe`.
+Every release includes `herdsman-windows-x86_64.zip`. The archive contains `herdsman.exe` and its app-local ConPTY runtime. Keep the extracted directory together; do not copy only `herdsman.exe`.
 
 ## Verify
 
@@ -121,24 +121,6 @@ herdsman update
 
 Use `herdsman update` only for installs managed by Herdsman's own installer. Update Homebrew, mise, and Nix installs through those package managers instead.
 
-Direct installs on Linux, macOS, and Windows use the stable update channel by default. To opt into preview builds from `master`, set the channel:
-
-```bash
-herdsman channel set preview
-```
-
-Switch a direct install back to stable the same way:
-
-```bash
-herdsman channel set stable
-```
-
-For direct installs, changing channels checks the selected channel and installs its latest binary. If that update fails, run `herdsman update` to retry from the configured channel.
-
-Preview builds are regularly published GitHub prereleases from the current development branch. They are useful when you want fixes before the next stable release, but they can regress. Homebrew, mise, and Nix installs do not use the preview channel.
-
-Stable is the recommended channel for normal Windows use. Preview receives fixes sooner but can regress, so opt in only when you want that tradeoff. Existing Windows preview installs remain on preview until you switch them explicitly. If an older preview build rejects `herdsman channel set stable`, run `herdsman update` once on preview, then retry the channel switch.
-
 By default, `herdsman update` installs the new binary and leaves endpoint-generation-1 servers and their pane processes running. Start Herdsman again to reconnect with the updated client. Client-only changes work immediately. A new server-side action stays unavailable until that server is updated and restarted; the client shows a notice instead of disconnecting. Servers from before endpoint generation 1 need one final stop during update.
 
 When it finishes, `herdsman update` lists any running server still on the old version with the command that restarts it, and your saved SSH machines, which run their own Herdsman. Run `herdsman update` on each machine to update it too.
@@ -155,4 +137,4 @@ Live handoff does not apply to Homebrew, mise, or Nix package-manager updates. F
 
 ## Requirements
 
-Stable-channel binaries are available for Linux, macOS, and Windows x86_64. See [Windows support](/docs/windows-beta/) for supported workflows and known limitations. Windows ARM64 runs the x86_64 build under Windows emulation.
+Release binaries are available for Linux and macOS on x86_64 and aarch64, and for Windows x86_64. See [Windows support](/docs/windows-beta/) for supported workflows and known limitations. Windows ARM64 runs the x86_64 build under Windows emulation.

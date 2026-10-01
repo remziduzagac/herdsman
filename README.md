@@ -12,8 +12,19 @@ herdr. See [NOTICE](NOTICE).
 
 ## Status
 
-Early. There are no releases yet, so `herdsman update` and remote installs have nothing to fetch.
-[CHANGELOG.md](CHANGELOG.md) lists what is coming in 1.0.0.
+Early, and used daily by its maintainer. [CHANGELOG.md](CHANGELOG.md) lists each release and the
+herdr release it is built on.
+
+## Install
+
+```bash
+curl -fsSL https://remziduzagac.github.io/herdsman/install.sh | sh    # Linux, macOS
+brew install remziduzagac/tap/herdsman                                 # Homebrew
+mise use -g github:remziduzagac/herdsman                               # mise
+```
+
+Windows, Nix and manual downloads are covered in the
+[install guide](docs/next/website/src/content/docs/install.mdx).
 
 ## How it differs from herdr
 
