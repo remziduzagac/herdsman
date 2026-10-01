@@ -96,7 +96,8 @@ DROP = [
 ]
 
 # Never renamed, never reported: the licence, and herdsman's own files, which
-# credit herdr or handle its code by name. README.md and CONTRIBUTING.md are
+# credit herdr or handle its code by name. README.md, CONTRIBUTING.md,
+# CHANGELOG.md and latest.json, which carries the changelog's notes, are
 # herdsman's own once DROP has removed herdr's.
 KEEP = [
     "CHANGELOG.md",
@@ -105,6 +106,7 @@ KEEP = [
     "MAINTAINING.md",
     "NOTICE",
     "README.md",
+    "distribution/latest.json",
     "upstream",
 ]
 

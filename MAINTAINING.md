@@ -177,6 +177,7 @@ When a merge conflicts in one of these, keep herdsman's side.
 | `build.rs` | herdr's contributor-policy warning removed |
 | `justfile` | herdr's release recipes and their tests removed; herdsman's `release` recipe added |
 | `distribution/latest.json` | herdsman's own manifest, written by herdsman's releases |
+| `docs/next/website/src/content/docs/install.mdx` | herdsman's install channels; herdr's preview channel removed |
 | `docs/next/product-announcement.json` | herdsman's own; `null` until a release announces something |
 | `src/update.rs` | fake-update notes read herdsman's `1.0.0` changelog section |
 | `src/checksum.rs` | the test's SHA-256 re-pinned |
@@ -225,7 +226,8 @@ travels as positional bincode, so stack data is fetched through the new methods 
 A release is a `vX.Y.Z` tag on `main`. Pushing it starts `.github/workflows/release.yml`, which
 builds the five binaries (Linux and macOS on x86_64 and aarch64, and the Windows zip), creates the
 GitHub release with the version's `CHANGELOG.md` section as its notes, commits the new
-`distribution/latest.json` to `main` and `dev`, and redeploys GitHub Pages through `pages.yml`.
+`distribution/latest.json` to `main` and `dev`, redeploys GitHub Pages through `pages.yml`, and
+updates the Homebrew formula.
 
 1. **Write the notes.** Under `## Unreleased` in `CHANGELOG.md`, or under `## [X.Y.Z] - Unreleased`
    once the version is known. Name the herdr version the release is built on.
@@ -248,9 +250,16 @@ GitHub release with the version's `CHANGELOG.md` section as its notes, commits t
    `scripts/release` dates the notes, sets the version in `Cargo.toml` and `Cargo.lock`, commits
    `release: vX.Y.Z`, tags it, fast-forwards `test` and `main`, and pushes all of them at once.
 5. **Watch the workflow**, then `git pull` on `dev` to pick up the manifest commit it made.
+6. **Check the packages.** `packages.yml` starts on its own after a release and installs it through
+   the install script, the Homebrew tap, mise and Nix on clean macOS and Linux machines. Run it by
+   hand with `gh workflow run packages.yml`.
 
 Pages serves `latest.json`, the install scripts, the agent guide and the agent-detection catalog
 from `main`'s `distribution/` folder. A push to `main` that changes that folder redeploys it too.
+
+The Homebrew formula lives in [remziduzagac/homebrew-tap](https://github.com/remziduzagac/homebrew-tap).
+The release workflow regenerates it with `scripts/homebrew-formula` and pushes it with a deploy key
+that can write to that repository only, stored here as the `HOMEBREW_TAP_DEPLOY_KEY` secret.
 
 ## Where herdsman lives
 

@@ -2,7 +2,8 @@ name: Release
 
 # A pushed tag vX.Y.Z publishes a release: build the five binaries, create the
 # GitHub release with the CHANGELOG.md section as notes, commit the new
-# distribution/latest.json to main and dev, and redeploy Pages from main.
+# distribution/latest.json to main and dev, redeploy Pages from main, and update
+# the formula in the remziduzagac/homebrew-tap repository.
 #
 # Running it by hand rehearses a version instead: everything up to a draft
 # release, which stays private until published. Delete the draft afterwards.
@@ -239,3 +240,34 @@ jobs:
 
       - name: Redeploy Pages from main
         run: gh workflow run pages.yml --ref main
+
+  homebrew:
+    needs: [check, manifest]
+    if: needs.check.outputs.draft == 'false'
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: main
+          persist-credentials: false
+
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          repository: remziduzagac/homebrew-tap
+          path: tap
+          ssh-key: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
+
+      - name: Update the formula in the tap
+        run: |
+          manifest=$(python3 -c 'import json; print(json.load(open("distribution/latest.json"))["version"])')
+          [ "$manifest" = "$VERSION" ] || { echo "::error::latest.json on main is $manifest, not $VERSION"; exit 1; }
+          scripts/homebrew-formula > tap/Formula/herdsman.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/herdsman.rb
+          git diff --cached --quiet && { echo "formula already at $VERSION"; exit 0; }
+          git commit -m "herdsman $VERSION"
+          git push origin HEAD:main

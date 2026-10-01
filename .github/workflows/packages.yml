@@ -1,0 +1,97 @@
+name: Packages
+
+# Installs the latest herdsman release through every channel the install docs
+# list, on clean machines: the install script, the Homebrew tap, mise and the
+# Nix flake. Runs after each published release, and by hand.
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.latest.outputs.version }}
+    steps:
+      - id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(gh release view -R "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+  install-script:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - name: Install with install.sh
+        run: |
+          curl -fsSL https://remziduzagac.github.io/herdsman/install.sh | sh
+          "$HOME/.local/bin/herdsman" --version | grep -Fx "herdsman $VERSION"
+
+  homebrew:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - name: Install from the tap
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"; fi
+          brew install remziduzagac/tap/herdsman
+          herdsman --version | grep -Fx "herdsman $VERSION"
+
+  mise:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      GITHUB_TOKEN: ${{ github.token }}
+      MISE_YES: 1
+    steps:
+      - uses: jdx/mise-action@7a4e45a543138629540c9a1616d08632b893e492 # v5.0.1
+        with:
+          install: false
+
+      - name: Install with mise
+        run: |
+          mise use -g github:remziduzagac/herdsman
+          mise exec -- herdsman --version | grep -Fx "herdsman $VERSION"
+
+  nix:
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Build and run the release with Nix
+        run: nix run "github:remziduzagac/herdsman/v$VERSION" -- --version | grep -Fx "herdsman $VERSION"
