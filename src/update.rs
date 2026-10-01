@@ -30,6 +30,7 @@ const HERDSMAN_UPDATE_COMMAND: &str = "herdsman update";
 const HOMEBREW_UPDATE_COMMAND: &str = "brew update && brew upgrade herdsman";
 const MISE_UPDATE_COMMAND: &str = "mise upgrade herdsman";
 const NIX_UPDATE_COMMAND: &str = "update through Nix";
+const SYSTEM_PACKAGE_UPDATE_COMMAND: &str = "update through your system package manager";
 const MISE_INSTALLS_DIR_ENV: &str = "MISE_INSTALLS_DIR";
 const FAKE_UPDATE_VERSION_ENV: &str = "HERDSMAN_FAKE_UPDATE_VERSION";
 const FAKE_UPDATE_NOTES_VERSION_ENV: &str = "HERDSMAN_FAKE_UPDATE_NOTES_VERSION";
@@ -1894,6 +1895,8 @@ pub(crate) fn update_install_command() -> &'static str {
         MISE_UPDATE_COMMAND
     } else if is_nix_managed_install() {
         NIX_UPDATE_COMMAND
+    } else if is_system_package_install() {
+        SYSTEM_PACKAGE_UPDATE_COMMAND
     } else {
         HERDSMAN_UPDATE_COMMAND
     }
@@ -1913,6 +1916,10 @@ pub(crate) fn update_install_instruction(install_command: &str) -> String {
         }
         NIX_UPDATE_COMMAND => {
             "detach, update through Nix, then run Herdsman again to reconnect".to_string()
+        }
+        SYSTEM_PACKAGE_UPDATE_COMMAND => {
+            "detach, update with apt, dnf or pacman, then run Herdsman again to reconnect"
+                .to_string()
         }
         command => format!("detach, run `{command}`, then run Herdsman again to reconnect"),
     }
@@ -1942,6 +1949,14 @@ fn is_mise_managed_install() -> bool {
     is_mise_managed_exe_path_following_links(&current_exe)
 }
 
+fn is_system_package_install() -> bool {
+    let Ok(current_exe) = env::current_exe() else {
+        return false;
+    };
+
+    is_system_package_exe_path_following_links(&current_exe)
+}
+
 pub(crate) fn preview_channel_rejection_for_current_install() -> Option<&'static str> {
     let Ok(current_exe) = env::current_exe() else {
         return None;
@@ -1958,6 +1973,8 @@ pub(crate) fn package_manager_channel_update_guidance_for_current_install() -> O
         Some("Use `mise upgrade herdsman` to update mise installs.")
     } else if is_nix_managed_install() {
         Some("Update through Nix to update Nix-managed Herdsman installs.")
+    } else if is_system_package_install() {
+        Some("Update system-package installs with apt, dnf or pacman.")
     } else {
         None
     }
@@ -1974,6 +1991,8 @@ fn preview_channel_rejection_for_exe_path(path: &Path) -> Option<&'static str> {
         )
     } else if is_nix_store_exe_path_following_links(path) {
         Some("preview channel is only available for direct Herdsman installs; Nix installs update through Nix")
+    } else if is_system_package_exe_path_following_links(path) {
+        Some("preview channel is only available for direct Herdsman installs; system-package installs update through apt, dnf or pacman")
     } else {
         None
     }
@@ -1984,6 +2003,7 @@ pub(crate) fn is_package_manager_managed_exe_path(path: &Path) -> bool {
     is_homebrew_managed_exe_path_following_links(path)
         || is_mise_managed_exe_path_following_links(path)
         || is_nix_store_exe_path_following_links(path)
+        || is_system_package_exe_path_following_links(path)
 }
 
 #[cfg(not(unix))]
@@ -2018,8 +2038,23 @@ fn is_mise_managed_exe_path_following_links(path: &Path) -> bool {
         .is_ok_and(|path| is_mise_managed_exe_path(&path))
 }
 
+fn is_system_package_exe_path_following_links(path: &Path) -> bool {
+    if is_system_package_exe_path(path) {
+        return true;
+    }
+
+    path.canonicalize()
+        .is_ok_and(|path| is_system_package_exe_path(&path))
+}
+
 fn is_nix_store_exe_path(path: &Path) -> bool {
     path.starts_with("/nix/store")
+}
+
+/// The apt, dnf and pacman packages install to /usr/bin; Herdsman's own
+/// installer never does.
+fn is_system_package_exe_path(path: &Path) -> bool {
+    path.starts_with("/usr/bin") || path.starts_with("/usr/sbin")
 }
 
 fn is_mise_managed_exe_path(path: &Path) -> bool {
@@ -2145,6 +2180,18 @@ pub fn self_update(options: SelfUpdateOptions) -> Result<Version, String> {
         }
         return Err(
             "self-update is disabled for Nix installs; update with `nix profile upgrade` or update the flake input that provides Herdsman".into(),
+        );
+    }
+
+    if is_system_package_install() {
+        if channel == UpdateChannel::Preview {
+            return Err(
+                "self-update is disabled for system-package installs; preview is only available for direct Herdsman installs".into(),
+            );
+        }
+        return Err(
+            "self-update is disabled for system-package installs; update with apt, dnf or pacman"
+                .into(),
         );
     }
 
@@ -2890,6 +2937,23 @@ mod tests {
         assert!(preview_channel_rejection_for_exe_path(nix)
             .is_some_and(|message| message.contains("Nix")));
         assert!(preview_channel_rejection_for_exe_path(direct).is_none());
+    }
+
+    #[test]
+    fn system_package_path_is_detected() {
+        let path = Path::new("/usr/bin/herdsman");
+
+        assert!(is_system_package_exe_path(path));
+        assert!(is_package_manager_managed_exe_path(path));
+        assert!(preview_channel_rejection_for_exe_path(path)
+            .is_some_and(|message| message.contains("system-package")));
+    }
+
+    #[test]
+    fn user_install_paths_are_not_system_packages() {
+        for path in ["/usr/local/bin/herdsman", "/home/user/.local/bin/herdsman"] {
+            assert!(!is_system_package_exe_path(Path::new(path)), "{path}");
+        }
     }
 
     #[test]
