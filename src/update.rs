@@ -24,7 +24,8 @@ use serde::{Deserialize, Deserializer};
 
 const STABLE_UPDATE_MANIFEST_URL: &str = "https://remziduzagac.github.io/herdsman/latest.json";
 const PREVIEW_UPDATE_MANIFEST_URL: &str = "https://remziduzagac.github.io/herdsman/preview.json";
-const HOMEBREW_FORMULA_API_URL: &str = "https://formulae.brew.sh/api/formula/herdsman.json";
+const HOMEBREW_FORMULA_API_URL: &str =
+    "https://remziduzagac.github.io/herdsman/homebrew/herdsman.json";
 const HERDSMAN_UPDATE_COMMAND: &str = "herdsman update";
 const HOMEBREW_UPDATE_COMMAND: &str = "brew update && brew upgrade herdsman";
 const MISE_UPDATE_COMMAND: &str = "mise upgrade herdsman";
