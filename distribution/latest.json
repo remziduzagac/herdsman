@@ -1,0 +1,41 @@
+{
+  "version": "0.0.0",
+  "protocol": 22,
+  "endpoint_generation": 1,
+  "notes": "No herdsman release has been published yet.",
+  "assets": {
+    "linux-x86_64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.0.0/herdsman-linux-x86_64",
+    "linux-aarch64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.0.0/herdsman-linux-aarch64",
+    "macos-x86_64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.0.0/herdsman-macos-x86_64",
+    "macos-aarch64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.0.0/herdsman-macos-aarch64",
+    "windows-x86_64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.0.0/herdsman-windows-x86_64.zip"
+  },
+  "sha256": {
+    "linux-x86_64": "0000000000000000000000000000000000000000000000000000000000000000",
+    "linux-aarch64": "0000000000000000000000000000000000000000000000000000000000000000",
+    "macos-x86_64": "0000000000000000000000000000000000000000000000000000000000000000",
+    "macos-aarch64": "0000000000000000000000000000000000000000000000000000000000000000",
+    "windows-x86_64": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "releases": {
+    "0.0.0": {
+      "assets": {
+        "linux-x86_64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.0.0/herdsman-linux-x86_64",
+        "linux-aarch64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.0.0/herdsman-linux-aarch64",
+        "macos-x86_64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.0.0/herdsman-macos-x86_64",
+        "macos-aarch64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.0.0/herdsman-macos-aarch64",
+        "windows-x86_64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.0.0/herdsman-windows-x86_64.zip"
+      },
+      "endpoint_generation": 1,
+      "notes": "No herdsman release has been published yet.",
+      "protocol": 22,
+      "sha256": {
+        "linux-x86_64": "0000000000000000000000000000000000000000000000000000000000000000",
+        "linux-aarch64": "0000000000000000000000000000000000000000000000000000000000000000",
+        "macos-x86_64": "0000000000000000000000000000000000000000000000000000000000000000",
+        "macos-aarch64": "0000000000000000000000000000000000000000000000000000000000000000",
+        "windows-x86_64": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    }
+  }
+}
