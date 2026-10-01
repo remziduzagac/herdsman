@@ -1,0 +1,253 @@
+#!/usr/bin/env python3
+"""Collect herdr's release notes for the herdsman release that takes herdr in.
+
+    upstream/changelog <to> [--from <version>] [--write]
+
+herdsman skips herdr versions. Merging herdr 0.9.6 into a herdsman built on
+0.9.3 brings in 0.9.4, 0.9.5 and 0.9.6, so the herdsman release notes carry
+herdr's notes for all three. This prints them, newest first, each under a
+"### From herdr <version>" heading, after a "Based on herdr <to> (<commit>)."
+line.
+
+The notes come from herdr's CHANGELOG.md at tag v<to> in the plain herdr clone
+at $UPSTREAM_DIR (default ~/Projects/herdr). <from> defaults to the herdr
+version named by the newest "Based on herdr" line in CHANGELOG.md.
+
+The notes are renamed like the code, so commands, settings and environment
+variables read as herdsman's, and adjusted to stay true outside herdr's repo:
+
+- issue references such as "#4751" link to herdr's tracker;
+- "@name" credits link to the GitHub profile without mentioning anyone;
+- links to herdr's GitHub repository stay as they are;
+- herdr.dev docs links point at herdsman's page of the same name, or stay on
+  herdr.dev when herdsman has no such page.
+
+--write puts the result into the Unreleased section of CHANGELOG.md: the
+"Based on" line first, replacing an earlier one, and the herdr notes before any
+from an earlier merge. Review the diff: herdr's notes describe herdr, and a
+change herdsman does differently or dropped needs editing by hand.
+"""
+
+import argparse
+import importlib.machinery
+import importlib.util
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+CHANGELOG = ROOT / "CHANGELOG.md"
+DOCS = ROOT / "docs/next/website/src/content/docs"
+TRACKER = "https://github.com/herdrdev/herdr/issues"
+WIDTH = 100
+
+_loader = importlib.machinery.SourceFileLoader("rename", str(HERE / "rename"))
+rename = importlib.util.module_from_spec(importlib.util.spec_from_loader("rename", _loader))
+_loader.exec_module(rename)
+
+VERSION = r"\d+\.\d+\.\d+"
+SECTION = re.compile(rf"(?m)^## \[(?P<version>{VERSION})\][^\n]*\n")
+BASED_ON = re.compile(rf"(?m)^Based on herdr (?P<version>{VERSION})\b[^\n]*\n")
+URL = re.compile(r"https?://[^\s<>()\[\]`]+")
+CODE = re.compile(r"`[^`\n]*`")
+ISSUE = re.compile(r"(?<![\w&/#])#(?P<number>\d+)\b")
+CREDIT = re.compile(r"(?<![\w.`/@-])@(?P<name>[A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))\b")
+LIST_ITEM = re.compile(r"^(?P<marker>\s*(?:[-*+]|\d+[.)])\s+)")
+# Words that would open a new block at the start of a wrapped line: a list
+# item, heading, quote, fence, setext underline or HTML block.
+BLOCK_START = re.compile(r"(?:[-+*]|#{1,6}|\d{1,9}[.)]|>.*|```.*|=+|-+|<.*)")
+
+
+def die(message):
+    sys.exit(f"changelog: {message}")
+
+
+def parse_version(text):
+    return tuple(int(part) for part in text.split("."))
+
+
+def git(upstream, *args):
+    result = subprocess.run(["git", "-C", str(upstream), *args], capture_output=True, text=True)
+    if result.returncode != 0:
+        die(result.stderr.strip() or f"git {' '.join(args)} failed")
+    return result.stdout
+
+
+def herdr_sections(text):
+    """Map each released version in herdr's changelog to its notes."""
+    matches = list(SECTION.finditer(text))
+    sections = {}
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        sections[match.group("version")] = text[match.end() : end].strip("\n")
+    return sections
+
+
+class Kept:
+    """Text the rename must not touch, swapped out for placeholders meanwhile."""
+
+    def __init__(self):
+        self.items = []
+
+    def __call__(self, text):
+        self.items.append(text)
+        return f"\0{len(self.items) - 1}\0"
+
+    def restore(self, text):
+        return re.sub(r"\0(\d+)\0", lambda match: self.items[int(match.group(1))], text)
+
+
+def docs_page(slug):
+    return any((DOCS / f"{slug}{suffix}").exists() for suffix in (".mdx", ".md"))
+
+
+def adjust_url(url, kept, report):
+    """A herdr URL as it should read in herdsman's notes, kept from the rename."""
+    trailing = re.search(r"[.,;:!?'\"]+$", url)
+    tail = trailing.group(0) if trailing else ""
+    url = url[: len(url) - len(tail)]
+    docs = re.fullmatch(r"https?://herdr\.dev/docs/(?P<slug>[\w-]+)/?(?P<rest>[#?]\S*)?", url)
+    if docs:
+        slug = rename.rename_name(docs.group("slug"))
+        if docs_page(slug):
+            mapped = f"https://{rename.SITE}/docs/{slug}/{docs.group('rest') or ''}"
+            report.append(f"mapped {url} -> {mapped}")
+            return kept(mapped) + tail
+        report.append(f"kept {url}: herdsman has no docs page {slug}")
+        return kept(url) + tail
+    if re.match(r"https?://github\.com/herdrdev/", url):
+        return kept(url) + tail
+    if re.match(r"https?://herdr\.dev\b", url):
+        report.append(f"renamed {url}: check that herdsman serves it")
+    return url + tail
+
+
+def outside_code(text, transform):
+    """Apply transform to the parts of text that are not code spans."""
+    parts = []
+    last = 0
+    for match in CODE.finditer(text):
+        parts.append(transform(text[last : match.start()]))
+        parts.append(match.group(0))
+        last = match.end()
+    parts.append(transform(text[last:]))
+    return "".join(parts)
+
+
+def convert(notes, report):
+    kept = Kept()
+    text = URL.sub(lambda match: adjust_url(match.group(0), kept, report), notes)
+
+    def links(part):
+        part = ISSUE.sub(lambda m: kept(f"[herdr#{m.group('number')}]({TRACKER}/{m.group('number')})"), part)
+        return CREDIT.sub(lambda m: kept(f"[@{m.group('name')}](https://github.com/{m.group('name')})"), part)
+
+    text = outside_code(text, links)
+    text = rename.rename_text(text, "CHANGELOG.md")
+    text = kept.restore(text)
+    # herdr's sections sit one level higher than they do here.
+    text = re.sub(r"(?m)^(#{3,5}) ", r"#\1 ", text)
+    # and herdsman's changelog sets headings apart with blank lines.
+    text = re.sub(r"(?m)^(#+ [^\n]*)\n(?=[^\n])", r"\1\n\n", text)
+    return "\n".join(wrap(line) for line in text.split("\n"))
+
+
+def wrap(line):
+    """Wrap one paragraph or list item line the way herdsman's changelog is."""
+    if len(line) <= WIDTH or line.lstrip().startswith(("#", "|", ">")):
+        return line
+    item = LIST_ITEM.match(line)
+    first = item.group("marker") if item else re.match(r"\s*", line).group(0)
+    chunks = []
+    for word in line[len(first) :].split():
+        if chunks and BLOCK_START.fullmatch(word):
+            chunks[-1] += f" {word}"
+        else:
+            chunks.append(word)
+    lines = [""]
+    for chunk in chunks:
+        if lines[-1] and len(first) + len(lines[-1]) + 1 + len(chunk) > WIDTH:
+            lines.append(chunk)
+        else:
+            lines[-1] = f"{lines[-1]} {chunk}" if lines[-1] else chunk
+    return "\n".join((first if index == 0 else " " * len(first)) + text for index, text in enumerate(lines))
+
+
+def based_on_version():
+    match = BASED_ON.search(CHANGELOG.read_text())
+    if not match:
+        die("CHANGELOG.md names no herdr version; pass --from")
+    return match.group("version")
+
+
+def notes_for(upstream, start, end):
+    tag = f"v{end}"
+    git(upstream, "rev-parse", "--verify", "--quiet", f"{tag}^{{commit}}")
+    commit = git(upstream, "rev-parse", "--short=8", f"{tag}^{{commit}}").strip()
+    sections = herdr_sections(git(upstream, "show", f"{tag}:CHANGELOG.md"))
+    wanted = sorted(
+        (v for v in sections if parse_version(start) < parse_version(v) <= parse_version(end)),
+        key=parse_version,
+        reverse=True,
+    )
+    if not wanted or wanted[0] != end:
+        die(f"herdr's CHANGELOG.md at {tag} has no notes for {end}")
+    report = []
+    blocks = []
+    for version in wanted:
+        body = convert(sections[version], report)
+        blocks.append(f"### From herdr {version}\n\n{body}\n" if body.strip() else f"### From herdr {version}\n")
+    return f"Based on herdr {end} (`{commit}`).\n", "\n".join(blocks), report
+
+
+def write(based_on, blocks):
+    text = CHANGELOG.read_text()
+    unreleased = re.search(r"(?ms)^## Unreleased\n(.*?)(?=^## |\Z)", text)
+    if not unreleased:
+        die("CHANGELOG.md has no Unreleased section")
+    body = unreleased.group(1).strip("\n")
+    body = BASED_ON.sub("", body + "\n").strip("\n")
+    earlier = re.search(r"(?m)^### From herdr ", body)
+    if earlier:
+        body = body[: earlier.start()] + blocks + "\n" + body[earlier.start() :]
+    else:
+        body = f"{body}\n\n{blocks}" if body else blocks
+    section = f"## Unreleased\n\n{based_on}\n{body.strip(chr(10))}\n\n"
+    CHANGELOG.write_text(text[: unreleased.start()] + section + text[unreleased.end() :])
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(
+        prog="upstream/changelog",
+        description=__doc__.split("\n\n", 1)[0],
+        epilog="See the header of upstream/changelog for details.",
+    )
+    parser.add_argument("to", help="the herdr version being merged, e.g. 0.9.6")
+    parser.add_argument("--from", dest="start", help="the herdr version herdsman is on now")
+    parser.add_argument("--write", action="store_true", help="put the notes into CHANGELOG.md")
+    args = parser.parse_args(argv)
+
+    end = args.to.removeprefix("v")
+    start = (args.start or based_on_version()).removeprefix("v")
+    for version in (start, end):
+        if not re.fullmatch(VERSION, version):
+            die(f"{version} is not a release version")
+    if parse_version(start) >= parse_version(end):
+        die(f"herdsman is already on herdr {start}")
+    upstream = Path(os.environ.get("UPSTREAM_DIR", Path.home() / "Projects/herdr"))
+
+    based_on, blocks, report = notes_for(upstream, start, end)
+    for line in report:
+        print(f"changelog: {line}", file=sys.stderr)
+    if args.write:
+        write(based_on, blocks)
+        print(f"changelog: added herdr {start}..{end} to the Unreleased section of CHANGELOG.md", file=sys.stderr)
+    else:
+        sys.stdout.write(f"{based_on}\n{blocks}")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

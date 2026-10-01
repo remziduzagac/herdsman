@@ -136,10 +136,22 @@ Failures that come from the rename rather than from real bugs:
   `src/server/client_commands.rs`. If it fails on a herdr method whose enum carries the name,
   re-pin it in the fixture. Other shape changes are herdr's own.
 
-### 6. Version, changelog, promote
+### 6. Changelog, promote
 
-Bump the minor version in `Cargo.toml` (`cargo update -p herdsman --offline` follows in
-`Cargo.lock`) and add a `CHANGELOG.md` entry naming the herdr version. Then:
+herdsman skips herdr versions, so its notes carry herdr's for every version since the last merge:
+
+```bash
+upstream/changelog 0.9.4 --write
+```
+
+This adds a "Based on herdr 0.9.4" line to the `## Unreleased` section of `CHANGELOG.md`, and
+herdr's notes for each version after the one the previous "Based on herdr" line names, each under a
+"From herdr" heading. The notes are renamed like the code; issue numbers and credits link to herdr's
+GitHub, and docs links to herdsman's page of the same name. It prints every herdr.dev link it changed
+or kept. Read the result: herdr's notes describe herdr, so edit what herdsman does differently. Drop
+`--write` to print the notes instead.
+
+The version is set when releasing, by `just release`. Then:
 
 ```bash
 git commit                                   # in the worktree
@@ -235,7 +247,8 @@ beside the binaries, commits the new
 updates the Homebrew formula.
 
 1. **Write the notes.** Under `## Unreleased` in `CHANGELOG.md`, or under `## [X.Y.Z] - Unreleased`
-   once the version is known. Name the herdr version the release is built on.
+   once the version is known. Name the herdr version the release is built on; `upstream/changelog`
+   does that when a herdr release is merged.
 2. **Check CI** passed on the `dev` commit you will release.
 3. **Rehearse, if anything in the build changed.** This builds everything into a private draft
    release, to try the binaries before anyone else can see them:
