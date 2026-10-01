@@ -23,7 +23,8 @@ In order, it:
    undeliverable @herdsman.invalid ones), herdrdev/herdr becomes REPO and
    herdrdev becomes OWNER, then HERDR, Herdr and herdr become HERDSMAN,
    Herdsman and herdsman. herdr's default branch is master and herdsman's is
-   main, so links into the repository and workflow branch filters follow;
+   main, so links into the repository and workflow branch filters follow, and
+   the Homebrew version check reads a file on SITE instead of Homebrew's API;
 4. renames files and directories the same way, and rewrites symlink targets;
 5. sets the package version to 0.0.0, so herdr's version bumps never conflict
    with herdsman's own; upstream/import records herdr's version instead;
@@ -163,6 +164,9 @@ def rename_links(text, path):
 def rename_text(text, path):
     text = rename_links(text, path)
     text = re.sub(r"@herdr\.dev\b", "@herdsman.invalid", text)
+    # Homebrew's central API only knows herdr's core formula. herdsman ships
+    # through its own tap, so Pages serves the same JSON shape for it.
+    text = text.replace("https://formulae.brew.sh/api/formula/herdr.json", f"https://{SITE}/homebrew/herdsman.json")
     text = re.sub(r"herdr\.dev\b", SITE, text)
     text = text.replace("herdrdev/herdr", REPO)
     text = text.replace("herdrdev", OWNER)
