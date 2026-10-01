@@ -1723,7 +1723,7 @@ fi
         r#"if [ -n "$home" ]; then
     emit "$home/.local/share/mise/installs/herdsman/$version/bin/herdsman"
     emit "$home/.local/share/mise/installs/herdsman/$version/herdsman"
-    emit "$home/.local/share/mise/installs/github-ogulcancelik-herdsman/$version/herdsman"
+    emit "$home/.local/share/mise/installs/github-remziduzagac-herdsman/$version/herdsman"
     emit "$home/.nix-profile/bin/herdsman"
 fi
 if [ -n "$user" ]; then
@@ -5107,7 +5107,7 @@ function Get-Process {
             script.contains("emit \"$home/.local/share/mise/installs/herdsman/$version/herdsman\"")
         );
         assert!(script.contains(
-            "emit \"$home/.local/share/mise/installs/github-ogulcancelik-herdsman/$version/herdsman\""
+            "emit \"$home/.local/share/mise/installs/github-remziduzagac-herdsman/$version/herdsman\""
         ));
         assert!(script.contains("emit \"$home/.nix-profile/bin/herdsman\""));
         assert!(script.contains("emit \"/etc/profiles/per-user/$user/bin/herdsman\""));

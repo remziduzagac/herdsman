@@ -1251,7 +1251,7 @@ command = ["echo", " a", "first "]
                 enabled: true,
                 source: Some(PluginSourceInfo {
                     kind: PluginSourceKind::Github,
-                    owner: Some("ogulcancelik".into()),
+                    owner: Some("remziduzagac".into()),
                     repo: Some("herdsman-plugin-examples".into()),
                     subdir: Some("worktree-bootstrap".into()),
                     requested_ref: None,
