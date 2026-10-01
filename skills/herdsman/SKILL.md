@@ -201,6 +201,51 @@ Use `--format ansi` when colors and terminal styling are evidence. Otherwise use
 
 If a larger recent read still does not reveal the completed response, ask the agent to write it as Markdown in a temporary directory and reply only with the file path, then read that file on the same machine. Use this only as a fallback; do not request file output in the initial prompt.
 
+## Stack panes in one slot
+
+A stack is a layout slot holding several panes, one visible at a time. Hidden members keep
+running with their scrollback, cwd, title and agent state, and a strip along the slot names them.
+Use a stack to run background work without taking screen space from the user.
+
+| Command | Effect |
+| --- | --- |
+| `pane stack [<pane>\|--pane ID\|--current] [--focus\|--no-focus]` | new member in that slot |
+| `pane stacks [--workspace ID]` | every stack: members and the visible one |
+| `pane focus <pane_id>` | focus a pane by ID, revealing a hidden member |
+| `pane focus-stacked [<pane>\|--pane ID\|--current] <N\|next\|previous>` | switch members |
+| `pane move <pane> --stack <target> [--focus\|--no-focus]` | a pane joins the target's stack |
+
+- `pane stack` takes `--cwd`, `--env` and `--right-click` like `pane split` and returns the new
+  pane as `.result.pane.pane_id`. Without `--focus`, the new member starts hidden.
+- `N` counts from 1, as the strip numbers members; `next` and `previous` wrap. A pane outside a
+  stack, or a number past the last member, changes nothing.
+- `pane move --stack` works across tabs and workspaces. It defaults to `--focus`; pass
+  `--no-focus` to keep the slot showing what it showed.
+- `pane stacks` returns `.result.stacks[]`, each with `workspace_id`, `tab_id`, `pane_ids` in
+  strip order, and `visible_pane_id`.
+
+To start an agent behind the caller instead of beside it, create the pane with a stack and then
+start the agent in it as in "Start and coordinate an agent":
+
+```bash
+herdsman pane stack --current --cwd "$PWD" --no-focus
+```
+
+Behaviour to rely on:
+
+- The focused pane is always visible. Focusing a hidden member by any route reveals it.
+- Members fill the whole slot, so `pane split` beside a member splits beside the whole stack.
+- `pane list` includes hidden members; `pane layout` lists only visible panes. Use `pane stacks`
+  for membership.
+- A stack of one becomes a plain pane. Closing the visible member shows the next one.
+- An agent finishing in a hidden member reads `done`, not `idle`, until it is revealed, so the
+  waits above work unchanged. Reading and waiting never need the pane to be visible.
+
+The user's keys add `alt` to the tab keys: `prefix+alt+1..9` goes to a member,
+`prefix+alt+n` and `prefix+alt+p` step, `prefix+alt+c` creates one and `prefix+alt+x` closes the
+visible one. Clicking a strip segment shows that member, and the `prefix+g` navigator tags rows
+`stacked N/M` and `hidden`.
+
 ## Safety and coordination rules
 
 - Use `--no-focus` for background work unless the user asked to switch context.
