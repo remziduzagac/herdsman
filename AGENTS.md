@@ -168,7 +168,7 @@ env -u HERDSMAN_SOCKET_PATH -u HERDSMAN_CLIENT_SOCKET_PATH cargo run -- <command
 ## Local Can Machine Workflow
 
 This section applies only on Can's workstation or Windows VM setup when the
-acting GitHub account is `ogulcancelik`. Other verified maintainers skip this
+acting GitHub account is `remziduzagac`. Other verified maintainers skip this
 local-machine section but continue following maintainer workflow. Everyone else
 follows the external contributor guardrail.
 

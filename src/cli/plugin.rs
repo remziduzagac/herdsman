@@ -1823,7 +1823,7 @@ mod tests {
     #[test]
     fn github_plugin_source_parses_root_repo() {
         let source = GithubPluginSource::parse("remziduzagac/herdsman-plugin-examples").unwrap();
-        assert_eq!(source.owner, "ogulcancelik");
+        assert_eq!(source.owner, "remziduzagac");
         assert_eq!(source.repo, "herdsman-plugin-examples");
         assert_eq!(source.subdir, None);
         assert_eq!(
@@ -1837,7 +1837,7 @@ mod tests {
         let source =
             GithubPluginSource::parse("remziduzagac/herdsman-plugin-examples/worktree-bootstrap")
                 .unwrap();
-        assert_eq!(source.owner, "ogulcancelik");
+        assert_eq!(source.owner, "remziduzagac");
         assert_eq!(source.repo, "herdsman-plugin-examples");
         assert_eq!(source.subdir.as_deref(), Some("worktree-bootstrap"));
     }
@@ -1847,7 +1847,7 @@ mod tests {
         for source in [
             "https://github.com/remziduzagac/herdsman-plugin-examples",
             "git@github.com:remziduzagac/herdsman-plugin-examples.git",
-            "ogulcancelik",
+            "remziduzagac",
             "remziduzagac/herdsman-plugin-examples/../bad",
             "remziduzagac/herdsman-plugin-examples//bad",
         ] {
@@ -1867,13 +1867,13 @@ mod tests {
         let plugins = vec![
             github_plugin(
                 "examples.github-link-preview",
-                "ogulcancelik",
+                "remziduzagac",
                 "herdsman-plugin-examples",
                 Some("github-link-preview"),
             ),
             github_plugin(
                 "examples.agent-telegram-notify",
-                "ogulcancelik",
+                "remziduzagac",
                 "herdsman-plugin-examples",
                 Some("agent-telegram-notify"),
             ),
@@ -1888,7 +1888,7 @@ mod tests {
         let source = GithubPluginSource::parse("remziduzagac/herdsman-plugin-examples").unwrap();
         let plugins = vec![github_plugin(
             "examples.agent-telegram-notify",
-            "ogulcancelik",
+            "remziduzagac",
             "herdsman-plugin-examples",
             Some("agent-telegram-notify"),
         )];
@@ -1901,7 +1901,7 @@ mod tests {
         let source = GithubPluginSource::parse("remziduzagac/herdsman-plugin-examples").unwrap();
         let mut plugin = github_plugin(
             "examples.local",
-            "ogulcancelik",
+            "remziduzagac",
             "herdsman-plugin-examples",
             None,
         );

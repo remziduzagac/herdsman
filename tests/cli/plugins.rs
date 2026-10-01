@@ -501,7 +501,7 @@ command = ["sh", "-c", "echo bootstrap"]
     let plugin = &listed["result"]["plugins"][0];
     assert_eq!(plugin["plugin_id"], "example.worktree-bootstrap");
     assert_eq!(plugin["source"]["kind"], "github");
-    assert_eq!(plugin["source"]["owner"], "ogulcancelik");
+    assert_eq!(plugin["source"]["owner"], "remziduzagac");
     assert_eq!(plugin["source"]["repo"], "herdsman-plugin-examples");
     assert_eq!(plugin["source"]["subdir"], "worktree-bootstrap");
     assert_eq!(plugin["source"]["requested_ref"], "v0.43.0");
@@ -918,7 +918,7 @@ command = ["sh", "-c", "echo new"]
                         "enabled": true,
                         "source": {
                             "kind": "github",
-                            "owner": "ogulcancelik",
+                            "owner": "remziduzagac",
                             "repo": "herdsman-plugin-examples",
                             "subdir": "worktree-bootstrap",
                             "resolved_commit": "old",
