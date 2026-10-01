@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-set "INSTALLER_URL=https://herdsman.invalid/install.ps1"
+set "INSTALLER_URL=https://remziduzagac.github.io/herdsman/install.ps1"
 set "CURL_PROTOCOL=--proto =https --tlsv1.2"
 if defined HERDSMAN_INSTALLER_URL (
     set "INSTALLER_URL=%HERDSMAN_INSTALLER_URL%"

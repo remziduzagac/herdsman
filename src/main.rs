@@ -124,10 +124,10 @@ const DEFAULT_CONFIG: &str = r##"# herdsman configuration
 # so existing preview installs stay there until explicitly switched.
 # channel = "stable"
 
-# Check herdsman.invalid for new Herdsman versions in the background.
+# Check remziduzagac.github.io/herdsman for new Herdsman versions in the background.
 # version_check = true
 
-# Check herdsman.invalid for remote agent-detection manifest updates in the background.
+# Check remziduzagac.github.io/herdsman for remote agent-detection manifest updates in the background.
 # manifest_check = true
 
 [keys]
@@ -717,7 +717,7 @@ fn main() -> io::Result<()> {
         println!("Config: {}", config::config_path().display());
         println!("Logs:   {}", logging::help_log_paths_summary());
         println!("Env:    HERDSMAN_CONFIG_PATH overrides config file path");
-        println!("Home:   https://herdsman.invalid");
+        println!("Home:   https://remziduzagac.github.io/herdsman");
         println!();
         println!("{}", cli::AGENT_HELP_FOOTER);
         return Ok(());

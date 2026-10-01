@@ -2,14 +2,14 @@
 set -eu
 
 BIN="herdsman"
-MANIFEST_URL="https://herdsman.invalid/latest.json"
+MANIFEST_URL="https://remziduzagac.github.io/herdsman/latest.json"
 INSTALL_DIR="${HERDSMAN_INSTALL_DIR:-$HOME/.local/bin}"
 
 main() {
     echo ""
     echo "      ,ww"
     echo "     wWWWWWWW_)  herdsman installer"
-    echo "     \`WWWWWW'    herdsman.invalid"
+    echo "     \`WWWWWW'    remziduzagac.github.io/herdsman"
     echo "      II  II"
     echo ""
 
@@ -22,7 +22,7 @@ main() {
     esac
 
     if [ "$OS" = "Linux" ] && [ "$(uname -o 2>/dev/null || true)" = "Android" ]; then
-        err "Android/Termux is not currently supported by Herdsman release binaries. SSH to a supported host instead: https://herdsman.invalid/docs/how-to-work/#work-from-your-phone"
+        err "Android/Termux is not currently supported by Herdsman release binaries. SSH to a supported host instead: https://remziduzagac.github.io/herdsman/docs/how-to-work/#work-from-your-phone"
     fi
 
     ARCH="$(uname -m)"
@@ -43,7 +43,7 @@ main() {
     TARGET="${os}-${arch}"
     log "fetching latest release manifest..."
     MANIFEST="$(curl -fsSL --retry 3 --connect-timeout 10 --max-time 20 "$MANIFEST_URL")" \
-        || err "can't reach ${MANIFEST_URL}. Please try again later; herdsman.invalid might be down. Who let the sheeps out? baaa."
+        || err "can't reach ${MANIFEST_URL}. Please try again later; remziduzagac.github.io/herdsman might be down. Who let the sheeps out? baaa."
     URL="$(printf '%s\n' "$MANIFEST" | awk -v target="\"${TARGET}\"" '
         /^[[:space:]]*"assets"[[:space:]]*:/ { in_assets = 1; next }
         in_assets && /^[[:space:]]*}/ { exit }
@@ -143,7 +143,7 @@ err()  { printf '  \033[31m✗\033[0m %s\n' "$1" >&2; exit 1; }
 
 need() {
     if ! command -v "$1" >/dev/null 2>&1; then
-        err "requires '$1' — install it first, or download a binary manually from https://herdsman.invalid/docs/install/"
+        err "requires '$1' — install it first, or download a binary manually from https://remziduzagac.github.io/herdsman/docs/install/"
     fi
 }
 

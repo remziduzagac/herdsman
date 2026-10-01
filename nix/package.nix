@@ -83,7 +83,7 @@ rustPlatform.buildRustPackage {
 
   meta = {
     description = "Terminal workspace manager for AI coding agents";
-    homepage = "https://herdsman.invalid";
+    homepage = "https://remziduzagac.github.io/herdsman";
     license = lib.licenses.asl20;
     mainProgram = "herdsman";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;

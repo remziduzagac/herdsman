@@ -1,6 +1,6 @@
 //! Self-update mechanism.
 //!
-//! Checks the hosted herdsman.invalid update manifest for newer versions.
+//! Checks the hosted remziduzagac.github.io/herdsman update manifest for newer versions.
 //! Manual `herdsman update` downloads and installs the binary.
 //! Background checks only surface availability and release notes.
 //! Uses `curl` as a subprocess for HTTP — no additional Rust HTTP dependencies.
@@ -22,8 +22,8 @@ use std::time::{Duration, Instant};
 use interprocess::local_socket::traits::Stream as _;
 use serde::{Deserialize, Deserializer};
 
-const STABLE_UPDATE_MANIFEST_URL: &str = "https://herdsman.invalid/latest.json";
-const PREVIEW_UPDATE_MANIFEST_URL: &str = "https://herdsman.invalid/preview.json";
+const STABLE_UPDATE_MANIFEST_URL: &str = "https://remziduzagac.github.io/herdsman/latest.json";
+const PREVIEW_UPDATE_MANIFEST_URL: &str = "https://remziduzagac.github.io/herdsman/preview.json";
 const HOMEBREW_FORMULA_API_URL: &str = "https://formulae.brew.sh/api/formula/herdsman.json";
 const HERDSMAN_UPDATE_COMMAND: &str = "herdsman update";
 const HOMEBREW_UPDATE_COMMAND: &str = "brew update && brew upgrade herdsman";

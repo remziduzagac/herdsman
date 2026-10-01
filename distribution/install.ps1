@@ -780,9 +780,9 @@ if ($useLocalPackage) {
 
     if ([string]::IsNullOrWhiteSpace($ManifestUrl)) {
         $ManifestUrl = if ($Channel -eq "preview") {
-            "https://herdsman.invalid/preview.json"
+            "https://remziduzagac.github.io/herdsman/preview.json"
         } else {
-            "https://herdsman.invalid/latest.json"
+            "https://remziduzagac.github.io/herdsman/latest.json"
         }
     }
 

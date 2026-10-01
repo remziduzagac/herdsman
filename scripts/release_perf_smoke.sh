@@ -40,7 +40,7 @@ if [[ -z "$baseline" ]]; then
   baseline_version=$(jq -er '.version' "$repo_root/distribution/latest.json")
   baseline="$root/herdsman-baseline"
   curl -fL --retry 3 \
-    "https://github.com/OWNER_TBD/herdsman/releases/download/v${baseline_version}/herdsman-${platform}-${arch}" \
+    "https://github.com/remziduzagac/herdsman/releases/download/v${baseline_version}/herdsman-${platform}-${arch}" \
     -o "$baseline"
   chmod +x "$baseline"
 else

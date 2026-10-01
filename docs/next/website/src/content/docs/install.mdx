@@ -10,19 +10,19 @@ Herdsman publishes stable-channel binaries for Linux, macOS, and Windows. Window
 On Linux or macOS, run:
 
 ```bash
-curl -fsSL https://herdsman.invalid/install.sh | sh
+curl -fsSL https://remziduzagac.github.io/herdsman/install.sh | sh
 ```
 
 On Windows, run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -c "irm https://herdsman.invalid/install.ps1 | iex"
+powershell -ExecutionPolicy Bypass -c "irm https://remziduzagac.github.io/herdsman/install.ps1 | iex"
 ```
 
 If endpoint security blocks that fileless PowerShell command, open Command Prompt and run:
 
 ```cmd
-curl.exe -fsSLo install.cmd https://herdsman.invalid/install.cmd && install.cmd && del install.cmd
+curl.exe -fsSLo install.cmd https://remziduzagac.github.io/herdsman/install.cmd && install.cmd && del install.cmd
 ```
 
 The installer downloads the release binary for your platform and places it on your PATH. New direct installs use the stable update channel. Existing Windows preview installs stay on preview until you switch them with `herdsman channel set stable`. On Windows, PATH points to the active versioned release directory; the installer also updates the `current` and stable `bin` compatibility aliases, so updates do not need to overwrite a running `herdsman.exe`.
@@ -43,16 +43,16 @@ If you already use mise:
 mise use -g herdsman
 ```
 
-If mise reports `herdsman not found in mise tool registry`, update mise and retry. Older mise versions predate the Herdsman registry entry; `mise use -g github:OWNER_TBD/herdsman` works as a temporary fallback.
+If mise reports `herdsman not found in mise tool registry`, update mise and retry. Older mise versions predate the Herdsman registry entry; `mise use -g github:remziduzagac/herdsman` works as a temporary fallback.
 
 ## Install with Nix
 
 If you already use Nix, Herdsman provides a flake that builds Herdsman from source:
 
 ```bash
-nix run github:OWNER_TBD/herdsman/v0.x.y
-nix build github:OWNER_TBD/herdsman/v0.x.y
-nix profile install github:OWNER_TBD/herdsman/v0.x.y
+nix run github:remziduzagac/herdsman/v0.x.y
+nix build github:remziduzagac/herdsman/v0.x.y
+nix profile install github:remziduzagac/herdsman/v0.x.y
 ```
 
 Replace `v0.x.y` with the latest release tag. You can omit the tag to track `master`, but release tags are recommended for normal installs.
@@ -60,7 +60,7 @@ Replace `v0.x.y` with the latest release tag. You can omit the tag to track `mas
 The flake also exposes a development shell:
 
 ```bash
-nix develop github:OWNER_TBD/herdsman
+nix develop github:remziduzagac/herdsman
 ```
 
 Use the same Nix workflow to update Herdsman. For a profile install, list your profile entries and upgrade the Herdsman entry:
@@ -78,7 +78,7 @@ nix flake update herdsman
 
 ## Download manually
 
-You can also download a binary from [GitHub releases](https://github.com/OWNER_TBD/herdsman/releases).
+You can also download a binary from [GitHub releases](https://github.com/remziduzagac/herdsman/releases).
 
 Choose the asset that matches your system:
 

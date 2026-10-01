@@ -3,11 +3,11 @@ title: Agent skill file
 description: Install Herdsman instructions for Claude Code or another coding agent.
 ---
 
-Herdsman ships a reusable agent skill file at [`skills/herdsman/SKILL.md`](https://github.com/OWNER_TBD/herdsman/blob/master/skills/herdsman/SKILL.md).
+Herdsman ships a reusable agent skill file at [`skills/herdsman/SKILL.md`](https://github.com/remziduzagac/herdsman/blob/main/skills/herdsman/SKILL.md).
 
 Install that file into any coding agent that supports reusable skills or custom instructions. The skill teaches the agent how to control Herdsman from inside a Herdsman pane.
 
-Herdsman also serves a separate guide at [`herdsman.invalid/agent-guide.md`](https://herdsman.invalid/agent-guide.md) for a different job: an agent helping a human learn, set up, or troubleshoot Herdsman. The skill is for an agent operating Herdsman; the guide is for an agent teaching a human.
+Herdsman also serves a separate guide at [`remziduzagac.github.io/herdsman/agent-guide.md`](https://remziduzagac.github.io/herdsman/agent-guide.md) for a different job: an agent helping a human learn, set up, or troubleshoot Herdsman. The skill is for an agent operating Herdsman; the guide is for an agent teaching a human.
 
 ## What the skill does
 
@@ -28,7 +28,7 @@ The skill is a Markdown instruction file for agents. If Herdsman is already inst
 Install the skill with `npx skills`:
 
 ```bash
-npx skills add OWNER_TBD/herdsman --skill herdsman -g
+npx skills add remziduzagac/herdsman --skill herdsman -g
 ```
 
 If you installed the skill while it lived at the repository root, rerun this add command once instead of using `skills update`. The add command replaces the oversized copy and records the new location.
@@ -38,7 +38,7 @@ The `-g` flag installs it globally for supported agents. Omit `-g` to install it
 Use the repository copy as the manual fallback and source of truth:
 
 ```text
-https://github.com/OWNER_TBD/herdsman/blob/master/skills/herdsman/SKILL.md
+https://github.com/remziduzagac/herdsman/blob/main/skills/herdsman/SKILL.md
 ```
 
 For agents with a skill system, install that file as a skill named `herdsman`. For agents without a skill system, paste the file into the agent's project or user instructions.
@@ -64,4 +64,4 @@ The full command guide lives in the skill file itself. It covers pane IDs, `pane
 
 Read the source file here:
 
-[Open `SKILL.md` on GitHub →](https://github.com/OWNER_TBD/herdsman/blob/master/skills/herdsman/SKILL.md)
+[Open `SKILL.md` on GitHub →](https://github.com/remziduzagac/herdsman/blob/main/skills/herdsman/SKILL.md)

