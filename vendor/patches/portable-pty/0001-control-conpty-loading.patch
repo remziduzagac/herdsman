@@ -7,8 +7,8 @@ Load Herdsman's hash-verified app-local ConPTY with a constrained DLL search,
 otherwise use the exports from the already loaded kernel32 module. Never
 probe for a bare conpty.dll through the DLL search path.
 
-Herdsman issues: https://github.com/herdrdev/herdr/issues/761
-              https://github.com/herdrdev/herdr/issues/1533
+Base project issues: #761
+              base project issue #1533
 Vendored base: portable-pty 0.9.0
 ---
 diff --git a/vendor/portable-pty/Cargo.toml b/vendor/portable-pty/Cargo.toml

@@ -10,8 +10,8 @@ status: active
 
 patch: `vendor/patches/libghostty-vt/0002-expose-modify-other-keys-mode.patch`
 
-herdsman issue: none; fixes the performance regression exposed by
-https://github.com/herdrdev/herdr/pull/2303
+base project issue: none; fixes the performance regression exposed by
+base project PR #2303
 
 upstream discussion: not opened
 
@@ -54,7 +54,7 @@ status: active
 
 patch: `vendor/patches/libghostty-vt/0004-fix-hosted-wuffs-builds.patch`
 
-herdsman issue: none; preserves Windows cross-compilation and non-SIMD hosted builds
+base project issue: none; preserves Windows cross-compilation and non-SIMD hosted builds
 
 upstream discussion: not opened
 
@@ -96,7 +96,7 @@ status: active
 
 patch: `vendor/patches/libghostty-vt/0005-bounded-word-selection.patch`
 
-herdsman issue: https://github.com/herdrdev/herdr/issues/1282
+base project issue: #1282
 
 upstream discussion: not opened
 
@@ -139,7 +139,7 @@ status: active
 
 patch: `vendor/patches/libghostty-vt/0006-clear-screen-preserving-cursor-line.patch`
 
-herdsman issue: none; requested in https://github.com/herdrdev/herdr/discussions/545
+base project issue: none; requested in base project discussion #545
 
 upstream discussion: not opened
 
@@ -177,7 +177,7 @@ status: active
 
 patch: `vendor/patches/libghostty-vt/0007-experimental-png-retention.patch`
 
-herdsman issue: none; maintainer-directed native Kitty forwarding experiment
+base project issue: none; maintainer-directed native Kitty forwarding experiment
 
 upstream discussion: not opened
 
