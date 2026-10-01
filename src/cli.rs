@@ -48,9 +48,9 @@ const TERMINAL_SESSION_CONTROL_USAGE: &str =
 pub(crate) const AGENT_HELP_FOOTER: &str = concat!(
     "Are you an AI? Use these resources ONLY IF your task specifically asks you to:\n",
     "  Help a human understand or set up Herdsman for the first time:\n",
-    "    https://herdsman.invalid/agent-guide.md\n",
+    "    https://remziduzagac.github.io/herdsman/agent-guide.md\n",
     "  Debug or investigate a problem with Herdsman:\n",
-    "    https://herdsman.invalid/llms.txt\n",
+    "    https://remziduzagac.github.io/herdsman/llms.txt\n",
     "  Control Herdsman panes, agents, or workspaces:\n",
     "    SKIP if a Herdsman skill is already in your context. Otherwise run: herdsman --skill",
 );

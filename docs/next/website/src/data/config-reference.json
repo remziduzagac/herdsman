@@ -461,13 +461,13 @@
           "key": "update.version_check",
           "type": "boolean",
           "default": "true",
-          "description": "Check herdsman.invalid for new Herdsman versions in the background."
+          "description": "Check remziduzagac.github.io/herdsman for new Herdsman versions in the background."
         },
         {
           "key": "update.manifest_check",
           "type": "boolean",
           "default": "true",
-          "description": "Check herdsman.invalid for remote agent-detection manifest updates in the background. Bundled manifests and local overrides still apply."
+          "description": "Check remziduzagac.github.io/herdsman for remote agent-detection manifest updates in the background. Bundled manifests and local overrides still apply."
         }
       ]
     },

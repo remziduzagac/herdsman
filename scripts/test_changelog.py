@@ -30,7 +30,7 @@ def release_assets(version: str) -> dict[str, str]:
     normalized = version.removeprefix("v")
     return {
         **default_release_assets(normalized),
-        "windows-x86_64": f"https://github.com/OWNER_TBD/herdsman/releases/download/v{normalized}/herdsman-windows-x86_64.zip",
+        "windows-x86_64": f"https://github.com/remziduzagac/herdsman/releases/download/v{normalized}/herdsman-windows-x86_64.zip",
     }
 
 
@@ -127,11 +127,11 @@ class ChangelogScriptTests(unittest.TestCase):
         self.assertEqual(
             manifest["assets"],
             {
-                "linux-x86_64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.1.1/herdsman-linux-x86_64",
-                "linux-aarch64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.1.1/herdsman-linux-aarch64",
-                "macos-x86_64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.1.1/herdsman-macos-x86_64",
-                "macos-aarch64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.1.1/herdsman-macos-aarch64",
-                "windows-x86_64": "https://github.com/OWNER_TBD/herdsman/releases/download/v0.1.1/herdsman-windows-x86_64.zip",
+                "linux-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.1.1/herdsman-linux-x86_64",
+                "linux-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.1.1/herdsman-linux-aarch64",
+                "macos-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.1.1/herdsman-macos-x86_64",
+                "macos-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.1.1/herdsman-macos-aarch64",
+                "windows-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.1.1/herdsman-windows-x86_64.zip",
             },
         )
         self.assertEqual(manifest["releases"]["0.1.1"]["assets"], manifest["assets"])

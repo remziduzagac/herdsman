@@ -4,7 +4,7 @@ version = "0.0.0"
 edition = "2021"
 description = "Herdsman's binding to its vendored libghostty-vt"
 license = "Apache-2.0"
-repository = "https://github.com/OWNER_TBD/herdsman"
+repository = "https://github.com/remziduzagac/herdsman"
 publish = false
 
 [dependencies]
