@@ -12,6 +12,8 @@
 set -euo pipefail
 
 site=${1:?usage: scripts/package-repos <site-dir>}
+# Absolute, because docker reads a relative -v source as a volume name.
+site=$(mkdir -p "$site" && cd "$site" && pwd)
 repo=${GITHUB_REPOSITORY:-remziduzagac/herdsman}
 keep=${KEEP_RELEASES:-5}
 base="https://${repo%%/*}.github.io/${repo#*/}"
