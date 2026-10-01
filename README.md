@@ -1,5 +1,6 @@
 <p align="center"><img src="assets/logo.svg" alt="" width="96"></p>
 <h1 align="center">herdsman</h1>
+<p align="center"><a href="https://github.com/remziduzagac/herdsman/actions/workflows/ci.yml"><img src="https://github.com/remziduzagac/herdsman/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status"></a></p>
 
 A terminal workspace for running coding agents: workspaces, tabs and panes, SSH-connected
 machines, and agents recognised by state in the sidebar. On top of that, **stacked panes**:
