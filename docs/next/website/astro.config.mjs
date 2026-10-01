@@ -27,6 +27,7 @@ export default defineConfig({
         { label: 'Sessions and machines', items: ['session-state', 'persistence-remote', 'connecting-machines'] },
         { label: 'Configure and extend', items: ['configuration', 'config-reference', 'plugins'] },
         { label: 'Reference', items: ['cli-reference', 'socket-api', 'troubleshooting', 'windows-beta'] },
+        'about',
       ],
     }),
   ],

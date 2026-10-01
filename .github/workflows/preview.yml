@@ -207,7 +207,7 @@ jobs:
 
       - name: Publish the pre-release
         run: |
-          gh release create "preview-$BUILD_ID" dist/* -R "$GITHUB_REPOSITORY" --prerelease \
+          gh release create "preview-$BUILD_ID" dist/* LICENSE NOTICE -R "$GITHUB_REPOSITORY" --prerelease \
             --target "$GITHUB_SHA" --title "herdsman preview $BUILD_ID" --notes-file notes.md
 
       - name: Keep the newest ten previews

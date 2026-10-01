@@ -1,0 +1,36 @@
+---
+title: About herdsman
+description: Where herdsman comes from, how it relates to herdr, and the licences of the software it includes.
+---
+
+herdsman is a terminal workspace for running coding agents: workspaces, tabs and panes, SSH-connected machines, agents recognised by their state, and stacked panes.
+
+## Based on herdr
+
+herdsman is a modified version of [herdr](https://github.com/herdrdev/herdr), licensed under the [Apache License 2.0](https://github.com/remziduzagac/herdsman/blob/main/LICENSE). It keeps taking in herdr's releases: each herdsman release names the herdr release it is built on in the [changelog](https://github.com/remziduzagac/herdsman/blob/main/CHANGELOG.md).
+
+What herdsman changes:
+
+- **It is a separate app.** Every name from herdr is replaced: the `herdsman` binary, its own config and state directories, its socket, its `HERDSMAN_*` environment variables and its agent hooks. herdsman and herdr run side by side on the same machine without sharing anything.
+- **[Stacked panes](/docs/stacks/).** One layout slot holds several panes and shows one at a time, while the hidden ones keep running.
+- **Its own releases and packages.** Versions, the install script, the Homebrew tap, the apt, dnf and pacman repositories and the preview channel are herdsman's, independent of herdr's.
+
+herdsman is not affiliated with or endorsed by the herdr project. Problems that also happen in herdr are best reported to herdr: a fix there reaches herdsman with the next merge.
+
+## Licences
+
+herdsman is licensed under the Apache License 2.0; [`LICENSE`](https://github.com/remziduzagac/herdsman/blob/main/LICENSE) has the full text and [`NOTICE`](https://github.com/remziduzagac/herdsman/blob/main/NOTICE) the attribution. Every release carries both files next to the binaries, and the Linux packages install them under `/usr/share/licenses/herdsman/`.
+
+herdsman includes third-party software under its own licences:
+
+| Component | Used for | Licence |
+| --- | --- | --- |
+| [libghostty-vt](https://github.com/ghostty-org/ghostty), from Ghostty | terminal emulation in every pane | [MIT](https://github.com/remziduzagac/herdsman/blob/main/vendor/libghostty-vt/LICENSE) |
+| [portable-pty](https://github.com/wezterm/wezterm), from WezTerm | pseudo-terminals | [MIT](https://github.com/remziduzagac/herdsman/blob/main/vendor/portable-pty/LICENSE.md) |
+| Microsoft ConPTY runtime | pseudo-terminals in the Windows build | [MIT](https://github.com/remziduzagac/herdsman/blob/main/packaging/windows/licenses/Microsoft.Windows.Console.ConPTY-LICENSE.txt) |
+
+The Rust libraries herdsman is built from are listed with their licences in [`Cargo.lock`](https://github.com/remziduzagac/herdsman/blob/main/Cargo.lock) and on [crates.io](https://crates.io).
+
+## Source and contributing
+
+The source is at [github.com/remziduzagac/herdsman](https://github.com/remziduzagac/herdsman). [`CONTRIBUTING.md`](https://github.com/remziduzagac/herdsman/blob/main/CONTRIBUTING.md) explains how to report problems and send changes.

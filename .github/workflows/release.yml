@@ -198,10 +198,10 @@ jobs:
             title="herdsman $VERSION (rehearsal $GITHUB_RUN_NUMBER)"
             python3 scripts/changelog.py extract --version "$VERSION" --output notes.md \
               || echo "Rehearsal build of herdsman $VERSION." > notes.md
-            gh release create "$tag" dist/* --draft --target "$GITHUB_SHA" --title "$title" --notes-file notes.md
+            gh release create "$tag" dist/* LICENSE NOTICE --draft --target "$GITHUB_SHA" --title "$title" --notes-file notes.md
           else
             python3 scripts/changelog.py extract --version "$VERSION" --output notes.md
-            gh release create "v$VERSION" dist/* --verify-tag --title "herdsman $VERSION" --notes-file notes.md
+            gh release create "v$VERSION" dist/* LICENSE NOTICE --verify-tag --title "herdsman $VERSION" --notes-file notes.md
           fi
 
   linux-packages:

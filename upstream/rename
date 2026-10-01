@@ -102,7 +102,8 @@ DROP = [
 # Never renamed, never reported: the licence, and herdsman's own files, which
 # credit herdr or handle its code by name. README.md, CONTRIBUTING.md,
 # CHANGELOG.md and latest.json, which carries the changelog's notes, are
-# herdsman's own once DROP has removed herdr's.
+# herdsman's own once DROP has removed herdr's; the docs' about page is
+# herdsman's own outright.
 KEEP = [
     "CHANGELOG.md",
     "CONTRIBUTING.md",
@@ -111,6 +112,7 @@ KEEP = [
     "NOTICE",
     "README.md",
     "distribution/latest.json",
+    "docs/next/website/src/content/docs/about.mdx",
     "upstream",
 ]
 

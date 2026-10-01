@@ -229,7 +229,8 @@ travels as positional bincode, so stack data is fetched through the new methods 
 
 A release is a `vX.Y.Z` tag on `main`. Pushing it starts `.github/workflows/release.yml`, which
 builds the five binaries (Linux and macOS on x86_64 and aarch64, and the Windows zip), creates the
-GitHub release with the version's `CHANGELOG.md` section as its notes, commits the new
+GitHub release with the version's `CHANGELOG.md` section as its notes and `LICENSE` and `NOTICE`
+beside the binaries, commits the new
 `distribution/latest.json` to `main` and `dev`, redeploys GitHub Pages through `pages.yml`, and
 updates the Homebrew formula.
 

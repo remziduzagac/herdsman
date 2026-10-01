@@ -12,3 +12,15 @@ are recorded in this repository's history and in CHANGELOG.md, and
 MAINTAINING.md describes how herdr releases are merged in.
 
 herdsman is not affiliated with or endorsed by the herdr project.
+
+Third-party components, each under its own licence, included in the source and
+the binaries:
+
+- libghostty-vt, from Ghostty (https://github.com/ghostty-org/ghostty),
+  Copyright (c) 2024 Mitchell Hashimoto, Ghostty contributors. MIT License;
+  see vendor/libghostty-vt/LICENSE.
+- portable-pty, from WezTerm (https://github.com/wezterm/wezterm),
+  Copyright (c) 2018 Wez Furlong. MIT License; see
+  vendor/portable-pty/LICENSE.md.
+- The Microsoft ConPTY runtime, in the Windows build only, Copyright (c)
+  Microsoft Corporation. MIT License; see packaging/windows/licenses/.
