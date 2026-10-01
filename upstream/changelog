@@ -240,6 +240,11 @@ def main(argv):
     upstream = Path(os.environ.get("UPSTREAM_DIR", Path.home() / "Projects/herdr"))
 
     based_on, blocks, report = notes_for(upstream, start, end)
+    if parse_version(end)[0] != parse_version(start)[0]:
+        report.append(
+            f"herdr's major version changes to {parse_version(end)[0]}, so this herdsman release is"
+            f" {parse_version(end)[0] + 1}.0.0 (MAINTAINING.md, Versions)"
+        )
     for line in report:
         print(f"changelog: {line}", file=sys.stderr)
     if args.write:

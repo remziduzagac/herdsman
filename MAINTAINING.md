@@ -40,13 +40,31 @@ still use.
 
 - Merging a herdr release or adding a feature bumps the minor version.
 - A fix bumps the patch version.
+- The major version stays one above herdr's: herdr 0.x is herdsman 1.x, and the merge that brings
+  in herdr 1.0 makes herdsman 2.0.0. Otherwise both projects would soon share 1.x numbers.
 - Each `CHANGELOG.md` entry names the herdr version it is built on.
+
+`just release` refuses a version whose major is not one above that of the herdr version named by
+the newest "Based on herdr" line in `CHANGELOG.md`, and `upstream/changelog` says when a merge
+crosses a herdr major version.
 
 `upstream/rename` sets the package version in every import to `0.0.0`, so herdr's version bumps never
 conflict with herdsman's. herdr's real version is in each import commit's `Version:` line.
 
-When herdr reaches 1.x, its minimums can overtake herdsman's numbers. The plugin tests fail at that
-merge; bump herdsman's major version then.
+Plugin minimum versions, docs and tests that name herdr's numbers keep working across a major
+merge, because herdsman's major stays ahead.
+
+## Licence
+
+herdr is licensed under Apache 2.0, which lets herdsman modify and redistribute it, and herdsman
+keeps that licence. Licences can change between releases: herdr moved from AGPL-3.0-or-later to
+Apache 2.0 on 2026-07-22. herdsman may take a revision only under terms it can keep.
+
+`upstream/import` compares every licence file in herdr's tree, vendored code included, and the
+`license` field of every crate with the previous import, and stops when any differ. Read the
+change, then either import again with `--accept-license-change` or stay on the previous herdr
+release. A changed licence for vendored code also means updating `NOTICE` and the About page
+(`docs/next/website/src/content/docs/about.mdx`).
 
 ## Taking a herdr release
 
@@ -78,8 +96,10 @@ upstream/import v0.9.4
 It changes no files in the checkout, only the `herdr-import` branch, and does nothing if that
 revision is already there.
 
-It stops if the name `herdr` survives the rename anywhere, and prints where: a new casing, say, or a
-new URL form. It also warns when a `DROP` entry no longer exists, which means herdr moved a file.
+It stops when herdr's licensing changed since the previous import ([Licence](#licence)).
+
+It also stops if the name `herdr` survives the rename anywhere, and prints where: a new casing, say,
+or a new URL form, and warns when a `DROP` entry no longer exists, which means herdr moved a file.
 Teach `upstream/rename` the case, commit that on `dev`, and import again.
 
 ### 3. Merge

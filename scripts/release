@@ -31,6 +31,13 @@ done
 version=${args[0]}
 
 [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "version must look like 1.2.3"
+# herdsman's major version stays one above herdr's (MAINTAINING.md, Versions).
+# The newest "Based on herdr" line names the herdr version this release carries.
+herdr=$(sed -n 's/^Based on herdr \([0-9][0-9.]*\)[^0-9].*/\1/p' CHANGELOG.md | head -n1)
+[ -n "$herdr" ] || die "CHANGELOG.md has no \"Based on herdr X.Y.Z\" line"
+major=$(( ${herdr%%.*} + 1 ))
+[ "${version%%.*}" -eq "$major" ] \
+    || die "this release carries herdr $herdr, so its major version must be $major, one above herdr's"
 [ "$(git branch --show-current)" = dev ] || die "run this on dev"
 [ -z "$(git status --porcelain)" ] || die "commit or stash your changes first"
 git fetch -q --tags origin

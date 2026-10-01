@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Import a herdr revision into the herdr-import branch, renamed to herdsman.
 #
-#   upstream/import <ref>    e.g. upstream/import v0.9.4
+#   upstream/import [--accept-license-change] <ref>    e.g. upstream/import v0.9.4
 #
 # <ref> is resolved in the plain herdr clone at $UPSTREAM_DIR (default
 # ~/Projects/herdr); fetch there first. The revision is exported, renamed by
@@ -9,14 +9,28 @@
 # previous import as its parent. That parent chain is what gives each merge
 # into dev a base, so never commit to the branch by hand.
 #
+# herdr's licence decides whether herdsman may take a revision at all. When a
+# licence file or a crate's license field differs from the previous import, the
+# import stops and shows what changed. Read it, then rerun with
+# --accept-license-change.
+#
 # Nothing here touches the checkout you run it from. MAINTAINING.md describes
 # the merge that follows.
 set -euo pipefail
 
-usage() { sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
-[ $# -eq 1 ] || usage
+usage() { sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
+accept_license_change=false
+args=()
+for arg in "$@"; do
+    case $arg in
+        --accept-license-change) accept_license_change=true ;;
+        -*) usage ;;
+        *) args+=("$arg") ;;
+    esac
+done
+[ ${#args[@]} -eq 1 ] || usage
 
-ref=$1
+ref=${args[0]}
 upstream=${UPSTREAM_DIR:-$HOME/Projects/herdr}
 branch=${IMPORT_BRANCH:-herdr-import}
 here=$(cd "$(dirname "$0")" && pwd)
@@ -25,6 +39,47 @@ git_dir=$(git rev-parse --absolute-git-dir)
 sha=$(git -C "$upstream" rev-parse --verify --quiet "$ref^{commit}") \
     || { echo "import: $ref is not a commit in $upstream" >&2; exit 1; }
 name=$(git -C "$upstream" describe --tags "$sha" 2>/dev/null || git -C "$upstream" rev-parse --short=12 "$sha")
+
+# Licence files anywhere in the tree, vendored code included, and the license
+# fields of every crate.
+license_files() {
+    git -C "$upstream" diff --name-status "$1" "$2" \
+        | awk -F'\t' '{ n = split($NF, part, "/"); if (tolower(part[n]) ~ /^(licen[cs]e|copying|notice|unlicense)/) print }'
+}
+license_fields() {
+    { git -C "$upstream" grep -E '^license(-file)?[[:space:]]*=' "$1" -- '*Cargo.toml' || true; } \
+        | sed "s/^$1://" | sort
+}
+
+previous=$(git log -1 --format=%B "refs/heads/$branch" 2>/dev/null \
+    | sed -n 's#^Upstream: https://github.com/herdrdev/herdr/commit/\([0-9a-f]*\)$#\1#p' || true)
+if [ -z "$previous" ]; then
+    echo "import: no previous import to compare herdr's licence with; read it yourself" >&2
+elif ! git -C "$upstream" cat-file -e "$previous^{commit}" 2>/dev/null; then
+    echo "import: the previous import, $previous, is not in $upstream; fetch there first" >&2
+    exit 1
+else
+    files=$(license_files "$previous" "$sha")
+    fields=$(diff <(license_fields "$previous") <(license_fields "$sha") | grep '^[<>]' || true)
+    if [ -n "$files$fields" ]; then
+        echo "import: herdr's licensing changed since the previous import (${previous:0:12}):" >&2
+        [ -z "$files" ] || printf '%s\n' "$files" | sed 's/^/  /' >&2
+        [ -z "$fields" ] || printf '%s\n' "$fields" | sed 's/^</  was:/; s/^>/  now:/' >&2
+        if ! $accept_license_change; then
+            paths=$(printf '%s\n' "$files" | awk -F'\t' 'NF { printf " %s", $NF }')
+            cat >&2 <<EOF
+
+Read the change before taking this revision (MAINTAINING.md, "Licence"):
+
+    git -C $upstream diff ${previous:0:12} ${sha:0:12} --${paths:- '*Cargo.toml'}
+
+then import again with --accept-license-change.
+EOF
+            exit 1
+        fi
+        echo "import: accepted with --accept-license-change" >&2
+    fi
+fi
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
