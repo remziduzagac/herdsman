@@ -21,7 +21,8 @@ In order, it:
    data, the link is renamed like everything else;
 3. rewrites file contents: herdr.dev becomes SITE (its email addresses become
    undeliverable @herdsman.invalid ones), herdrdev/herdr becomes REPO and
-   herdrdev becomes OWNER, then HERDR, Herdr and herdr become HERDSMAN,
+   herdrdev and herdr's maintainer account become OWNER, then HERDR, Herdr and
+   herdr become HERDSMAN,
    Herdsman and herdsman. herdr's default branch is master and herdsman's is
    main, so links into the repository and workflow branch filters follow, and
    the Homebrew version check reads a file on SITE instead of Homebrew's API;
@@ -168,9 +169,10 @@ def rename_text(text, path):
     # through its own tap, so Pages serves the same JSON shape for it.
     text = text.replace("https://formulae.brew.sh/api/formula/herdr.json", f"https://{SITE}/homebrew/herdsman.json")
     text = re.sub(r"herdr\.dev\b", SITE, text)
-    # herdr's example plugins live in its maintainer's own unlicensed repository;
-    # herdsman's examples belong in its owner's namespace instead.
-    text = text.replace("ogulcancelik/herdr-plugin-examples", f"{OWNER}/herdsman-plugin-examples")
+    # herdr also uses its maintainer's account as the project namespace: for its
+    # example plugins (an unlicensed repository herdsman cannot copy) and the
+    # mise install path. herdsman's equivalents live under its own owner.
+    text = text.replace("ogulcancelik", OWNER)
     text = text.replace("herdrdev/herdr", REPO)
     text = text.replace("herdrdev", OWNER)
     text = re.sub(rf"(github\.com/{re.escape(REPO)}/(?:blob|tree)/)master/", r"\1main/", text)
