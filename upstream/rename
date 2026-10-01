@@ -168,6 +168,9 @@ def rename_text(text, path):
     # through its own tap, so Pages serves the same JSON shape for it.
     text = text.replace("https://formulae.brew.sh/api/formula/herdr.json", f"https://{SITE}/homebrew/herdsman.json")
     text = re.sub(r"herdr\.dev\b", SITE, text)
+    # herdr's example plugins live in its maintainer's own unlicensed repository;
+    # herdsman's examples belong in its owner's namespace instead.
+    text = text.replace("ogulcancelik/herdr-plugin-examples", f"{OWNER}/herdsman-plugin-examples")
     text = text.replace("herdrdev/herdr", REPO)
     text = text.replace("herdrdev", OWNER)
     text = re.sub(rf"(github\.com/{re.escape(REPO)}/(?:blob|tree)/)master/", r"\1main/", text)
