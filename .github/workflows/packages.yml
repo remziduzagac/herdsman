@@ -1,13 +1,15 @@
 name: Packages
 
 # Installs the latest herdsman release through every channel the install docs
-# list, on clean machines: the install script, the Homebrew tap, mise and the
-# Nix flake. Runs after each published release, and by hand.
+# list, on clean machines: the install script, the Homebrew tap, mise, the Nix
+# flake, and the apt, dnf and pacman repositories. Runs by hand, and after each
+# Pages deploy, which is the last step of a release: by then the tap, the
+# manifest and the repositories all carry it.
 
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: [Release]
+    workflows: [Pages]
     types: [completed]
 
 permissions:
@@ -16,8 +18,7 @@ permissions:
 jobs:
   version:
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+      github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.latest.outputs.version }}
@@ -97,3 +98,53 @@ jobs:
 
       - name: Build and run the release with Nix
         run: nix run "github:remziduzagac/herdsman/v$VERSION" -- --version | grep -Fx "herdsman $VERSION"
+
+  apt:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['debian:stable', 'ubuntu:latest']
+    runs-on: ubuntu-latest
+    container: ${{ matrix.image }}
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - name: Install from the apt repository
+        run: |
+          apt-get update -q && apt-get install -y -q curl ca-certificates
+          install -d -m 0755 /etc/apt/keyrings
+          curl -fsSL https://remziduzagac.github.io/herdsman/herdsman.asc -o /etc/apt/keyrings/herdsman.asc
+          echo "deb [signed-by=/etc/apt/keyrings/herdsman.asc] https://remziduzagac.github.io/herdsman/apt stable main" \
+            > /etc/apt/sources.list.d/herdsman.list
+          apt-get update -q && apt-get install -y -q herdsman
+          herdsman --version | grep -Fx "herdsman $VERSION"
+
+  dnf:
+    needs: version
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - name: Install from the dnf repository
+        run: |
+          curl -fsSLo /etc/yum.repos.d/herdsman.repo https://remziduzagac.github.io/herdsman/rpm/herdsman.repo
+          dnf install -y herdsman
+          herdsman --version | grep -Fx "herdsman $VERSION"
+
+  pacman:
+    needs: version
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - name: Install from the pacman repository
+        run: |
+          pacman-key --init
+          curl -fsSL https://remziduzagac.github.io/herdsman/herdsman.asc | pacman-key --add -
+          pacman-key --lsign-key 971C0D3C67E66F3C70BCCBF97E19E7816ABF24EF
+          printf '\n[herdsman]\nServer = https://remziduzagac.github.io/herdsman/arch/$arch\n' >> /etc/pacman.conf
+          pacman -Sy --noconfirm herdsman
+          herdsman --version | grep -Fx "herdsman $VERSION"

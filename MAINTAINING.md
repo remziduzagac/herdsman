@@ -250,12 +250,29 @@ updates the Homebrew formula.
    `scripts/release` dates the notes, sets the version in `Cargo.toml` and `Cargo.lock`, commits
    `release: vX.Y.Z`, tags it, fast-forwards `test` and `main`, and pushes all of them at once.
 5. **Watch the workflow**, then `git pull` on `dev` to pick up the manifest commit it made.
-6. **Check the packages.** `packages.yml` starts on its own after a release and installs it through
-   the install script, the Homebrew tap, mise and Nix on clean macOS and Linux machines. Run it by
-   hand with `gh workflow run packages.yml`.
+6. **Check the packages.** `packages.yml` starts on its own after the release's Pages deploy and
+   installs it through the install script, the Homebrew tap, mise, Nix and the apt, dnf and pacman
+   repositories on clean machines. Run it by hand with `gh workflow run packages.yml`.
 
 Pages serves `latest.json`, the install scripts, the agent guide and the agent-detection catalog
 from `main`'s `distribution/` folder. A push to `main` that changes that folder redeploys it too.
+
+### Linux packages and repositories
+
+`linux-packages.yml` turns each release's two Linux binaries into `.deb`, `.rpm` and Arch packages
+(`packaging/linux/nfpm.yaml`), signs the `.rpm` and Arch ones, and attaches them to the release. The
+Release workflow calls it; run it by hand to package an earlier release:
+`gh workflow run linux-packages.yml -f version=X.Y.Z`, then `gh workflow run pages.yml`.
+
+Every Pages deploy rebuilds the apt, dnf and pacman repositories from the packages of the last five
+releases (`scripts/package-repos`) and signs them. The signing key is the `PACKAGES_SIGNING_KEY`
+secret, an RSA key with fingerprint `971C0D3C67E66F3C70BCCBF97E19E7816ABF24EF`; its public half is
+`distribution/herdsman.asc`. The maintainer keeps the private key and its revocation certificate
+offline. To replace the key, generate a new one, update the secret and `distribution/herdsman.asc`,
+and update the fingerprint in the install guide, `packages.yml` and here. Users must then import the
+new key, so announce it in the changelog.
+
+### Homebrew
 
 The Homebrew formula lives in [remziduzagac/homebrew-tap](https://github.com/remziduzagac/homebrew-tap).
 The release workflow regenerates it with `scripts/homebrew-formula` and pushes it with a deploy key

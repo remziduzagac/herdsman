@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# Build the signed apt, dnf and pacman repositories into a Pages site.
+#
+#   scripts/package-repos <site-dir>
+#
+# Downloads the Linux packages attached to the last $KEEP_RELEASES releases
+# (default 5) of $GITHUB_REPOSITORY, lays them out as an apt repository in
+# <site-dir>/apt, a dnf repository in <site-dir>/rpm and a pacman repository
+# per architecture in <site-dir>/arch, and signs each repository's index with
+# $PACKAGES_SIGNING_KEY. Needs gh, gpg, apt-ftparchive, createrepo_c and
+# docker, as on GitHub's Ubuntu runners. pages.yml runs it.
+set -euo pipefail
+
+site=${1:?usage: scripts/package-repos <site-dir>}
+repo=${GITHUB_REPOSITORY:-remziduzagac/herdsman}
+keep=${KEEP_RELEASES:-5}
+base="https://${repo%%/*}.github.io/${repo#*/}"
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+
+: "${PACKAGES_SIGNING_KEY:?PACKAGES_SIGNING_KEY must hold the armored private key}"
+export GNUPGHOME="$work/gnupg"
+mkdir -m 700 "$GNUPGHOME"
+printf '%s\n' "$PACKAGES_SIGNING_KEY" | gpg --batch --quiet --import
+key=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/ {print $10; exit}')
+sign() { gpg --batch --yes --quiet --local-user "$key" "$@"; }
+
+mkdir -p "$work/packages"
+for tag in $(gh release list -R "$repo" --exclude-drafts --exclude-pre-releases --limit "$keep" \
+    --json tagName --jq '.[].tagName'); do
+    gh release download "$tag" -R "$repo" --dir "$work/packages" \
+        --pattern '*.deb' --pattern '*.rpm' --pattern '*.pkg.tar.zst' --pattern '*.pkg.tar.zst.sig' \
+        || echo "package-repos: $tag has no Linux packages"
+done
+if ! compgen -G "$work/packages/*.deb" >/dev/null; then
+    echo "package-repos: no Linux packages found; skipping the repositories"
+    exit 0
+fi
+
+# apt: dists/stable/main for amd64 and arm64, with a signed Release.
+mkdir -p "$site/apt/pool/main/h/herdsman"
+cp "$work"/packages/*.deb "$site/apt/pool/main/h/herdsman/"
+(
+    cd "$site/apt"
+    for arch in amd64 arm64; do
+        mkdir -p "dists/stable/main/binary-$arch"
+        apt-ftparchive --arch "$arch" packages pool > "dists/stable/main/binary-$arch/Packages"
+        gzip -9kn "dists/stable/main/binary-$arch/Packages"
+    done
+    apt-ftparchive \
+        -o APT::FTPArchive::Release::Origin=herdsman \
+        -o APT::FTPArchive::Release::Label=herdsman \
+        -o APT::FTPArchive::Release::Suite=stable \
+        -o APT::FTPArchive::Release::Codename=stable \
+        -o "APT::FTPArchive::Release::Architectures=amd64 arm64" \
+        -o APT::FTPArchive::Release::Components=main \
+        release dists/stable > "$work/Release"
+    mv "$work/Release" dists/stable/Release
+    sign --clearsign --output dists/stable/InRelease dists/stable/Release
+    sign --armor --detach-sign --output dists/stable/Release.gpg dists/stable/Release
+)
+
+# dnf: one repository for both architectures, with signed metadata.
+mkdir -p "$site/rpm"
+cp "$work"/packages/*.rpm "$site/rpm/"
+createrepo_c --quiet "$site/rpm"
+sign --armor --detach-sign --output "$site/rpm/repodata/repomd.xml.asc" "$site/rpm/repodata/repomd.xml"
+cat > "$site/rpm/herdsman.repo" <<EOF
+[herdsman]
+name=herdsman
+baseurl=$base/rpm
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=$base/herdsman.asc
+EOF
+
+# pacman: a repository per architecture. Pages serves no symlinks, so the
+# database links repo-add makes are replaced with copies.
+for arch in x86_64 aarch64; do
+    dir="$site/arch/$arch"
+    mkdir -p "$dir"
+    cp "$work"/packages/*-"$arch".pkg.tar.zst "$work"/packages/*-"$arch".pkg.tar.zst.sig "$dir/"
+    docker run --rm --user "$(id -u):$(id -g)" -v "$dir:/repo" -w /repo archlinux:latest \
+        sh -c 'repo-add --quiet herdsman.db.tar.gz *.pkg.tar.zst'
+    for db in herdsman.db herdsman.files; do
+        rm -f "$dir/$db"
+        cp "$dir/$db.tar.gz" "$dir/$db"
+        sign --detach-sign --output "$dir/$db.sig" "$dir/$db"
+        sign --detach-sign --output "$dir/$db.tar.gz.sig" "$dir/$db.tar.gz"
+    done
+done
+
+echo "package-repos: built apt, dnf and pacman repositories from $(ls "$work/packages" | grep -c -v '\.sig$') packages"

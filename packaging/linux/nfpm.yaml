@@ -1,0 +1,36 @@
+# nfpm config for the .deb, .rpm and Arch packages of a released Linux binary.
+# .github/workflows/linux-packages.yml copies the release binary for ARCH to
+# build/herdsman and sets the variables:
+#   VERSION               the release version, such as 1.0.0
+#   ARCH                  amd64 or arm64; nfpm names it per format
+#   RPM_SIGNING_KEY_FILE  the armored private key that signs the .rpm
+name: herdsman
+arch: ${ARCH}
+platform: linux
+version: ${VERSION}
+release: 1
+section: utils
+priority: optional
+maintainer: Remzi Duzagac <2682213+remziduzagac@users.noreply.github.com>
+description: Terminal workspace for running coding agents, with stacked panes.
+vendor: herdsman
+homepage: https://github.com/remziduzagac/herdsman
+license: Apache-2.0
+
+contents:
+  - src: build/herdsman
+    dst: /usr/bin/herdsman
+    file_info:
+      mode: 0755
+  - src: LICENSE
+    dst: /usr/share/licenses/herdsman/LICENSE
+    file_info:
+      mode: 0644
+  - src: NOTICE
+    dst: /usr/share/licenses/herdsman/NOTICE
+    file_info:
+      mode: 0644
+
+rpm:
+  signature:
+    key_file: ${RPM_SIGNING_KEY_FILE}

@@ -3,7 +3,8 @@ name: Release
 # A pushed tag vX.Y.Z publishes a release: build the five binaries, create the
 # GitHub release with the CHANGELOG.md section as notes, commit the new
 # distribution/latest.json to main and dev, redeploy Pages from main, and update
-# the formula in the remziduzagac/homebrew-tap repository.
+# the formula in the remziduzagac/homebrew-tap repository. linux-packages.yml
+# adds the .deb, .rpm and Arch packages that the Pages repositories serve.
 #
 # Running it by hand rehearses a version instead: everything up to a draft
 # release, which stays private until published. Delete the draft afterwards.
@@ -203,8 +204,18 @@ jobs:
             gh release create "v$VERSION" dist/* --verify-tag --title "herdsman $VERSION" --notes-file notes.md
           fi
 
-  manifest:
+  linux-packages:
     needs: [check, release]
+    if: needs.check.outputs.draft == 'false'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/linux-packages.yml
+    with:
+      version: ${{ needs.check.outputs.version }}
+    secrets: inherit
+
+  manifest:
+    needs: [check, release, linux-packages]
     if: needs.check.outputs.draft == 'false'
     runs-on: ubuntu-latest
     permissions:

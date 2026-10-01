@@ -1,9 +1,12 @@
 name: Pages
 
 # Serves what installed copies and the installers fetch, from main's
-# distribution/ folder: latest.json, the install scripts, the agent guide and
-# the agent-detection catalog. The Release workflow starts this after it
-# commits a new manifest; a push to main that touches distribution/ does too.
+# distribution/ folder: latest.json, the install scripts, the agent guide, the
+# agent-detection catalog and the package signing key. It also builds the
+# signed apt, dnf and pacman repositories from the Linux packages attached to
+# recent releases, and the version file Homebrew installs check. The Release
+# workflow starts this after it commits a new manifest; a push to main that
+# touches distribution/ does too.
 
 on:
   push:
@@ -36,9 +39,11 @@ jobs:
 
       - name: Assemble the site
         run: |
-          mkdir -p _site
+          mkdir -p _site/homebrew
           cp distribution/latest.json distribution/install.sh distribution/install.ps1 \
-            distribution/install.cmd distribution/agent-guide.md _site/
+            distribution/install.cmd distribution/agent-guide.md distribution/herdsman.asc _site/
+          python3 -c 'import json; v = json.load(open("distribution/latest.json"))["version"]; print(json.dumps({"name": "herdsman", "versions": {"stable": v}}))' \
+            > _site/homebrew/herdsman.json
           cp -R distribution/agent-detection _site/agent-detection
           cat > _site/index.html <<'EOF'
           <!doctype html>
@@ -47,6 +52,15 @@ jobs:
           <meta http-equiv="refresh" content="0; url=https://github.com/remziduzagac/herdsman">
           <p><a href="https://github.com/remziduzagac/herdsman">herdsman</a></p>
           EOF
+
+      - name: Build the package repositories
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGES_SIGNING_KEY: ${{ secrets.PACKAGES_SIGNING_KEY }}
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q createrepo-c
+          scripts/package-repos _site
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
