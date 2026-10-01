@@ -47,6 +47,47 @@ mise use -g github:remziduzagac/herdsman
 
 mise holds back releases younger than a day, so a new release shows up in mise the day after it is published. To take one right away, ask for its version, such as `mise use -g github:remziduzagac/herdsman@1.0.0`.
 
+## Install with apt, dnf or pacman
+
+herdsman runs its own signed package repositories for Debian and Ubuntu, Fedora and RHEL, and Arch Linux, on x86_64 and aarch64. Add the repository once; after that, herdsman updates with the rest of your system.
+
+The repositories are signed with this key:
+
+```text
+971C 0D3C 67E6 6F3C 70BC  CBF9 7E19 E781 6ABF 24EF
+herdsman packages <2682213+remziduzagac@users.noreply.github.com>
+```
+
+On Debian and Ubuntu:
+
+```bash
+sudo install -d -m 0755 /etc/apt/keyrings
+curl -fsSL https://remziduzagac.github.io/herdsman/herdsman.asc | sudo tee /etc/apt/keyrings/herdsman.asc > /dev/null
+echo "deb [signed-by=/etc/apt/keyrings/herdsman.asc] https://remziduzagac.github.io/herdsman/apt stable main" \
+  | sudo tee /etc/apt/sources.list.d/herdsman.list
+sudo apt update && sudo apt install herdsman
+```
+
+On Fedora and RHEL:
+
+```bash
+sudo curl -fsSLo /etc/yum.repos.d/herdsman.repo https://remziduzagac.github.io/herdsman/rpm/herdsman.repo
+sudo dnf install herdsman
+```
+
+dnf asks you to confirm the key on first install; compare it with the fingerprint above.
+
+On Arch Linux:
+
+```bash
+curl -fsSL https://remziduzagac.github.io/herdsman/herdsman.asc | sudo pacman-key --add -
+sudo pacman-key --lsign-key 971C0D3C67E66F3C70BCCBF97E19E7816ABF24EF
+printf '\n[herdsman]\nServer = https://remziduzagac.github.io/herdsman/arch/$arch\n' | sudo tee -a /etc/pacman.conf
+sudo pacman -Sy herdsman
+```
+
+Update with `sudo apt upgrade`, `sudo dnf upgrade` or `sudo pacman -Syu`. The packages install herdsman to `/usr/bin`, so `herdsman update` leaves them to your package manager.
+
 ## Install with Nix
 
 If you already use Nix, Herdsman provides a flake that builds Herdsman from source:
@@ -121,7 +162,7 @@ Herdsman checks for new releases and notifies you in the app. You can update man
 herdsman update
 ```
 
-Use `herdsman update` only for installs managed by Herdsman's own installer. Update Homebrew, mise, and Nix installs through those package managers instead.
+Use `herdsman update` only for installs managed by Herdsman's own installer. Update Homebrew, mise, Nix, apt, dnf and pacman installs through those package managers instead.
 
 By default, `herdsman update` installs the new binary and leaves endpoint-generation-1 servers and their pane processes running. Start Herdsman again to reconnect with the updated client. Client-only changes work immediately. A new server-side action stays unavailable until that server is updated and restarted; the client shows a notice instead of disconnecting. Servers from before endpoint generation 1 need one final stop during update.
 

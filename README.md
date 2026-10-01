@@ -23,7 +23,7 @@ brew install remziduzagac/tap/herdsman                                 # Homebre
 mise use -g github:remziduzagac/herdsman                               # mise
 ```
 
-Windows, Nix and manual downloads are covered in the
+Signed apt, dnf and pacman repositories, Windows, Nix and manual downloads are covered in the
 [install guide](docs/next/website/src/content/docs/install.mdx).
 
 ## How it differs from herdr
