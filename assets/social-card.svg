@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <rect width="1280" height="640" fill="#1b2130"/>
+  <g transform="translate(-24 34) scale(1.1)">
+    <path d="M140 284 L208 332 L140 380" fill="none" stroke="#e8e6e1" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M360 404 V188 A72 72 0 0 0 216 188 A40 40 0 0 0 256 228" fill="none" stroke="#f2a541" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="480" y="300" font-family="Inter" font-weight="700" font-size="128" fill="#e8e6e1">herdsman</text>
+  <text x="484" y="370" font-family="Inter" font-size="38" fill="#a9b1c3">Terminal workspace for coding agents,</text>
+  <text x="484" y="420" font-family="Inter" font-size="38" fill="#a9b1c3">with stacked panes.</text>
+  <text x="484" y="512" font-family="Inter" font-size="30" fill="#f2a541">github.com/remziduzagac/herdsman</text>
+</svg>
