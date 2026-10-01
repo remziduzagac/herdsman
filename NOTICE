@@ -1,0 +1,13 @@
+herdsman
+Copyright 2026 Remzi Duzagac
+
+herdsman is a modified version of herdr (https://github.com/herdrdev/herdr),
+licensed under the Apache License, Version 2.0. The licence text is in LICENSE.
+
+Every file taken from herdr has been modified: fork/rename replaces the herdr
+name throughout, in identifiers, paths, environment variables and URLs, and
+removes herdr's README, contribution policy and sponsor list. herdsman's own
+changes, starting with stacked panes, are recorded in this repository's history
+and described in fork/.
+
+herdsman is not affiliated with or endorsed by the herdr project.
