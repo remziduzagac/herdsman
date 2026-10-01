@@ -10,44 +10,99 @@ use ratatui::{
 use super::panes::pane_inner_rect;
 use super::text::{display_width, truncate_end};
 use super::widgets::panel_contrast_fg;
+use crate::api::schema::PaneContentEdge;
 use crate::app::AppState;
 use crate::config::TabBarPositionConfig;
 use crate::detect::AgentState;
 use crate::layout::{PaneId, PaneInfo};
 use crate::workspace::Tab;
 
-/// Split a stacked pane's inner rect into its strip row and its content. None
-/// when there is no room for both, so the content keeps every row.
-pub(crate) fn split_strip(
-    pane_inner: Rect,
-    position: TabBarPositionConfig,
-) -> Option<(Rect, Rect)> {
+/// Where a stack's strip goes inside its slot, and whether a line separates it
+/// from the content.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct StripPlacement {
+    pub(crate) position: TabBarPositionConfig,
+    pub(crate) separator: bool,
+}
+
+impl StripPlacement {
+    pub(crate) fn of(app: &AppState) -> Self {
+        Self {
+            position: app.stack_strip_position,
+            separator: app.stack_strip_separator,
+        }
+    }
+
+    /// The edge of the content the strip sits beside.
+    pub(crate) fn edge(self) -> PaneContentEdge {
+        match self.position {
+            TabBarPositionConfig::Top => PaneContentEdge::Top,
+            TabBarPositionConfig::Bottom => PaneContentEdge::Bottom,
+        }
+    }
+
+    /// How many rows out from the content the strip sits, 1 being the row
+    /// next to it. Assumes the separator fits, which it misses only in a slot
+    /// two rows tall, where a click on the strip then just focuses the pane.
+    pub(crate) fn strip_offset(self) -> u16 {
+        if self.separator {
+            2
+        } else {
+            1
+        }
+    }
+}
+
+/// The rows a stacked pane's inner rect divides into.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct StripRows {
+    pub(crate) strip: Rect,
+    pub(crate) separator: Option<Rect>,
+    pub(crate) content: Rect,
+}
+
+/// Split a stacked pane's inner rect into its strip row, the separator line
+/// between strip and content, and the content. The separator is left out when
+/// it would take the content's last row. None when there is no room for strip
+/// and content, so the content keeps every row.
+pub(crate) fn split_strip(pane_inner: Rect, placement: StripPlacement) -> Option<StripRows> {
     if pane_inner.height < 2 || pane_inner.width == 0 {
         return None;
     }
-    let content_height = pane_inner.height - 1;
-    let (strip_y, content_y) = match position {
-        TabBarPositionConfig::Top => (pane_inner.y, pane_inner.y + 1),
-        TabBarPositionConfig::Bottom => (pane_inner.y + content_height, pane_inner.y),
+    let separator_height = u16::from(placement.separator && pane_inner.height >= 3);
+    let content_height = pane_inner.height - 1 - separator_height;
+    let (strip_y, separator_y, content_y) = match placement.position {
+        TabBarPositionConfig::Top => (
+            pane_inner.y,
+            pane_inner.y + 1,
+            pane_inner.y + 1 + separator_height,
+        ),
+        TabBarPositionConfig::Bottom => (
+            pane_inner.y + content_height + separator_height,
+            pane_inner.y + content_height,
+            pane_inner.y,
+        ),
     };
-    Some((
-        Rect::new(pane_inner.x, strip_y, pane_inner.width, 1),
-        Rect::new(pane_inner.x, content_y, pane_inner.width, content_height),
-    ))
+    let row = |y| Rect::new(pane_inner.x, y, pane_inner.width, 1);
+    Some(StripRows {
+        strip: row(strip_y),
+        separator: (separator_height > 0).then(|| row(separator_y)),
+        content: Rect::new(pane_inner.x, content_y, pane_inner.width, content_height),
+    })
 }
 
 /// The rect a drawn pane's terminal content gets: a stack's visible member
-/// gives up one row of its frame to the strip.
+/// gives up rows of its frame to the strip and its separator.
 pub(crate) fn content_rect(
     tab: &Tab,
     pane_id: PaneId,
     pane_inner: Rect,
-    position: TabBarPositionConfig,
+    placement: StripPlacement,
 ) -> Rect {
     if tab.layout.stack_members(pane_id).is_none() {
         return pane_inner;
     }
-    split_strip(pane_inner, position).map_or(pane_inner, |(_, content)| content)
+    split_strip(pane_inner, placement).map_or(pane_inner, |rows| rows.content)
 }
 
 /// Column offset and width of each member's segment in a strip `width` cells
@@ -166,13 +221,16 @@ pub(super) fn render_stack_strips(
         let Some((members, active)) = tab.layout.stack_members(info.id) else {
             continue;
         };
-        let Some((row, _)) = split_strip(
+        let Some(rows) = split_strip(
             pane_inner_rect(info.rect, info.borders),
-            app.stack_strip_position,
+            StripPlacement::of(app),
         ) else {
             continue;
         };
-        let row = row.intersection(buf.area);
+        if let Some(separator) = rows.separator {
+            render_separator(app, info, separator.intersection(buf.area), buf);
+        }
+        let row = rows.strip.intersection(buf.area);
         let strip = Rect::new(info.inner_rect.x, row.y, info.inner_rect.width, 1).intersection(row);
         if strip.is_empty() {
             continue;
@@ -215,6 +273,21 @@ pub(super) fn render_stack_strips(
                 buf.set_stringn(x, segment.y, text, usize::from(end - x), style);
             }
         }
+    }
+}
+
+/// A line across the slot between strip and content, coloured like the
+/// pane's border so it reads as part of the frame.
+fn render_separator(app: &AppState, info: &PaneInfo, row: Rect, buf: &mut Buffer) {
+    let style = if info.is_focused {
+        Style::default()
+            .fg(app.palette.accent)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default().fg(app.palette.overlay0)
+    };
+    for x in row.x..row.x.saturating_add(row.width) {
+        buf[(x, row.y)].set_symbol("─").set_style(style);
     }
 }
 
@@ -273,8 +346,15 @@ mod tests {
             .collect()
     }
 
+    fn placement(position: TabBarPositionConfig, separator: bool) -> StripPlacement {
+        StripPlacement {
+            position,
+            separator,
+        }
+    }
+
     #[test]
-    fn stacked_slot_draws_a_numbered_strip_and_content_loses_one_row() {
+    fn stacked_slot_draws_a_numbered_strip_past_a_line_and_content_loses_two_rows() {
         for position in [TabBarPositionConfig::Top, TabBarPositionConfig::Bottom] {
             let (app, [editor, agent, shell]) = stacked_app(position);
 
@@ -282,22 +362,56 @@ mod tests {
 
             assert!(infos.iter().all(|info| info.id != agent));
             let info = |id| infos.iter().find(|info| info.id == id).unwrap();
-            let (strip, content) = split_strip(
+            let rows = split_strip(
                 pane_inner_rect(info(shell).rect, info(shell).borders),
-                position,
+                placement(position, true),
             )
             .unwrap();
-            assert_eq!(info(shell).inner_rect, content, "{position:?}");
+            assert_eq!(info(shell).inner_rect, rows.content, "{position:?}");
             assert_eq!(
                 info(editor).inner_rect.height,
-                info(shell).inner_rect.height + 1
+                info(shell).inner_rect.height + 2
             );
-            let text = row_text(&buffer, strip);
+            let text = row_text(&buffer, rows.strip);
             assert!(
                 text.contains("1 agent") && text.contains("2 shell"),
                 "{position:?}: {text:?}"
             );
+            let separator = rows.separator.expect("room for the line");
+            assert_eq!(
+                row_text(&buffer, separator),
+                "─".repeat(usize::from(separator.width)),
+                "{position:?}"
+            );
+            let line = buffer[(separator.x, separator.y)].style();
+            assert_eq!(
+                (line.fg, line.add_modifier.contains(Modifier::BOLD)),
+                (Some(app.palette.accent), true),
+                "the focused slot's line takes the focused border colour"
+            );
         }
+    }
+
+    #[test]
+    fn without_the_separator_the_strip_sits_next_to_the_content() {
+        let (mut app, [editor, _, shell]) = stacked_app(TabBarPositionConfig::Bottom);
+        app.stack_strip_separator = false;
+
+        let (infos, buffer) = render(&app);
+
+        let info = |id| infos.iter().find(|info| info.id == id).unwrap();
+        let rows = split_strip(
+            pane_inner_rect(info(shell).rect, info(shell).borders),
+            StripPlacement::of(&app),
+        )
+        .unwrap();
+        assert_eq!(rows.separator, None);
+        assert_eq!(rows.strip.y, info(shell).inner_rect.bottom());
+        assert_eq!(
+            info(editor).inner_rect.height,
+            info(shell).inner_rect.height + 1
+        );
+        assert!(row_text(&buffer, rows.strip).contains("1 agent"));
     }
 
     #[test]
@@ -321,9 +435,16 @@ mod tests {
             let (app, [_, agent, shell]) = stacked_app(position);
             let (infos, buffer) = render(&app);
             let info = infos.iter().find(|info| info.id == shell).unwrap();
-            let (row, _) = split_strip(pane_inner_rect(info.rect, info.borders), position).unwrap();
+            let rows = split_strip(
+                pane_inner_rect(info.rect, info.borders),
+                StripPlacement::of(&app),
+            )
+            .unwrap();
             let content = info.inner_rect;
-            let text = row_text(&buffer, Rect::new(content.x, row.y, content.width, 1));
+            let text = row_text(
+                &buffer,
+                Rect::new(content.x, rows.strip.y, content.width, 1),
+            );
             let tab = &app.workspaces[0].tabs[0];
 
             for (label, member) in [("1 agent", agent), ("2 shell", shell)] {
@@ -356,33 +477,91 @@ mod tests {
     }
 
     #[test]
-    fn strip_defaults_to_the_bottom_of_its_slot() {
+    fn strip_defaults_to_the_bottom_of_its_slot_behind_a_line() {
+        let ui = crate::config::Config::default().ui;
         assert_eq!(
-            crate::config::Config::default().ui.stack_strip_position,
-            TabBarPositionConfig::Bottom
+            (ui.stack_strip_position, ui.stack_strip_separator),
+            (TabBarPositionConfig::Bottom, true)
         );
         assert_eq!(
-            AppState::test_new().stack_strip_position,
-            TabBarPositionConfig::Bottom
+            StripPlacement::of(&AppState::test_new()),
+            placement(TabBarPositionConfig::Bottom, true)
         );
     }
 
     #[test]
     fn strip_takes_the_first_or_last_inner_row() {
         let inner = Rect::new(2, 3, 20, 10);
+        let rows = |strip, content| StripRows {
+            strip,
+            separator: None,
+            content,
+        };
 
         assert_eq!(
-            split_strip(inner, TabBarPositionConfig::Top),
-            Some((Rect::new(2, 3, 20, 1), Rect::new(2, 4, 20, 9)))
+            split_strip(inner, placement(TabBarPositionConfig::Top, false)),
+            Some(rows(Rect::new(2, 3, 20, 1), Rect::new(2, 4, 20, 9)))
         );
         assert_eq!(
-            split_strip(inner, TabBarPositionConfig::Bottom),
-            Some((Rect::new(2, 12, 20, 1), Rect::new(2, 3, 20, 9)))
+            split_strip(inner, placement(TabBarPositionConfig::Bottom, false)),
+            Some(rows(Rect::new(2, 12, 20, 1), Rect::new(2, 3, 20, 9)))
         );
         assert_eq!(
-            split_strip(Rect::new(0, 0, 20, 1), TabBarPositionConfig::Top),
+            split_strip(
+                Rect::new(0, 0, 20, 1),
+                placement(TabBarPositionConfig::Top, false)
+            ),
             None
         );
+    }
+
+    #[test]
+    fn separator_takes_the_row_between_strip_and_content() {
+        let inner = Rect::new(2, 3, 20, 10);
+
+        assert_eq!(
+            split_strip(inner, placement(TabBarPositionConfig::Top, true)),
+            Some(StripRows {
+                strip: Rect::new(2, 3, 20, 1),
+                separator: Some(Rect::new(2, 4, 20, 1)),
+                content: Rect::new(2, 5, 20, 8),
+            })
+        );
+        assert_eq!(
+            split_strip(inner, placement(TabBarPositionConfig::Bottom, true)),
+            Some(StripRows {
+                strip: Rect::new(2, 12, 20, 1),
+                separator: Some(Rect::new(2, 11, 20, 1)),
+                content: Rect::new(2, 3, 20, 8),
+            })
+        );
+    }
+
+    #[test]
+    fn separator_gives_way_before_the_last_content_row() {
+        for position in [TabBarPositionConfig::Top, TabBarPositionConfig::Bottom] {
+            let short = split_strip(Rect::new(0, 0, 20, 2), placement(position, true)).unwrap();
+            assert_eq!((short.separator, short.content.height), (None, 1));
+            let roomy = split_strip(Rect::new(0, 0, 20, 3), placement(position, true)).unwrap();
+            assert!(roomy.separator.is_some());
+            assert_eq!(roomy.content.height, 1);
+        }
+    }
+
+    #[test]
+    fn strip_offset_counts_the_separator() {
+        for position in [TabBarPositionConfig::Top, TabBarPositionConfig::Bottom] {
+            for separator in [false, true] {
+                let placement = placement(position, separator);
+                let inner = Rect::new(0, 5, 20, 10);
+                let rows = split_strip(inner, placement).unwrap();
+                let offset = match placement.edge() {
+                    PaneContentEdge::Top => rows.content.y - rows.strip.y,
+                    PaneContentEdge::Bottom => rows.strip.y - rows.content.bottom() + 1,
+                };
+                assert_eq!(offset, placement.strip_offset(), "{placement:?}");
+            }
+        }
     }
 
     #[test]

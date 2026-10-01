@@ -2669,6 +2669,43 @@
           ],
           "type": "object"
         },
+        "PaneFocusStackStripParams": {
+          "description": "Focus the stack member drawn at a point of the strip beside `pane_id`'s\ncontent: `column` cells from the content's left edge, in a strip `width`\ncells wide, `offset` rows above (`top`) or below (`bottom`) the content, 1\nbeing the row next to it. The strip sits at offset 1, or at 2 when a\nseparator line runs between it and the content. Any other point focuses\n`pane_id` itself, like `pane.focus`.",
+          "properties": {
+            "column": {
+              "format": "uint16",
+              "maximum": 65535,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "edge": {
+              "$ref": "#/schemas/request/$defs/PaneContentEdge"
+            },
+            "offset": {
+              "format": "uint16",
+              "maximum": 65535,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "pane_id": {
+              "type": "string"
+            },
+            "width": {
+              "format": "uint16",
+              "maximum": 65535,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "pane_id",
+            "column",
+            "width",
+            "edge",
+            "offset"
+          ],
+          "type": "object"
+        },
         "PaneFocusStackedAtParams": {
           "description": "Focus the stack member drawn at a point of the strip beside `pane_id`'s\ncontent: `column` cells from the content's left edge, in a strip `width`\ncells wide, on the row just above (`top`) or below (`bottom`) the content.\nAny point that is not on a strip focuses `pane_id` itself, like `pane.focus`.",
           "properties": {
@@ -5683,6 +5720,22 @@
             },
             "params": {
               "$ref": "#/schemas/request/$defs/PaneFocusStackedAtParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "pane.focus_stack_strip",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/PaneFocusStackStripParams"
             }
           },
           "required": [

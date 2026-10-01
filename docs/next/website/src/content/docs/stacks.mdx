@@ -21,11 +21,13 @@ Clicking a segment in the strip shows that member. `close_stacked` is the same a
 
 The `alt` keys need your terminal to send Option as Alt. In Ghostty on macOS, set `macos-option-as-alt = true`.
 
-The strip sits at the bottom of the slot. To move it to the top:
+The strip sits at the bottom of the slot, with a line between it and the content in the colour of the pane's
+border. To move the strip to the top, or to drop the line and give its row back to the content:
 
 ```toml
 [ui]
 stack_strip_position = "top"
+stack_strip_separator = false
 ```
 
 ## From the CLI

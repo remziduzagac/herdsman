@@ -836,6 +836,7 @@ pub struct AppState {
     pub pane_gaps: bool,
     pub show_agent_labels_on_pane_borders: bool,
     pub stack_strip_position: crate::config::TabBarPositionConfig,
+    pub stack_strip_separator: bool,
     pub tab_bar_right: Vec<TabBarStatusSegment>,
     pub tab_bar_right_separator: String,
     /// Expose the focused pane's cursor anchor to the outer terminal even when
@@ -1063,6 +1064,7 @@ impl AppState {
             pane_gaps: false,
             show_agent_labels_on_pane_borders: false,
             stack_strip_position: crate::config::TabBarPositionConfig::Bottom,
+            stack_strip_separator: true,
             tab_bar_right: Vec::new(),
             tab_bar_right_separator: " ".into(),
             reveal_hidden_cursor_for_cjk_ime: false,

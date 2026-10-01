@@ -1013,6 +1013,8 @@ pub struct UiConfig {
     pub show_agent_labels_on_pane_borders: bool,
     /// Where a stacked slot draws the strip naming its members: top or bottom. Default: bottom.
     pub stack_strip_position: TabBarPositionConfig,
+    /// Draw a line between a stacked slot's strip and its content. Default: true.
+    pub stack_strip_separator: bool,
     /// Hide the tab row when the workspace has one tab. Default: false.
     pub hide_tab_bar_when_single_tab: bool,
     /// Desktop tab row placement. Default: top.
@@ -1254,6 +1256,7 @@ impl Default for UiConfig {
             pane_gaps: true,
             show_agent_labels_on_pane_borders: false,
             stack_strip_position: TabBarPositionConfig::Bottom,
+            stack_strip_separator: true,
             hide_tab_bar_when_single_tab: false,
             tab_bar_position: TabBarPositionConfig::Top,
             tab_bar_right: Vec::new(),

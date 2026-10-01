@@ -5,6 +5,11 @@ Each herdsman release names the herdr release it is built on. Versions are herds
 
 ## Unreleased
 
+### Added
+
+- A line separates a stack's strip from the content of its visible member, so the strip no longer
+  runs into the program above or below it. `ui.stack_strip_separator = false` turns it off.
+
 ### Changed
 
 - `herdsman update` and the in-app update notice point installs from the apt, dnf and pacman

@@ -96,9 +96,9 @@ Steps 3 to 5 run in that worktree. `git merge --abort` returns to the start. Dur
 - **Generated schema**, `docs/next/api/herdsman-api.schema.json`: take either side and regenerate it
   in step 4. Never merge it by hand.
 - **Config reference**, `docs/next/website/src/data/config-reference.json`: take theirs, then re-add
-  the six stack entries: `keys.focus_stacked`, `keys.next_stacked`, `keys.previous_stacked`,
-  `keys.stack_pane`, `keys.close_stacked` and `ui.stack_strip_position`. `just maintenance-test`
-  fails until they are back.
+  the seven stack entries: `keys.focus_stacked`, `keys.next_stacked`, `keys.previous_stacked`,
+  `keys.stack_pane`, `keys.close_stacked`, `ui.stack_strip_position` and `ui.stack_strip_separator`.
+  `just maintenance-test` fails until they are back.
 - **Lists both sides extend**, such as the `Method` enum, method names, `CLIENT_SHELL_METHODS`,
   keybinding tables and defaults: keep both. `CLIENT_SHELL_METHODS` must stay sorted.
 - **herdr edits a line stacks changed**: keep herdr's change and re-apply the stack logic.
@@ -132,7 +132,7 @@ Failures that come from the rename rather than from real bugs:
 - **A pinned hash or width** of text that contained the old name: a new herdr test, or one of the
   re-pinned values below. The assertion prints the new value; pin it.
 - **`advertised_client_shell_method_shapes_stay_at_the_v1_contract`**: if it fails on a stack
-  method, a shared parameter type changed; update the four pinned `pane.*` digests in
+  method, a shared parameter type changed; update the five pinned `pane.*` digests in
   `src/server/client_commands.rs`. If it fails on a herdr method whose enum carries the name,
   re-pin it in the fixture. Other shape changes are herdr's own.
 

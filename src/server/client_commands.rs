@@ -25,6 +25,7 @@ const CLIENT_SHELL_METHODS: &[&str] = &[
     "pane.edit_scrollback",
     "pane.focus",
     "pane.focus_direction",
+    "pane.focus_stack_strip",
     "pane.focus_stacked",
     "pane.focus_stacked_at",
     "pane.input.set",
@@ -313,6 +314,10 @@ mod tests {
         assert_eq!(
             actual.remove("pane.focus_stacked_at").as_deref(),
             Some("ec4aa0fc311d09a9c46e1550000180ed5c6887b6b9d4b614dfb2aabe12599bb6")
+        );
+        assert_eq!(
+            actual.remove("pane.focus_stack_strip").as_deref(),
+            Some("2ce96fad327371c1442b5d1e84c9f09628e38833d47c3b93dd53ba295004a283")
         );
         assert_eq!(
             actual.remove("pane.stacks").as_deref(),

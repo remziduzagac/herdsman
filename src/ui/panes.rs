@@ -249,7 +249,7 @@ pub(super) fn resize_tab_panes(
             tab,
             info.id,
             pane_inner_rect(info.rect, info.borders),
-            app.stack_strip_position,
+            super::stack_strip::StripPlacement::of(app),
         );
 
         if let Some((terminal_id, rt)) =
@@ -378,7 +378,7 @@ pub(super) fn compute_pane_infos_for_tab(
             tab,
             info.id,
             pane_inner_rect(info.rect, info.borders),
-            app.stack_strip_position,
+            super::stack_strip::StripPlacement::of(app),
         );
         if resize_panes {
             resize_hidden_stack_members(

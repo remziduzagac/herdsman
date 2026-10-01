@@ -615,6 +615,7 @@ pub(crate) fn api_method_name(method: &Method) -> &'static str {
         Method::PaneStack(_) => "pane.stack",
         Method::PaneFocusStacked(_) => "pane.focus_stacked",
         Method::PaneFocusStackedAt(_) => "pane.focus_stacked_at",
+        Method::PaneFocusStackStrip(_) => "pane.focus_stack_strip",
         Method::PaneStacks(_) => "pane.stacks",
         Method::PaneSwap(_) => "pane.swap",
         Method::PaneMove(_) => "pane.move",

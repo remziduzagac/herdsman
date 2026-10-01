@@ -1034,6 +1034,12 @@
           ]
         },
         {
+          "key": "ui.stack_strip_separator",
+          "type": "boolean",
+          "default": "true",
+          "description": "Draw a line between a stack's strip and the content of its visible member."
+        },
+        {
           "key": "ui.hide_tab_bar_when_single_tab",
           "type": "boolean",
           "default": "false",

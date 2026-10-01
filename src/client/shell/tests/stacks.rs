@@ -60,21 +60,21 @@ fn stack_pane_stacks_a_focused_new_pane_onto_the_focused_pane() {
     assert!(params.focus);
 }
 
-/// One pane whose content starts a row below its rect, where an endpoint may
-/// draw a stack strip.
-fn surface_with_a_row_above_content() -> PaneSurfaceFrame {
+/// One pane whose content starts two rows below its rect, where an endpoint
+/// may draw a stack strip and the line separating it from the content.
+fn surface_with_rows_above_content() -> PaneSurfaceFrame {
     let mut frame = surface();
-    let buffer = Buffer::with_lines(["1 a 2 b ", "LIVE    ", "PANE    "]);
+    let buffer = Buffer::with_lines(["1 a 2 b ", "────────", "LIVE    ", "PANE    "]);
     frame.frame = FrameData::from_ratatui_buffer_with_hyperlinks(&buffer, None, &[]);
     frame.panes[0].rect = SurfaceRect {
         x: 0,
         y: 0,
         width: 8,
-        height: 3,
+        height: 4,
     };
     frame.panes[0].inner_rect = SurfaceRect {
         x: 0,
-        y: 1,
+        y: 2,
         width: 8,
         height: 2,
     };
@@ -95,21 +95,32 @@ fn press(state: &mut ClientShellState, column: u16, row: u16) -> Option<Method> 
     })
 }
 
-#[test]
-fn pressing_the_row_above_content_lets_the_endpoint_resolve_a_stack_member() {
+fn composed_with_rows_above_content(methods: Option<&[&str]>) -> (ClientShellState, Rect) {
     let mut state = state();
-    state.set_pane_surface(surface_with_a_row_above_content());
+    if let Some(methods) = methods {
+        state.set_endpoint_methods(Some(methods.iter().map(|m| (*m).to_owned()).collect()));
+    }
+    state.set_pane_surface(surface_with_rows_above_content());
     state.compose(106, 20).expect("composed frame");
     let inner = state.hits.panes[0].inner_rect;
+    (state, inner)
+}
 
-    assert!(matches!(
-        press(&mut state, inner.x + 4, inner.y - 1),
-        Some(Method::PaneFocusStackedAt(params))
-            if params.pane_id == "pane_1"
-                && params.column == 4
-                && params.width == inner.width
-                && params.edge == crate::api::schema::PaneContentEdge::Top
-    ));
+#[test]
+fn pressing_a_row_above_content_lets_the_endpoint_resolve_a_stack_member() {
+    let (mut state, inner) = composed_with_rows_above_content(None);
+
+    for offset in [1, 2] {
+        assert!(matches!(
+            press(&mut state, inner.x + 4, inner.y - offset),
+            Some(Method::PaneFocusStackStrip(params))
+                if params.pane_id == "pane_1"
+                    && params.column == 4
+                    && params.width == inner.width
+                    && params.edge == crate::api::schema::PaneContentEdge::Top
+                    && params.offset == offset
+        ));
+    }
     assert!(matches!(
         press(&mut state, inner.x + 1, inner.y),
         Some(Method::PaneFocus(target)) if target.pane_id == "pane_1"
@@ -117,16 +128,29 @@ fn pressing_the_row_above_content_lets_the_endpoint_resolve_a_stack_member() {
 }
 
 #[test]
+fn an_endpoint_without_strip_offsets_resolves_only_the_row_next_to_content() {
+    let (mut state, inner) =
+        composed_with_rows_above_content(Some(&["pane.focus", "pane.focus_stacked_at"]));
+
+    assert!(matches!(
+        press(&mut state, inner.x + 4, inner.y - 1),
+        Some(Method::PaneFocusStackedAt(params))
+            if params.column == 4 && params.edge == crate::api::schema::PaneContentEdge::Top
+    ));
+    assert!(matches!(
+        press(&mut state, inner.x + 4, inner.y - 2),
+        Some(Method::PaneFocus(target)) if target.pane_id == "pane_1"
+    ));
+}
+
+#[test]
 fn pressing_beside_content_is_a_plain_focus_without_the_stack_method() {
-    let mut state = state();
-    state.set_endpoint_methods(Some(vec!["pane.focus".into()]));
-    state.set_pane_surface(surface_with_a_row_above_content());
-    state.compose(106, 20).expect("composed frame");
-    let inner = state.hits.panes[0].inner_rect;
+    let (mut state, inner) = composed_with_rows_above_content(Some(&["pane.focus"]));
 
-    let method = press(&mut state, inner.x + 4, inner.y - 1);
-
-    assert!(matches!(method, Some(Method::PaneFocus(target)) if target.pane_id == "pane_1"));
+    for offset in [1, 2] {
+        let method = press(&mut state, inner.x + 4, inner.y - offset);
+        assert!(matches!(method, Some(Method::PaneFocus(target)) if target.pane_id == "pane_1"));
+    }
     assert!(state.visible_endpoint_notice.is_none());
 }
 

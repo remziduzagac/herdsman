@@ -1,20 +1,21 @@
 use bytes::Bytes;
 
 use crate::api::schema::{
-    EventData, EventEnvelope, EventKind, PaneClearAgentAuthorityParams, PaneContentEdge,
-    PaneCopyMotion, PaneCopyMotionParams, PaneCopySearchDirection, PaneCopySearchParams,
-    PaneCurrentParams, PaneDirection, PaneEdgesParams, PaneEdgesResult, PaneFocusDirectionParams,
-    PaneFocusDirectionReason, PaneFocusDirectionResult, PaneFocusStackedAtParams,
-    PaneFocusStackedParams, PaneInfo, PaneInputSetParams, PaneLayoutPane, PaneLayoutParams,
-    PaneLayoutRect, PaneLayoutSnapshot, PaneLayoutSplit, PaneListParams, PaneMoveDestination,
-    PaneMoveParams, PaneMoveReason, PaneMoveResult, PaneNeighborParams, PaneNeighborResult,
-    PaneProcessInfo, PaneProcessInfoParams, PaneProcessInfoProcess, PaneReadParams, PaneReadResult,
-    PaneReleaseAgentParams, PaneRenameParams, PaneReportAgentParams, PaneReportAgentSessionParams,
-    PaneReportMetadataParams, PaneResizeParams, PaneResizeReason, PaneResizeResult,
-    PaneScrollParams, PaneSelectionReadParams, PaneSendInputParams, PaneSendKeysParams,
-    PaneSendTextParams, PaneSplitParams, PaneStackParams, PaneSwapParams, PaneSwapReason,
-    PaneSwapResult, PaneTarget, PaneTextPoint, PaneTextRange, PaneZoomMode, PaneZoomParams,
-    PaneZoomReason, PaneZoomResult, ResponseResult,
+    EventData, EventEnvelope, EventKind, PaneClearAgentAuthorityParams, PaneCopyMotion,
+    PaneCopyMotionParams, PaneCopySearchDirection, PaneCopySearchParams, PaneCurrentParams,
+    PaneDirection, PaneEdgesParams, PaneEdgesResult, PaneFocusDirectionParams,
+    PaneFocusDirectionReason, PaneFocusDirectionResult, PaneFocusStackStripParams,
+    PaneFocusStackedAtParams, PaneFocusStackedParams, PaneInfo, PaneInputSetParams, PaneLayoutPane,
+    PaneLayoutParams, PaneLayoutRect, PaneLayoutSnapshot, PaneLayoutSplit, PaneListParams,
+    PaneMoveDestination, PaneMoveParams, PaneMoveReason, PaneMoveResult, PaneNeighborParams,
+    PaneNeighborResult, PaneProcessInfo, PaneProcessInfoParams, PaneProcessInfoProcess,
+    PaneReadParams, PaneReadResult, PaneReleaseAgentParams, PaneRenameParams,
+    PaneReportAgentParams, PaneReportAgentSessionParams, PaneReportMetadataParams,
+    PaneResizeParams, PaneResizeReason, PaneResizeResult, PaneScrollParams,
+    PaneSelectionReadParams, PaneSendInputParams, PaneSendKeysParams, PaneSendTextParams,
+    PaneSplitParams, PaneStackParams, PaneSwapParams, PaneSwapReason, PaneSwapResult, PaneTarget,
+    PaneTextPoint, PaneTextRange, PaneZoomMode, PaneZoomParams, PaneZoomReason, PaneZoomResult,
+    ResponseResult,
 };
 use crate::api::schema::{PaneStackInfo, PaneStacksParams, SuccessResponse};
 use crate::app::actions::{PaneZoomCommand, PaneZoomNoopReason};
@@ -754,22 +755,38 @@ impl App {
         )
     }
 
-    /// A click beside a pane's content: the endpoint drew any stack strip
-    /// there, so it resolves which member the click hit, then focuses that
-    /// member, or the pane itself, exactly as `pane.focus` does.
+    /// A click on the row next to a pane's content, from clients that predate
+    /// the strip separator: `pane.focus_stack_strip` one row out.
     pub(super) fn handle_pane_focus_stacked_at(
         &mut self,
         id: String,
         params: PaneFocusStackedAtParams,
     ) -> String {
+        self.handle_pane_focus_stack_strip(
+            id,
+            PaneFocusStackStripParams {
+                pane_id: params.pane_id,
+                column: params.column,
+                width: params.width,
+                edge: params.edge,
+                offset: 1,
+            },
+        )
+    }
+
+    /// A click beside a pane's content: the endpoint drew any stack strip
+    /// there, so it resolves which member the click hit, then focuses that
+    /// member, or the pane itself, exactly as `pane.focus` does.
+    pub(super) fn handle_pane_focus_stack_strip(
+        &mut self,
+        id: String,
+        params: PaneFocusStackStripParams,
+    ) -> String {
         let Some((ws_idx, pane_id)) = self.parse_pane_id(&params.pane_id) else {
             return pane_not_found(id, &params.pane_id);
         };
-        let strip_edge = match self.state.stack_strip_position {
-            crate::config::TabBarPositionConfig::Top => PaneContentEdge::Top,
-            crate::config::TabBarPositionConfig::Bottom => PaneContentEdge::Bottom,
-        };
-        let member = (params.edge == strip_edge)
+        let placement = crate::ui::StripPlacement::of(&self.state);
+        let member = (params.edge == placement.edge() && params.offset == placement.strip_offset())
             .then(|| {
                 let ws = self.state.workspaces.get(ws_idx)?;
                 let tab = ws.tabs.get(ws.find_tab_index_for_pane(pane_id)?)?;
@@ -2603,7 +2620,7 @@ fn validate_optional_resume_argv(argv: Option<&[String]>) -> Result<(), String> 
 mod tests {
     use super::*;
     use crate::{
-        api::schema::{ErrorResponse, SplitDirection, SuccessResponse},
+        api::schema::{ErrorResponse, PaneContentEdge, SplitDirection, SuccessResponse},
         config::Config,
         detect::{Agent, AgentState},
         workspace::Workspace,
@@ -2853,6 +2870,27 @@ mod tests {
         }
     }
 
+    fn focus_stack_strip(
+        app: &mut App,
+        pane: PaneId,
+        column: u16,
+        edge: PaneContentEdge,
+        offset: u16,
+    ) -> PaneId {
+        let pane_id = app.public_pane_id(0, pane).unwrap();
+        let response = app.handle_pane_focus_stack_strip(
+            "req".into(),
+            PaneFocusStackStripParams {
+                pane_id,
+                column,
+                width: 40,
+                edge,
+                offset,
+            },
+        );
+        stacked_pane(app, &response)
+    }
+
     fn focus_stacked_at(app: &mut App, pane: PaneId, column: u16, edge: PaneContentEdge) -> PaneId {
         let pane_id = app.public_pane_id(0, pane).unwrap();
         let response = app.handle_pane_focus_stacked_at(
@@ -2868,36 +2906,56 @@ mod tests {
     }
 
     #[test]
-    fn pane_focus_stacked_at_focuses_the_member_under_a_strip_column() {
-        // The strip defaults to the bottom edge. Unlabelled members draw as
-        // " 1 " and " 2 ": columns 0-2 and 3-5.
+    fn pane_focus_stack_strip_focuses_the_member_under_a_strip_column() {
+        // The strip defaults to the bottom edge, past a separator line.
+        // Unlabelled members draw as " 1 " and " 2 ": columns 0-2 and 3-5.
         let (mut app, _, a, b) = app_with_stack();
+        let bottom = PaneContentEdge::Bottom;
 
-        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Bottom), a);
+        assert_eq!(focus_stack_strip(&mut app, b, 1, bottom, 2), a);
         let layout = &app.state.workspaces[0].tabs[0].layout;
         assert_eq!((layout.focused(), layout.is_visible(b)), (a, false));
-        assert_eq!(focus_stacked_at(&mut app, a, 4, PaneContentEdge::Bottom), b);
+        assert_eq!(focus_stack_strip(&mut app, a, 4, bottom, 2), b);
+        assert_eq!(focus_stack_strip(&mut app, b, 20, bottom, 2), b);
+        app.state.stack_strip_position = crate::config::TabBarPositionConfig::Top;
         assert_eq!(
-            focus_stacked_at(&mut app, b, 20, PaneContentEdge::Bottom),
+            focus_stack_strip(&mut app, b, 1, PaneContentEdge::Top, 2),
+            a
+        );
+        app.state.stack_strip_separator = false;
+        assert_eq!(
+            focus_stack_strip(&mut app, a, 4, PaneContentEdge::Top, 1),
             b
         );
-        app.state.stack_strip_position = crate::config::TabBarPositionConfig::Top;
-        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Top), a);
         app.state.assert_invariants_for_test();
     }
 
     #[test]
-    fn pane_focus_stacked_at_off_the_strip_focuses_the_pane_itself() {
+    fn pane_focus_stack_strip_off_the_strip_focuses_the_pane_itself() {
         let (mut app, root, a, b) = app_with_stack();
+        let bottom = PaneContentEdge::Bottom;
 
-        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Top), b);
+        assert_eq!(focus_stack_strip(&mut app, b, 1, bottom, 1), b, "the line");
+        assert_eq!(focus_stack_strip(&mut app, b, 1, bottom, 3), b, "the frame");
         assert_eq!(
-            focus_stacked_at(&mut app, root, 1, PaneContentEdge::Bottom),
-            root
+            focus_stack_strip(&mut app, b, 1, PaneContentEdge::Top, 2),
+            b
         );
+        assert_eq!(focus_stack_strip(&mut app, root, 1, bottom, 2), root);
+        app.state.stack_strip_separator = false;
+        assert_eq!(focus_stack_strip(&mut app, b, 1, bottom, 2), b);
         app.state.workspaces[0].tabs[0].zoomed = true;
-        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Bottom), b);
+        assert_eq!(focus_stack_strip(&mut app, b, 1, bottom, 1), b);
         assert!(!app.state.workspaces[0].tabs[0].layout.is_visible(a));
+    }
+
+    #[test]
+    fn pane_focus_stacked_at_is_a_click_on_the_row_next_to_the_content() {
+        let (mut app, _, a, b) = app_with_stack();
+
+        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Bottom), b);
+        app.state.stack_strip_separator = false;
+        assert_eq!(focus_stacked_at(&mut app, b, 1, PaneContentEdge::Bottom), a);
     }
 
     fn move_to_stack(app: &mut App, pane: PaneId, target: PaneId, focus: bool) -> String {
