@@ -3,7 +3,7 @@
 Each herdsman release names the herdr release it is built on. Versions are herdsman's own;
 `MAINTAINING.md` explains how they are numbered.
 
-## [1.0.0] - Unreleased
+## [1.0.0] - 2026-10-01
 
 Based on herdr 0.9.3 (`347f9c99`).
 
