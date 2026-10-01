@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.svg" alt="herdsman logo" width="96"></p>
+
 # herdsman
 
 A terminal workspace for running coding agents: workspaces, tabs and panes, SSH-connected
