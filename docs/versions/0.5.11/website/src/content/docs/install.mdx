@@ -1,0 +1,58 @@
+---
+title: Install Herdsman
+description: Install, update, and verify Herdsman on Linux and macOS.
+---
+
+Herdsman ships as a single binary for Linux and macOS.
+
+## Install
+
+Run the installer:
+
+```bash
+curl -fsSL https://herdsman.invalid/install.sh | sh
+```
+
+The installer downloads the right release binary for your platform and places it on your PATH.
+
+## Verify
+
+Start Herdsman:
+
+```bash
+herdsman
+```
+
+If your shell cannot find `herdsman`, restart the terminal or check that the install directory is on your PATH.
+
+## Update
+
+Herdsman checks for new releases and notifies you in the app. You can update manually:
+
+```bash
+herdsman update
+```
+
+## Download manually
+
+You can also download a binary from [GitHub releases](https://github.com/OWNER_TBD/herdsman/releases).
+
+Choose the asset that matches your system:
+
+| System | Asset |
+| --- | --- |
+| Linux x86_64 | `herdsman-linux-x86_64` |
+| Linux aarch64 | `herdsman-linux-aarch64` |
+| macOS Intel | `herdsman-macos-x86_64` |
+| macOS Apple silicon | `herdsman-macos-aarch64` |
+
+Make it executable and move it somewhere on your PATH.
+
+```bash
+chmod +x herdsman-linux-x86_64
+mv herdsman-linux-x86_64 ~/.local/bin/herdsman
+```
+
+## Requirements
+
+Herdsman supports Linux and macOS. Native Windows support is not available yet; use Herdsman inside WSL for now.

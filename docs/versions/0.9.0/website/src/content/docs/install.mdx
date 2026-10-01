@@ -1,0 +1,154 @@
+---
+title: Install Herdsman
+description: Install, update, and verify Herdsman on Linux, macOS, and Windows.
+---
+
+Herdsman publishes stable-channel binaries for Linux, macOS, and Windows. Windows is generally available, with documented platform-specific limitations and ongoing fixes.
+
+## Install
+
+On Linux or macOS, run:
+
+```bash
+curl -fsSL https://herdsman.invalid/install.sh | sh
+```
+
+On Windows, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://herdsman.invalid/install.ps1 | iex"
+```
+
+If endpoint security blocks that fileless PowerShell command, open Command Prompt and run:
+
+```cmd
+curl.exe -fsSLo install.cmd https://herdsman.invalid/install.cmd && install.cmd && del install.cmd
+```
+
+The installer downloads the release binary for your platform and places it on your PATH. New direct installs use the stable update channel. Existing Windows preview installs stay on preview until you switch them with `herdsman channel set stable`. On Windows, PATH points to the active versioned release directory; the installer also updates the `current` and stable `bin` compatibility aliases, so updates do not need to overwrite a running `herdsman.exe`.
+
+## Install with Homebrew
+
+If you already use Homebrew:
+
+```bash
+brew install herdsman
+```
+
+## Install with mise
+
+If you already use mise:
+
+```bash
+mise use -g herdsman
+```
+
+If mise reports `herdsman not found in mise tool registry`, update mise and retry. Older mise versions predate the Herdsman registry entry; `mise use -g github:OWNER_TBD/herdsman` works as a temporary fallback.
+
+## Install with Nix
+
+If you already use Nix, Herdsman provides a flake that builds Herdsman from source:
+
+```bash
+nix run github:OWNER_TBD/herdsman/v0.x.y
+nix build github:OWNER_TBD/herdsman/v0.x.y
+nix profile install github:OWNER_TBD/herdsman/v0.x.y
+```
+
+Replace `v0.x.y` with the latest release tag. You can omit the tag to track `master`, but release tags are recommended for normal installs.
+
+The flake also exposes a development shell:
+
+```bash
+nix develop github:OWNER_TBD/herdsman
+```
+
+Use the same Nix workflow to update Herdsman. For a profile install, list your profile entries and upgrade the Herdsman entry:
+
+```bash
+nix profile list
+nix profile upgrade <index-or-name>
+```
+
+If Herdsman is an input in your own flake, update that input and rebuild your system, Home Manager, or development environment:
+
+```bash
+nix flake update herdsman
+```
+
+## Download manually
+
+You can also download a binary from [GitHub releases](https://github.com/OWNER_TBD/herdsman/releases).
+
+Choose the asset that matches your system:
+
+| System | Asset |
+| --- | --- |
+| Linux x86_64 | `herdsman-linux-x86_64` |
+| Linux aarch64 | `herdsman-linux-aarch64` |
+| macOS Intel | `herdsman-macos-x86_64` |
+| macOS Apple silicon | `herdsman-macos-aarch64` |
+| Windows x86_64 | `herdsman-windows-x86_64.zip` |
+
+On Linux or macOS, make it executable and move it somewhere on your PATH.
+
+```bash
+chmod +x herdsman-linux-x86_64
+mv herdsman-linux-x86_64 ~/.local/bin/herdsman
+```
+
+### Windows archive
+
+Stable releases and preview prereleases both include `herdsman-windows-x86_64.zip`. The archive contains `herdsman.exe` and its app-local ConPTY runtime. Keep the extracted directory together; do not copy only `herdsman.exe`.
+
+## Verify
+
+Start Herdsman:
+
+```bash
+herdsman
+```
+
+If your shell cannot find `herdsman`, restart the terminal or check that the install directory is on your PATH.
+
+## Update
+
+Herdsman checks for new releases and notifies you in the app. You can update manually:
+
+```bash
+herdsman update
+```
+
+Use `herdsman update` only for installs managed by Herdsman's own installer. Update Homebrew, mise, and Nix installs through those package managers instead.
+
+Direct installs on Linux, macOS, and Windows use the stable update channel by default. To opt into preview builds from `master`, set the channel:
+
+```bash
+herdsman channel set preview
+```
+
+Switch a direct install back to stable the same way:
+
+```bash
+herdsman channel set stable
+```
+
+For direct installs, changing channels checks the selected channel and installs its latest binary. If that update fails, run `herdsman update` to retry from the configured channel.
+
+Preview builds are regularly published GitHub prereleases from the current development branch. They are useful when you want fixes before the next stable release, but they can regress. Homebrew, mise, and Nix installs do not use the preview channel.
+
+Stable is the recommended channel for normal Windows use. Preview receives fixes sooner but can regress, so opt in only when you want that tradeoff. Existing Windows preview installs remain on preview until you switch them explicitly. If an older preview build rejects `herdsman channel set stable`, run `herdsman update` once on preview, then retry the channel switch.
+
+By default, `herdsman update` installs the new binary and leaves endpoint-generation-1 servers and their pane processes running. Start Herdsman again to reconnect with the updated client. Client-only changes work immediately. A new server-side action stays unavailable until that server is updated and restarted; the client shows a notice instead of disconnecting. Servers from before endpoint generation 1 need one final stop during update.
+
+To opt into experimental live server handoff for supported running sessions, run:
+
+```bash
+herdsman update --handoff
+```
+
+Live handoff does not apply to Homebrew, mise, or Nix package-manager updates. For those installs, update with the package manager, then run Herdsman again to reconnect with the updated client. The compatible old server keeps running. Restart it later with `herdsman server stop` or `herdsman session stop <name>` only when you want server-side changes from the new release.
+
+## Requirements
+
+Stable-channel binaries are available for Linux, macOS, and Windows x86_64. See [Windows support](/docs/windows-beta/) for supported workflows and known limitations. Windows ARM64 runs the x86_64 build under Windows emulation.
