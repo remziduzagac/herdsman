@@ -5,13 +5,14 @@ A terminal workspace for running coding agents: workspaces, tabs and panes, SSH-
 machines, and agents recognised by state in the sidebar. On top of that, **stacked panes**:
 one layout slot holds several panes and shows one at a time, while the hidden ones keep running.
 
-herdsman is a modified version of [herdr](https://github.com/herdrdev/herdr), renamed into a
-separate app and extended. It is not affiliated with or endorsed by herdr. See [NOTICE](NOTICE).
+herdsman is built on [herdr](https://github.com/herdrdev/herdr): a modified version, renamed into
+a separate app, that keeps taking in herdr's releases. It is not affiliated with or endorsed by
+herdr. See [NOTICE](NOTICE).
 
 ## Status
 
-A personal fork, not yet published. There are no releases, and the update and install URLs are
-placeholders, so `herdsman update` and remote installs fail without fetching anything.
+Early. There are no releases yet, so `herdsman update` and remote installs have nothing to fetch.
+[CHANGELOG.md](CHANGELOG.md) lists what is coming in 1.0.0.
 
 ## How it differs from herdr
 
@@ -19,8 +20,8 @@ placeholders, so `herdsman update` and remote installs fail without fetching any
   variables and the agent hooks all carry herdsman's name, so herdsman and herdr run side by side
   without sharing anything.
 - **Stacked panes.** `prefix+alt+c` puts a new pane behind the current one, and a strip along
-  the slot switches between them. [fork/stacks.md](fork/stacks.md) has the keys, CLI and
-  behaviour.
+  the slot switches between them. [The stacks page](docs/next/website/src/content/docs/stacks.mdx)
+  has the keys, CLI and behaviour.
 
 ## Building
 
@@ -28,14 +29,16 @@ placeholders, so `herdsman update` and remote installs fail without fetching any
 cargo build --release --locked     # binary at target/release/herdsman
 ```
 
-The vendored libghostty-vt needs Zig 0.16.0 on `PATH`.
+The vendored libghostty-vt needs Zig 0.16.0 on `PATH`. [CONTRIBUTING.md](CONTRIBUTING.md) lists
+the rest of the tools and how to run the tests.
 
 ## Documentation
 
-- [fork/](fork/README.md): the fork: its design, what was built, and how herdr releases are
-  merged in.
-- `docs/next/`: the user documentation inherited from herdr, renamed.
+- [User docs](docs/next/website/src/content/docs/): install, configuration, keys, agents, the CLI
+  and the socket API.
 - `herdsman --help` for the CLI, and `herdsman --skill` for the agent skill.
+- [MAINTAINING.md](MAINTAINING.md): branches, versions, and how herdr releases are merged in.
+- [CONTRIBUTING.md](CONTRIBUTING.md): issues, pull requests, building and testing.
 
 ## Licence
 

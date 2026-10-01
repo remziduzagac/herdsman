@@ -5,12 +5,11 @@ Terminal based agent runtime for coding agents.
 ## Scope
 
 This is herdsman. Every section below applies to any agent working in this
-repository. Fork-specific documentation lives in `fork/`; start with
-`fork/README.md`.
+repository. `MAINTAINING.md` covers the branches, how the base project's code
+arrives through `upstream/import`, and how releases are made.
 
-Most of the code arrives from upstream through `fork/import`, which renames it,
-and is then merged into `dev`. Keep changes to upstream files small and
-deliberate so those merges stay cheap; `fork/merge.md` describes the process.
+Most of the code comes from the base project. Keep changes to those files small
+and deliberate so later merges stay cheap.
 
 ## Universal Project Rules
 
@@ -126,7 +125,7 @@ Unit-test Herdsman's detection engine, not individual CLI agents' screen or titl
 
 Validate agent-specific detection behavior with live smoke tests through the manifest hot-reload loop above. Exercise the changed state and nearby transitions (idle, working, blocked, and background work where supported), including relevant optional OSC settings. Record the CLI version, observed signals, and outcomes. Passing engine tests proves the rules execute as written; it does not prove compatibility with the current CLI.
 
-`distribution/agent-detection/` is the remotely published catalog for released clients. Keep changes for already released agents aligned with their bundled manifests unless the validator records an exact compatibility exception. A newly bundled agent that current stable clients cannot identify may remain unpublished behind an exact version-and-digest exception, but it must be added to the catalog and the exception removed before the first stable release that ships it. `just release-docs-check` enforces that no unpublished exceptions remain.
+`distribution/agent-detection/` is the remotely published catalog for released clients. Keep changes for already released agents aligned with their bundled manifests unless the validator records an exact compatibility exception. A newly bundled agent that current stable clients cannot identify may remain unpublished behind an exact version-and-digest exception, but it must be added to the catalog and the exception removed before the first stable release that ships it. `python3 scripts/agent_detection_manifest_check.py --require-all-published` enforces that no unpublished exceptions remain.
 
 ## Vendored libghostty-vt
 
@@ -140,25 +139,17 @@ When updating libghostty-vt, check every active patch in `vendor/libghostty-vt.p
 
 ## Docs
 
-`skills/herdsman/SKILL.md` tracks the latest stable Herdsman release because the unversioned `npx skills add OWNER_TBD/herdsman --skill herdsman -g` command installs it from `master`. Do not update this file in feature or preview work. Review and update it only during stable release preparation, and include the change in the release commit with the `Cargo.toml` version bump. Preview builds keep the latest stable skill.
+User documentation lives in `docs/next/website/src/content/docs/`, in English. Update it when a user-facing change needs docs.
 
-Unreleased docs live in `docs/next/website/src/content/docs/`. Update those when a user-facing change needs docs before the next release. They are committed drafts but are never production website input. `docs/next/README.md` stages root README changes. `docs/next/CHANGELOG.md` is curated during stable release preparation, not maintained by normal feature and fix work.
+`skills/herdsman/SKILL.md` is the agent skill the binary embeds and prints with `herdsman --skill`. Keep it in step with the CLI.
 
-The active preview release docs live in `docs/preview/website/`. Preview CI owns this mutable snapshot and commits it atomically with `distribution/preview.json`; never edit it manually. Validate it with `node scripts/docs/preview.mjs check`.
-
-Published stable-release documentation lives in `docs/versions/`. Release CI seeds each version from the tagged `docs/next` tree, and maintainers may make corrections and improvements that apply to that version afterward, without another Herdsman release. Do not document unreleased behavior in a published version. Apply each change separately to `docs/next` when it also applies to future releases; never replace a published tree with the current draft. The private website renders `/docs/preview/` from the active preview snapshot, `/docs/<version>/` from the maintained version directories, and `/docs/` from the version selected by `docs/versions/manifest.json`. Herdsman remains the source of truth for the public snapshots.
-
-During release review, finalize `docs/next` and run `just release-docs-check`. Do not copy draft docs into preview or published versions manually. Preview CI snapshots the selected commit. After a stable GitHub Release succeeds, release CI seeds a new version from the exact tag and updates `distribution/latest.json`. The resulting master commit triggers the private website deployment.
-
-Normal feature and fix work must not edit `docs/next/CHANGELOG.md`; this keeps long-lived branches from conflicting over one shared release file. When refreshing an older pull request, remove its changelog-only diff. Keep user-facing commit subjects descriptive and include required `refs #<issue-number>` lines so stable release preparation can inventory the full range. During the pre-release audit, use that inventory to human-write and curate the user-facing entries in `docs/next/CHANGELOG.md`; generated commit lists are source material, not final release prose. Do not add changelog entries for website-only, documentation-only, CI, build-pipeline, or repository-maintenance changes.
-
-Normal feature/fix work should not edit root `README.md`, root `CHANGELOG.md`, published version docs, or `distribution/latest.json` unless it is a focused correction to already-published documentation or explicitly requested.
+`CHANGELOG.md` lists each herdsman release and the base-project version it includes; `MAINTAINING.md` describes versioning and releases. Do not add changelog entries for documentation-only, CI, build-pipeline, or repository-maintenance changes.
 
 Put local PRDs, planning notes, and exploratory specs under `.local/prd/`; `.local/` is ignored and locally controlled.
 
 ## Commit Style
 
-Use lowercase conventional commits, no emojis, and no AI co-author lines. Commit subjects feed preview release notes, so keep them descriptive.
+Use lowercase conventional commits, no emojis, and no AI co-author lines. Keep commit subjects descriptive; they are the raw material for the changelog.
 
 Before committing, propose the commit message and get alignment.
 
@@ -170,7 +161,7 @@ fix: handle pane focus
 refs #82
 ```
 
-Do not use GitHub closing keywords like `fixes #<issue-number>`, `closes #<issue-number>`, or `resolves #<issue-number>` in normal commits. `master` contains unreleased work; release CI closes referenced issues after the GitHub Release is created.
+Do not use GitHub closing keywords like `fixes #<issue-number>`, `closes #<issue-number>`, or `resolves #<issue-number>` in normal commits. `dev` contains unreleased work; close referenced issues when the release that fixes them is published.
 
 ## Code Conventions
 

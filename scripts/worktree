@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create a worktree for a feature or a herdr merge.
+# Create a worktree for a feature or a merge.
 #
 #   scripts/worktree <name> [<base>]  e.g. scripts/worktree stack-colors
 #                                          scripts/worktree merge-v0.9.4
