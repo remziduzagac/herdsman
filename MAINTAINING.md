@@ -180,6 +180,7 @@ When a merge conflicts in one of these, keep herdsman's side.
 | `docs/next/product-announcement.json` | herdsman's own; `null` until a release announces something |
 | `src/update.rs` | fake-update notes read herdsman's `1.0.0` changelog section |
 | `src/checksum.rs` | the test's SHA-256 re-pinned |
+| `src/api/server.rs` | test socket prefix shortened to `hs-`; the longer name overflowed macOS's 104-byte socket path limit |
 | `src/ui/text.rs` | the truncation test's width widened for the longer name |
 | `scripts/agent_detection_manifest_check.py` | `STAGED_PUBLISHED_MANIFESTS` digest re-pinned |
 | `tests/fixtures/endpoint-method-shapes-v1.json` | `pane.split` and `pane.input.set` re-pinned |

@@ -1134,7 +1134,8 @@ mod tests {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        std::env::temp_dir().join(format!("herdsman-{name}-{}-{nanos}", std::process::id()))
+        // Short prefix: macOS caps socket paths at 104 bytes, and its temp dir is long.
+        std::env::temp_dir().join(format!("hs-{name}-{}-{nanos}", std::process::id()))
     }
 
     fn read_line(stream: &mut LocalStream) -> String {
