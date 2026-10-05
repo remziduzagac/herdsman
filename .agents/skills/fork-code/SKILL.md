@@ -50,16 +50,18 @@ mod tests { /* ... */ }
 
 ## The hooks, one by one
 
-Mark every hook in a herdr file with a `// fork: <feature>` comment, on the line or just above a
-multi-line hook, so `rg '// fork:'` lists every hook point and a conflict shows at once which side is
-ours. herdr's code never uses this marker.
+Mark every hook in a herdr file with a `// fork: <feature>` comment (`# fork:` in Python and TOML),
+on the line or just above a multi-line hook, so `rg '(//|#) fork:'` lists every hook point and a
+conflict shows at once which side is ours. herdr's code never uses this marker. JSON cannot carry it;
+list a JSON hook in `MAINTAINING.md` instead.
 
 Place a hook next to a related, long-standing line, not at the end of a struct, enum or list: the end
 is where herdr appends its own additions, and two insertions at the same spot conflict.
 
 ### Enum variants and match arms
 
-A variant is unavoidable when herdsman extends a herdr enum. Keep each arm a single delegation:
+A variant is unavoidable when herdsman extends a herdr enum. Keep each arm a single delegation,
+even when the arm needs real logic: move the logic into a function in the herdsman module.
 
 ```rust
 // src/app/api.rs (herdr's)
@@ -79,9 +81,11 @@ later features change only herdsman's type:
 ```rust
 pub struct AppState {
     // ...herdr's fields...
-    pub fork: crate::app::fork_state::ForkState, // fork: state
+    pub(crate) fork: fork::ForkState, // fork: state
 }
 ```
+
+`AppState`'s is `ForkState` in `src/app/state/fork.rs`; put new herdsman state there.
 
 Prefer a side table keyed by a stable id (a workspace id, a checkout path) over fields on many herdr
 types. Persisted and JSON structs need `#[serde(default)]` on the new field so older files and peers
@@ -100,21 +104,28 @@ shape digests, in the herdsman block of the test that checks them.
 
 ### Call sites
 
-When herdr code must do something new, call one herdsman function and keep the decision inside it:
+When herdr code must do something new, call one herdsman function and keep the decision inside it.
+Prefer adjusting herdr's result over editing herdr's line: keep the line as herdr wrote it and add
+one after it.
 
 ```rust
-let pane_inner = super::stack_strip::content_rect(tab, info.id, pane_inner, placement); // fork: stacks
+let pane_inner = pane_inner_rect(info.rect, info.borders); // herdr's line, untouched
+let pane_inner = stack::content_rect(app, tab, info.id, pane_inner); // fork: stacks
 ```
 
-Prefer wrapping herdr's result over editing herdr's logic: take what herdr's function returns and
-adjust it in herdsman code.
+When a herdsman feature needs a herdr function to behave differently, keep the function's signature
+and let it consult herdsman state through a hook. `pane.stack` reuses `handle_pane_split` this way:
+it sets `ForkState::split_into_stack`, and one hook in the split folds the new pane into the stack.
 
 ## What not to do in herdr files
 
 - No reformatting, reordering, renaming or moving herdr code, and no drive-by fixes. Each of these
   turns a clean merge into a conflict.
 - Do not change a herdr function's signature or meaning; add a herdsman function instead.
-- Do not edit herdr's tests. Add herdsman's in herdsman files.
+- Do not edit herdr's tests. Add herdsman's in herdsman files: the herdsman module's own
+  `mod tests`, or a test-only child module (`#[cfg(test)] mod stack;`) for tests of hooks in a herdr
+  file. Widening a herdr test helper to `pub(super)` so herdsman's tests can reuse it is a hook; mark
+  it `// fork: <feature> tests`.
 - Do not copy a herdr function to change it slightly; call it, or hook the one place that differs.
 
 When a hook would have to be large, stop and look for a seam: a function herdr calls that can be

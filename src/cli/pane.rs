@@ -4,10 +4,12 @@ use crate::api::schema::{
     PaneMoveDestination, PaneMoveParams, PaneNeighborParams, PaneProcessInfoParams, PaneReadParams,
     PaneReleaseAgentParams, PaneRenameParams, PaneReportAgentParams, PaneReportAgentSessionParams,
     PaneReportMetadataParams, PaneResizeParams, PaneRightClickTarget, PaneSendInputParams,
-    PaneSendKeysParams, PaneSendTextParams, PaneSplitParams, PaneStackParams, PaneSwapParams,
-    PaneTarget, PaneWaitForOutputParams, PaneZoomMode, PaneZoomParams, ReadFormat, ReadSource,
-    Request, SplitDirection,
+    PaneSendKeysParams, PaneSendTextParams, PaneSplitParams, PaneSwapParams, PaneTarget,
+    PaneWaitForOutputParams, PaneZoomMode, PaneZoomParams, ReadFormat, ReadSource, Request,
+    SplitDirection,
 };
+
+mod stack; // fork: stacks
 
 pub(super) fn run_pane_command(args: &[String]) -> std::io::Result<i32> {
     let Some(subcommand) = args.first().map(|arg| arg.as_str()) else {
@@ -30,9 +32,10 @@ pub(super) fn run_pane_command(args: &[String]) -> std::io::Result<i32> {
         "rename" => pane_rename(&args[1..]),
         "input" => pane_input(&args[1..]),
         "split" => pane_split(&args[1..]),
-        "stack" => pane_stack(&args[1..]),
-        "stacks" => pane_stacks(&args[1..]),
-        "focus-stacked" => pane_focus_stacked(&args[1..]),
+        // fork: stacks
+        "stack" => stack::pane_stack(&args[1..]),
+        "stacks" => stack::pane_stacks(&args[1..]),
+        "focus-stacked" => stack::pane_focus_stacked(&args[1..]),
         "swap" => pane_swap(&args[1..]),
         "move" => pane_move(&args[1..]),
         "close" => pane_close(&args[1..]),
@@ -202,11 +205,9 @@ fn pane_neighbor(args: &[String]) -> std::io::Result<i32> {
 }
 
 fn pane_focus(args: &[String]) -> std::io::Result<i32> {
-    // A lone pane id focuses that pane, revealing it when it is a hidden stack member.
-    if let [pane_id] = args {
-        if !pane_id.starts_with('-') {
-            return super::runtime::pane_focus_id(super::normalize_pane_id(pane_id));
-        }
+    // fork: stacks
+    if let Some(code) = stack::focus_lone_pane_id(args) {
+        return code;
     }
     let params = match parse_pane_focus_args(args) {
         Ok(params) => params,
@@ -637,169 +638,6 @@ fn pane_split(args: &[String]) -> std::io::Result<i32> {
     super::runtime::pane_split(params)
 }
 
-fn pane_stack(args: &[String]) -> std::io::Result<i32> {
-    let env_pane_id = super::target::caller_pane_id();
-    let params = match parse_pane_stack_args(args, env_pane_id.as_deref()) {
-        Ok(params) => params,
-        Err(message) => {
-            eprintln!("{message}");
-            return Ok(2);
-        }
-    };
-
-    super::runtime::pane_stack(params)
-}
-
-const PANE_MOVE_TO_STACK_USAGE: &str =
-    "usage: herdsman pane move <pane_id> --stack <target_pane_id> [--focus|--no-focus]";
-
-/// `pane move <pane_id> --stack <target>`: join the target's stack.
-fn parse_pane_move_to_stack_args(args: &[String]) -> Result<PaneMoveParams, String> {
-    let Some(pane_id) = args.first().filter(|arg| !arg.starts_with('-')) else {
-        return Err(PANE_MOVE_TO_STACK_USAGE.into());
-    };
-    let mut target = None;
-    let mut focus = true;
-    let mut index = 1;
-    while index < args.len() {
-        match args[index].as_str() {
-            "--stack" => {
-                let Some(value) = args.get(index + 1) else {
-                    return Err("missing value for --stack".into());
-                };
-                target = Some(super::normalize_pane_id(value));
-                index += 2;
-            }
-            "--focus" => {
-                focus = true;
-                index += 1;
-            }
-            "--no-focus" => {
-                focus = false;
-                index += 1;
-            }
-            other => return Err(format!("{other} does not combine with --stack")),
-        }
-    }
-    let Some(target_pane_id) = target else {
-        return Err(PANE_MOVE_TO_STACK_USAGE.into());
-    };
-    Ok(PaneMoveParams {
-        pane_id: super::normalize_pane_id(pane_id),
-        destination: PaneMoveDestination::Stack { target_pane_id },
-        focus,
-    })
-}
-
-const PANE_FOCUS_STACKED_USAGE: &str =
-    "usage: herdsman pane focus-stacked [<pane_id>|--pane ID|--current] <N|next|previous>";
-
-fn pane_focus_stacked(args: &[String]) -> std::io::Result<i32> {
-    let env_pane_id = super::target::caller_pane_id();
-    match parse_pane_focus_stacked_args(args, env_pane_id.as_deref()) {
-        Ok(params) => super::runtime::pane_focus_stacked(params),
-        Err(message) => {
-            eprintln!("{message}");
-            Ok(2)
-        }
-    }
-}
-
-/// Members count from 1, as the strip numbers them; the API counts from 0.
-fn parse_pane_focus_stacked_args(
-    args: &[String],
-    env_pane_id: Option<&str>,
-) -> Result<crate::api::schema::PaneFocusStackedParams, String> {
-    let mut pane_id = None;
-    let mut positionals = Vec::new();
-    let mut index = 0;
-    while index < args.len() {
-        match args[index].as_str() {
-            "--pane" => {
-                let Some(value) = args.get(index + 1) else {
-                    return Err("missing value for --pane".into());
-                };
-                pane_id = Some(super::normalize_pane_id(value));
-                index += 2;
-            }
-            "--current" => {
-                pane_id = Some(
-                    env_pane_id
-                        .map(super::normalize_pane_id)
-                        .ok_or("--current requires HERDSMAN_PANE_ID")?,
-                );
-                index += 1;
-            }
-            other if other.starts_with("--") => return Err(format!("unknown option: {other}")),
-            other => {
-                positionals.push(other);
-                index += 1;
-            }
-        }
-    }
-    let member = match positionals.as_slice() {
-        [member] => member,
-        [pane, member] if pane_id.is_none() => {
-            pane_id = Some(super::normalize_pane_id(pane));
-            member
-        }
-        _ => return Err(PANE_FOCUS_STACKED_USAGE.into()),
-    };
-    let (index, step) = match *member {
-        "next" => (None, Some(1)),
-        "previous" | "prev" => (None, Some(-1)),
-        number => match number.parse::<usize>() {
-            Ok(number) if number > 0 => (Some(number - 1), None),
-            _ => {
-                return Err(format!(
-                    "expected a member number, next or previous: {number}"
-                ))
-            }
-        },
-    };
-    Ok(crate::api::schema::PaneFocusStackedParams {
-        pane_id,
-        index,
-        step,
-    })
-}
-
-fn pane_stacks(args: &[String]) -> std::io::Result<i32> {
-    let workspace_id = match args {
-        [] => None,
-        [flag, value] if flag == "--workspace" => Some(super::normalize_workspace_id(value)),
-        _ => {
-            eprintln!("usage: herdsman pane stacks [--workspace ID]");
-            return Ok(2);
-        }
-    };
-    super::runtime::pane_stacks(crate::api::schema::PaneStacksParams { workspace_id })
-}
-
-/// Stack takes split's options minus the geometry ones.
-fn parse_pane_stack_args(
-    args: &[String],
-    env_pane_id: Option<&str>,
-) -> Result<PaneStackParams, String> {
-    if let Some(geometry) = args
-        .iter()
-        .find(|arg| matches!(arg.as_str(), "--direction" | "--ratio"))
-    {
-        return Err(format!("unknown option: {geometry}"));
-    }
-    let mut split_args = args.to_vec();
-    split_args.extend(["--direction".into(), "right".into()]);
-    let split = parse_pane_split_args(&split_args, env_pane_id)?;
-    Ok(PaneStackParams {
-        workspace_id: split.workspace_id,
-        target_pane_id: split.target_pane_id,
-        cwd: split.cwd,
-        focus: split.focus,
-        right_click: split.right_click,
-        env: split.env,
-    })
-}
-
 fn parse_pane_split_args(
     args: &[String],
     env_pane_id: Option<&str>,
@@ -937,8 +775,9 @@ fn pane_move(args: &[String]) -> std::io::Result<i32> {
 }
 
 fn parse_pane_move_args(args: &[String]) -> Result<PaneMoveParams, String> {
+    // fork: stacks
     if args.iter().any(|arg| arg == "--stack") {
-        return parse_pane_move_to_stack_args(args);
+        return stack::parse_pane_move_to_stack_args(args);
     }
     let Some(raw_pane_id) = args.first() else {
         return Err(pane_move_usage());
@@ -1857,6 +1696,7 @@ fn print_pane_help() {
     eprintln!("  herdsman pane neighbor --direction left|right|up|down [--pane ID|--current]");
     eprintln!("  herdsman pane edges [--pane ID|--current]");
     eprintln!("  herdsman pane focus --direction left|right|up|down [--pane ID|--current]");
+    // fork: stacks
     eprintln!("  herdsman pane focus <pane_id>");
     eprintln!("  herdsman pane focus-stacked [<pane_id>|--pane ID|--current] <N|next|previous>");
     eprintln!(
@@ -1869,6 +1709,7 @@ fn print_pane_help() {
     eprintln!(
         "  herdsman pane split [<pane_id>|--pane ID|--current] --direction right|down [--ratio FLOAT] [--cwd PATH] [--env KEY=VALUE] [--right-click herdsman|pane] [--focus] [--no-focus]"
     );
+    // fork: stacks
     eprintln!(
         "  herdsman pane stack [<pane_id>|--pane ID|--current] [--cwd PATH] [--env KEY=VALUE] [--right-click herdsman|pane] [--focus] [--no-focus]"
     );
@@ -1876,6 +1717,7 @@ fn print_pane_help() {
     eprintln!("  herdsman pane swap --direction left|right|up|down [--pane ID|--current]");
     eprintln!("  herdsman pane swap --source-pane ID --target-pane ID");
     eprintln!("  herdsman pane move <pane_id> --tab <tab_id> --split right|down [--target-pane ID] [--ratio FLOAT] [--focus|--no-focus]");
+    // fork: stacks
     eprintln!("  herdsman pane move <pane_id> --stack <target_pane_id> [--focus|--no-focus]");
     eprintln!("  herdsman pane move <pane_id> --new-tab [--workspace ID] [--label TEXT] [--focus|--no-focus]");
     eprintln!("  herdsman pane move <pane_id> --new-workspace [--label TEXT] [--tab-label TEXT] [--focus|--no-focus]");
@@ -1894,7 +1736,8 @@ fn print_pane_help() {
 mod tests {
     use super::*;
 
-    fn args(values: &[&str]) -> Vec<String> {
+    // fork: stacks tests
+    pub(super) fn args(values: &[&str]) -> Vec<String> {
         values.iter().map(|value| (*value).to_string()).collect()
     }
 
@@ -1921,89 +1764,6 @@ mod tests {
         .unwrap();
 
         assert_eq!(params.right_click, PaneRightClickTarget::Pane);
-    }
-
-    #[test]
-    fn parse_pane_move_args_routes_stack_destinations() {
-        let params = parse_pane_move_args(&args(&[
-            "issue-1:p3",
-            "--stack",
-            "issue-1:p1",
-            "--no-focus",
-        ]))
-        .unwrap();
-
-        assert_eq!(params.pane_id, "issue-1:p3");
-        assert_eq!(
-            params.destination,
-            PaneMoveDestination::Stack {
-                target_pane_id: "issue-1:p1".into()
-            }
-        );
-        assert!(!params.focus);
-        assert!(
-            parse_pane_move_args(&args(&["issue-1:p3", "--stack", "p1", "--tab", "t1"]))
-                .unwrap_err()
-                .contains("does not combine with --stack")
-        );
-        assert!(parse_pane_move_args(&args(&["--stack", "issue-1:p1"])).is_err());
-    }
-
-    #[test]
-    fn parse_pane_focus_stacked_args_counts_members_from_one() {
-        let parse = |values: &[&str], env| parse_pane_focus_stacked_args(&args(values), env);
-
-        let params = parse(&["2"], None).unwrap();
-        assert_eq!(
-            (params.pane_id, params.index, params.step),
-            (None, Some(1), None)
-        );
-        let params = parse(&["issue-1:p3", "next"], None).unwrap();
-        assert_eq!(
-            (params.pane_id.as_deref(), params.index, params.step),
-            (Some("issue-1:p3"), None, Some(1))
-        );
-        let params = parse(&["--current", "previous"], Some("issue-1:p4")).unwrap();
-        assert_eq!(
-            (params.pane_id.as_deref(), params.step),
-            (Some("issue-1:p4"), Some(-1))
-        );
-        assert!(parse(&["0"], None).is_err());
-        assert!(parse(&[], None).is_err());
-        assert!(parse(&["--bogus", "1"], None).is_err());
-    }
-
-    #[test]
-    fn parse_pane_stack_args_takes_split_options_without_geometry() {
-        let params = parse_pane_stack_args(
-            &args(&[
-                "--current",
-                "--cwd",
-                "/repo",
-                "--env",
-                "ROLE=agent",
-                "--focus",
-            ]),
-            Some("issue-1:p1"),
-        )
-        .unwrap();
-
-        assert_eq!(params.target_pane_id, Some("issue-1:p1".into()));
-        assert_eq!(params.cwd.as_deref(), Some("/repo"));
-        assert_eq!(params.env.get("ROLE").map(String::as_str), Some("agent"));
-        assert!(params.focus);
-        assert_eq!(
-            parse_pane_stack_args(&args(&["issue-1", "--no-focus"]), None)
-                .unwrap()
-                .target_pane_id,
-            Some("issue-1".into())
-        );
-        for geometry in ["--direction", "--ratio"] {
-            assert_eq!(
-                parse_pane_stack_args(&args(&[geometry, "right"]), None).unwrap_err(),
-                format!("unknown option: {geometry}")
-            );
-        }
     }
 
     #[test]

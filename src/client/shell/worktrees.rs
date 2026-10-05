@@ -540,7 +540,7 @@ impl ClientShellState {
                 | PendingEndpointKind::WordSelection { .. }
                 | PendingEndpointKind::PaneLinkActivate { .. }
                 | PendingEndpointKind::PaneLinkResolve { .. }
-                | PendingEndpointKind::NavigatorStacks { .. }
+                | PendingEndpointKind::NavigatorStacks { .. } // fork: stacks
                 | PendingEndpointKind::CopyMotion { .. }
                 | PendingEndpointKind::CopySearch { .. },
                 Err(_),

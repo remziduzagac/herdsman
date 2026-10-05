@@ -5,7 +5,7 @@ mod panes;
 mod release_notes;
 mod scrollbar;
 mod sidebar;
-mod stack_strip;
+mod stack_strip; // fork: stacks
 mod status;
 mod tab_surface;
 mod text;
@@ -37,7 +37,7 @@ pub(crate) use self::sidebar::{
     sidebar_section_divider_rect, sidebar_space_rows, AgentPanelEntry, AgentTokenContext,
     ResolvedToken, ResolvedTokenKind, SpaceTokenContext,
 };
-pub(crate) use self::stack_strip::{stack_member_at, StripPlacement};
+pub(crate) use self::stack_strip::{stack_member_at, StripPlacement}; // fork: stacks
 use self::status::copy_feedback_rect;
 pub(crate) use self::status::{render_config_diagnostic_buffer, render_copy_feedback_buffer};
 pub(crate) use self::tab_surface::{

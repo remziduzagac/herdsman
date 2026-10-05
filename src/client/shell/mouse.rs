@@ -4,6 +4,8 @@ use crossterm::event::{MouseButton, MouseEvent, MouseEventKind};
 const SELECTION_AUTOSCROLL_INTERVAL: std::time::Duration = std::time::Duration::from_millis(30);
 const SELECTION_REPAINT_INTERVAL: std::time::Duration = std::time::Duration::from_millis(16);
 
+mod stack; // fork: stacks
+
 impl ClientShellState {
     fn set_sidebar_width_from_column(&mut self, column: u16, outcome: &mut ClientShellInput) {
         let (min, max) = crate::config::validated_sidebar_bounds(
@@ -2267,6 +2269,7 @@ impl ClientShellState {
                         }
                     }
                     self.push_endpoint_method(self.pane_press_method(hit, mouse), outcome);
+                    // fork: stacks
                 }
             }
             MouseEventKind::Down(MouseButton::Middle) => {
@@ -2324,56 +2327,6 @@ impl ClientShellState {
             }
             _ => {}
         }
-    }
-
-    /// Pressing a pane focuses it. A press on a row outside its content,
-    /// within its columns, may land on a stack strip the endpoint drew there, so
-    /// the endpoint resolves it when it can; otherwise it is a plain focus.
-    /// Endpoints without `pane.focus_stack_strip` only draw a strip on the row
-    /// next to the content.
-    fn pane_press_method(&self, hit: PaneHit, mouse: MouseEvent) -> crate::api::schema::Method {
-        use crate::api::schema::{
-            Method, PaneContentEdge, PaneFocusStackStripParams, PaneFocusStackedAtParams,
-            PaneTarget,
-        };
-
-        let inner = hit.inner_rect;
-        let content_end = inner.y.saturating_add(inner.height);
-        let edge = if mouse.row < inner.y {
-            Some((PaneContentEdge::Top, inner.y - mouse.row))
-        } else if mouse.row >= content_end {
-            Some((PaneContentEdge::Bottom, mouse.row - content_end + 1))
-        } else {
-            None
-        };
-        let beside_content = mouse.column >= inner.x && mouse.column - inner.x < inner.width;
-        let Some((edge, offset)) = edge.filter(|_| beside_content && !hit.popup) else {
-            return Method::PaneFocus(PaneTarget {
-                pane_id: hit.pane_id,
-            });
-        };
-        let column = mouse.column - inner.x;
-        let strip = Method::PaneFocusStackStrip(PaneFocusStackStripParams {
-            pane_id: hit.pane_id.clone(),
-            column,
-            width: inner.width,
-            edge,
-            offset,
-        });
-        let next_to_content = (offset == 1).then(|| {
-            Method::PaneFocusStackedAt(PaneFocusStackedAtParams {
-                pane_id: hit.pane_id.clone(),
-                column,
-                width: inner.width,
-                edge,
-            })
-        });
-        std::iter::once(strip)
-            .chain(next_to_content)
-            .find(|method| self.supports_endpoint_method(method))
-            .unwrap_or(Method::PaneFocus(PaneTarget {
-                pane_id: hit.pane_id,
-            }))
     }
 
     fn pane_mouse_position(&self, hit: &PaneHit, mouse: MouseEvent) -> ClientMousePosition {

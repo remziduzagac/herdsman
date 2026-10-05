@@ -120,6 +120,7 @@ pub enum ResponseResult {
     PaneList {
         panes: Vec<PaneInfo>,
     },
+    // fork: stacks
     PaneStacks {
         stacks: Vec<super::panes::PaneStackInfo>,
     },

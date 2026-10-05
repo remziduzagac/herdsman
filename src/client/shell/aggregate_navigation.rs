@@ -382,6 +382,7 @@ pub(super) fn navigator_rows(
                                 _ => format!("{pane_name} · {}", index + 1),
                             }
                         };
+                        // fork: stacks
                         let label =
                             navigator
                                 .stacks

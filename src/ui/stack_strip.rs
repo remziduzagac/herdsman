@@ -25,12 +25,20 @@ pub(crate) struct StripPlacement {
     pub(crate) separator: bool,
 }
 
+/// Bottom, with the separator line: `ui.stack_strip_position` and
+/// `ui.stack_strip_separator` as configured by default.
+impl Default for StripPlacement {
+    fn default() -> Self {
+        Self {
+            position: TabBarPositionConfig::Bottom,
+            separator: true,
+        }
+    }
+}
+
 impl StripPlacement {
     pub(crate) fn of(app: &AppState) -> Self {
-        Self {
-            position: app.stack_strip_position,
-            separator: app.stack_strip_separator,
-        }
+        app.fork.stack_strip
     }
 
     /// The edge of the content the strip sits beside.
@@ -302,7 +310,7 @@ mod tests {
         let mut app = AppState::test_new();
         app.workspaces = vec![Workspace::test_new("stacks")];
         app.active = Some(0);
-        app.stack_strip_position = position;
+        app.fork.stack_strip.position = position;
         let editor = app.workspaces[0].tabs[0].root_pane;
         let agent = app.workspaces[0].test_split(ratatui::layout::Direction::Horizontal);
         let shell = app.workspaces[0].test_split(ratatui::layout::Direction::Horizontal);
@@ -395,7 +403,7 @@ mod tests {
     #[test]
     fn without_the_separator_the_strip_sits_next_to_the_content() {
         let (mut app, [editor, _, shell]) = stacked_app(TabBarPositionConfig::Bottom);
-        app.stack_strip_separator = false;
+        app.fork.stack_strip.separator = false;
 
         let (infos, buffer) = render(&app);
 

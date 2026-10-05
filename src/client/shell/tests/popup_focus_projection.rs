@@ -83,7 +83,7 @@ fn modal_paste_target_requires_a_focused_editable_client_field() {
         selected: None,
         scroll: 0,
         filter: None,
-        stacks: Default::default(),
+        stacks: Default::default(), // fork: stacks
     }));
     assert!(!state.modal_paste_target_active());
     if let Some(ClientShellOverlay::Navigator(navigator)) = state.overlay.as_mut() {

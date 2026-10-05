@@ -612,6 +612,7 @@ pub(crate) fn api_method_name(method: &Method) -> &'static str {
         Method::AgentPrompt(_) => "agent.prompt",
         Method::AgentWait(_) => "agent.wait",
         Method::PaneSplit(_) => "pane.split",
+        // fork: stacks
         Method::PaneStack(_) => "pane.stack",
         Method::PaneFocusStacked(_) => "pane.focus_stacked",
         Method::PaneFocusStackedAt(_) => "pane.focus_stacked_at",
@@ -1135,7 +1136,8 @@ mod tests {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        // Short prefix: macOS caps socket paths at 104 bytes, and its temp dir is long.
+        // fork: rename. A short prefix, as macOS caps socket paths at 104 bytes and its
+        // temp dir is long.
         std::env::temp_dir().join(format!("hs-{name}-{}-{nanos}", std::process::id()))
     }
 

@@ -6,6 +6,8 @@ use crate::api::schema::{
     WorktreeCreateParams, WorktreeListParams, WorktreeOpenParams, WorktreeRemoveParams,
 };
 
+pub(super) mod stack; // fork: stacks
+
 fn print_method_response(id: &'static str, method: Method) -> std::io::Result<i32> {
     super::print_response(&super::send_request(&Request {
         id: id.into(),
@@ -108,27 +110,6 @@ pub(super) fn pane_input_set(params: PaneInputSetParams) -> std::io::Result<i32>
 
 pub(super) fn pane_split(params: PaneSplitParams) -> std::io::Result<i32> {
     print_method_response("cli:pane:split", Method::PaneSplit(params))
-}
-
-pub(super) fn pane_stack(params: crate::api::schema::PaneStackParams) -> std::io::Result<i32> {
-    print_method_response("cli:pane:stack", Method::PaneStack(params))
-}
-
-pub(super) fn pane_stacks(params: crate::api::schema::PaneStacksParams) -> std::io::Result<i32> {
-    print_method_response("cli:pane:stacks", Method::PaneStacks(params))
-}
-
-pub(super) fn pane_focus_id(pane_id: String) -> std::io::Result<i32> {
-    print_method_response(
-        "cli:pane:focus",
-        Method::PaneFocus(crate::api::schema::PaneTarget { pane_id }),
-    )
-}
-
-pub(super) fn pane_focus_stacked(
-    params: crate::api::schema::PaneFocusStackedParams,
-) -> std::io::Result<i32> {
-    print_method_response("cli:pane:focus-stacked", Method::PaneFocusStacked(params))
 }
 
 pub(super) fn pane_swap(params: PaneSwapParams) -> std::io::Result<i32> {

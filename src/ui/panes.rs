@@ -17,6 +17,8 @@ use crate::layout::PaneInfo;
 use crate::popup_size::resolve_popup_geometry;
 use crate::terminal::{TerminalRuntime, TerminalRuntimeRegistry};
 
+mod stack; // fork: stacks
+
 pub(crate) fn pane_is_scrolled_back(rt: &TerminalRuntime) -> bool {
     rt.scroll_metrics()
         .is_some_and(|metrics| metrics.offset_from_bottom > 0)
@@ -245,12 +247,8 @@ pub(super) fn resize_tab_panes(
         app.pane_gaps,
         app.pane_outer_borders,
     ) {
-        let pane_inner = super::stack_strip::content_rect(
-            tab,
-            info.id,
-            pane_inner_rect(info.rect, info.borders),
-            super::stack_strip::StripPlacement::of(app),
-        );
+        let pane_inner = pane_inner_rect(info.rect, info.borders);
+        let pane_inner = stack::content_rect(app, tab, info.id, pane_inner); // fork: stacks
 
         if let Some((terminal_id, rt)) =
             runtime_for_tab_pane(app, terminal_runtimes, workspace_index, tab, info.id)
@@ -265,7 +263,8 @@ pub(super) fn resize_tab_panes(
                 );
             }
         }
-        resize_hidden_stack_members(
+        // fork: stacks
+        stack::resize_hidden_stack_members(
             app,
             terminal_runtimes,
             workspace_index,
@@ -273,39 +272,6 @@ pub(super) fn resize_tab_panes(
             info.id,
             pane_inner,
             cell_size,
-        );
-    }
-}
-
-/// Size a stack's hidden members like its visible one, so switching members
-/// never reflows them. Unchanged sizes return early inside the runtime.
-fn resize_hidden_stack_members(
-    app: &AppState,
-    terminal_runtimes: &TerminalRuntimeRegistry,
-    workspace_index: usize,
-    tab: &crate::workspace::Tab,
-    visible: crate::layout::PaneId,
-    pane_inner: Rect,
-    cell_size: crate::kitty_graphics::HostCellSize,
-) {
-    let Some((members, _)) = tab.layout.stack_members(visible) else {
-        return;
-    };
-    for member in members.iter().copied().filter(|member| *member != visible) {
-        let Some((terminal_id, rt)) =
-            runtime_for_tab_pane(app, terminal_runtimes, workspace_index, tab, member)
-        else {
-            continue;
-        };
-        if app.direct_attach_resize_locks.contains(terminal_id) {
-            continue;
-        }
-        let inner_rect = terminal_inner_rect(rt, pane_inner, app.pane_scrollbars);
-        rt.resize(
-            inner_rect.height,
-            inner_rect.width,
-            cell_size.width_px,
-            cell_size.height_px,
         );
     }
 }
@@ -374,14 +340,11 @@ pub(super) fn compute_pane_infos_for_tab(
     );
 
     for info in &mut pane_infos {
-        let pane_inner = super::stack_strip::content_rect(
-            tab,
-            info.id,
-            pane_inner_rect(info.rect, info.borders),
-            super::stack_strip::StripPlacement::of(app),
-        );
+        let pane_inner = pane_inner_rect(info.rect, info.borders);
+        let pane_inner = stack::content_rect(app, tab, info.id, pane_inner); // fork: stacks
+                                                                             // fork: stacks
         if resize_panes {
-            resize_hidden_stack_members(
+            stack::resize_hidden_stack_members(
                 app,
                 terminal_runtimes,
                 ws_idx,
@@ -485,6 +448,7 @@ pub(super) fn render_panes(
     }
 
     render_pane_borders(app, ws, pane_infos, split_borders, frame);
+    // fork: stacks
     if let Some(tab) = ws.tabs.get(target.tab_index) {
         super::stack_strip::render_stack_strips(app, tab, pane_infos, frame.buffer_mut());
     }

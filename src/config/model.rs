@@ -385,6 +385,7 @@ pub struct KeysConfig {
     pub next_agent: BindingConfig,
     /// Focus an agent by index 1-9. Unset by default.
     pub focus_agent: BindingConfig,
+    // fork: stacks
     /// Show and focus member 1-9 of the focused pane's stack. Default: "prefix+alt+1..9".
     pub focus_stacked: BindingConfig,
     /// Show the next member of the focused pane's stack, wrapping. Default: "prefix+alt+n".
@@ -444,6 +445,7 @@ pub struct KeysConfig {
     pub split_vertical: BindingConfig,
     /// Split pane horizontally (stacked). Default: "prefix+minus"
     pub split_horizontal: BindingConfig,
+    // fork: stacks
     /// Open a new pane in the focused pane's slot, one visible at a time. Default: "prefix+alt+c"
     pub stack_pane: BindingConfig,
     /// Close the focused pane, which in a stack is its visible member; the same action as
@@ -533,6 +535,7 @@ pub(crate) struct KeysConfigOverlay {
     next_agent: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     focus_agent: Option<BindingConfig>,
+    // fork: stacks
     #[serde(skip_serializing_if = "Option::is_none")]
     focus_stacked: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -592,6 +595,7 @@ pub(crate) struct KeysConfigOverlay {
     split_vertical: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     split_horizontal: Option<BindingConfig>,
+    // fork: stacks
     #[serde(skip_serializing_if = "Option::is_none")]
     stack_pane: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -689,6 +693,7 @@ impl<'de> Deserialize<'de> for KeysConfig {
         apply_field!(previous_agent);
         apply_field!(next_agent);
         apply_field!(focus_agent);
+        // fork: stacks
         apply_field!(focus_stacked);
         apply_field!(next_stacked);
         apply_field!(previous_stacked);
@@ -719,6 +724,7 @@ impl<'de> Deserialize<'de> for KeysConfig {
         apply_field!(last_pane);
         apply_field!(split_vertical);
         apply_field!(split_horizontal);
+        // fork: stacks
         apply_field!(stack_pane);
         apply_field!(close_stacked);
         apply_field!(close_pane);
@@ -799,6 +805,7 @@ impl KeysConfig {
         copy_effective_action_field!(previous_agent, keybinds.previous_agent);
         copy_effective_action_field!(next_agent, keybinds.next_agent);
         copy_effective_indexed_field!(focus_agent, keybinds.focus_agent);
+        // fork: stacks
         copy_effective_indexed_field!(focus_stacked, keybinds.focus_stacked);
         copy_effective_action_field!(next_stacked, keybinds.next_stacked);
         copy_effective_action_field!(previous_stacked, keybinds.previous_stacked);
@@ -829,6 +836,7 @@ impl KeysConfig {
         copy_effective_action_field!(last_pane, keybinds.last_pane);
         copy_effective_action_field!(split_vertical, keybinds.split_vertical);
         copy_effective_action_field!(split_horizontal, keybinds.split_horizontal);
+        // fork: stacks
         copy_effective_action_field!(stack_pane, keybinds.stack_pane);
         copy_effective_action_field!(close_stacked, keybinds.close_stacked);
         copy_effective_action_field!(close_pane, keybinds.close_pane);
@@ -1011,6 +1019,7 @@ pub struct UiConfig {
     pub pane_gaps: bool,
     /// Show agent labels in split pane borders when no manual pane label is set. Default: false.
     pub show_agent_labels_on_pane_borders: bool,
+    // fork: stacks
     /// Where a stacked slot draws the strip naming its members: top or bottom. Default: bottom.
     pub stack_strip_position: TabBarPositionConfig,
     /// Draw a line between a stacked slot's strip and its content. Default: true.
@@ -1177,6 +1186,7 @@ impl Default for KeysConfig {
             previous_agent: BindingConfig::empty(),
             next_agent: BindingConfig::empty(),
             focus_agent: BindingConfig::empty(),
+            // fork: stacks
             focus_stacked: BindingConfig::one("prefix+alt+1..9"),
             next_stacked: BindingConfig::one("prefix+alt+n"),
             previous_stacked: BindingConfig::one("prefix+alt+p"),
@@ -1207,6 +1217,7 @@ impl Default for KeysConfig {
             last_pane: BindingConfig::empty(),
             split_vertical: BindingConfig::one("prefix+v"),
             split_horizontal: BindingConfig::one("prefix+minus"),
+            // fork: stacks
             stack_pane: BindingConfig::one("prefix+alt+c"),
             close_stacked: BindingConfig::one("prefix+alt+x"),
             close_pane: BindingConfig::one("prefix+x"),
@@ -1255,6 +1266,7 @@ impl Default for UiConfig {
             pane_scrollbars: true,
             pane_gaps: true,
             show_agent_labels_on_pane_borders: false,
+            // fork: stacks
             stack_strip_position: TabBarPositionConfig::Bottom,
             stack_strip_separator: true,
             hide_tab_bar_when_single_tab: false,

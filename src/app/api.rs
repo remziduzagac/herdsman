@@ -1107,6 +1107,7 @@ impl App {
                 return self.handle_agent_send_keys(request.id, params);
             }
             Method::PaneSplit(params) => return self.handle_pane_split(request.id, params),
+            // fork: stacks
             Method::PaneStack(params) => return self.handle_pane_stack(request.id, params),
             Method::PaneFocusStacked(params) => {
                 return self.handle_pane_focus_stacked(request.id, params);

@@ -25,6 +25,8 @@ pub(crate) struct PopupPaneState {
 use crate::terminal_theme::{HostAppearance, TerminalTheme};
 use crate::workspace::Workspace;
 
+pub(crate) mod fork; // fork: state
+
 // ---------------------------------------------------------------------------
 // Theme palette — all UI colors in one place, ready for theming
 // ---------------------------------------------------------------------------
@@ -835,8 +837,7 @@ pub struct AppState {
     pub pane_scrollbars: bool,
     pub pane_gaps: bool,
     pub show_agent_labels_on_pane_borders: bool,
-    pub stack_strip_position: crate::config::TabBarPositionConfig,
-    pub stack_strip_separator: bool,
+    pub(crate) fork: fork::ForkState, // fork: state
     pub tab_bar_right: Vec<TabBarStatusSegment>,
     pub tab_bar_right_separator: String,
     /// Expose the focused pane's cursor anchor to the outer terminal even when
@@ -1063,8 +1064,7 @@ impl AppState {
             pane_scrollbars: true,
             pane_gaps: false,
             show_agent_labels_on_pane_borders: false,
-            stack_strip_position: crate::config::TabBarPositionConfig::Bottom,
-            stack_strip_separator: true,
+            fork: Default::default(), // fork: state
             tab_bar_right: Vec::new(),
             tab_bar_right_separator: " ".into(),
             reveal_hidden_cursor_for_cjk_ime: false,

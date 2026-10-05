@@ -197,7 +197,7 @@ impl ClientShellState {
             selected: None,
             scroll: 0,
             filter: None,
-            stacks: Default::default(),
+            stacks: Default::default(), // fork: stacks
         };
         let rows =
             render::client_navigator_rows(&self.endpoints, &self.active_endpoint_id, &navigator);

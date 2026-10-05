@@ -53,6 +53,7 @@ pub(crate) fn request_changes_ui(request: &Request) -> bool {
             | Method::AgentPrompt(_)
             | Method::AgentSendKeys(_)
             | Method::PaneSplit(_)
+            // fork: stacks
             | Method::PaneStack(_)
             | Method::PaneFocusStacked(_)
             | Method::PaneFocusStackedAt(_)

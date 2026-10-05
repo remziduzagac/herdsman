@@ -25,9 +25,9 @@ const CLIENT_SHELL_METHODS: &[&str] = &[
     "pane.edit_scrollback",
     "pane.focus",
     "pane.focus_direction",
-    "pane.focus_stack_strip",
-    "pane.focus_stacked",
-    "pane.focus_stacked_at",
+    "pane.focus_stack_strip", // fork: stacks
+    "pane.focus_stacked",     // fork: stacks
+    "pane.focus_stacked_at",  // fork: stacks
     "pane.input.set",
     "pane.link.activate",
     "pane.link.resolve",
@@ -36,8 +36,8 @@ const CLIENT_SHELL_METHODS: &[&str] = &[
     "pane.scroll",
     "pane.selection.read",
     "pane.split",
-    "pane.stack",
-    "pane.stacks",
+    "pane.stack",  // fork: stacks
+    "pane.stacks", // fork: stacks
     "pane.swap",
     "pane.zoom",
     "product_announcement.dismiss",
@@ -188,6 +188,9 @@ pub(crate) fn spawn_response_waiter(
 }
 
 #[cfg(test)]
+mod stack; // fork: stacks
+
+#[cfg(test)]
 mod tests {
     use std::collections::{BTreeMap, BTreeSet};
 
@@ -302,27 +305,7 @@ mod tests {
             actual.remove("pane.link.resolve").as_deref(),
             Some("f5e4a3e01453ae7b188f127ce951c12c20e0bebcc17cc364eeb6d1a01fd5bf81")
         );
-        // herdsman: stacked panes.
-        assert_eq!(
-            actual.remove("pane.stack").as_deref(),
-            Some("ea12f3ce7056d68bf76e3dc99ad7d9a3d7385616743ba46ac082270c9d2d40f3")
-        );
-        assert_eq!(
-            actual.remove("pane.focus_stacked").as_deref(),
-            Some("01d2d20ff540b72125aeed4aa91ce3d73d92ba5594e403aef98099a3186af5dc")
-        );
-        assert_eq!(
-            actual.remove("pane.focus_stacked_at").as_deref(),
-            Some("ec4aa0fc311d09a9c46e1550000180ed5c6887b6b9d4b614dfb2aabe12599bb6")
-        );
-        assert_eq!(
-            actual.remove("pane.focus_stack_strip").as_deref(),
-            Some("2ce96fad327371c1442b5d1e84c9f09628e38833d47c3b93dd53ba295004a283")
-        );
-        assert_eq!(
-            actual.remove("pane.stacks").as_deref(),
-            Some("c6d7c7e43e70e2f17108eff0bc5ee132c729b580b4cb9b266232243b1864b798")
-        );
+        stack::remove_pinned_stack_methods(&mut actual); // fork: stacks
 
         assert_eq!(
             actual, expected,

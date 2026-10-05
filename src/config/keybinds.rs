@@ -369,6 +369,7 @@ pub struct Keybinds {
     pub previous_agent: ActionKeybinds,
     pub next_agent: ActionKeybinds,
     pub focus_agent: Vec<IndexedKeybind>,
+    // fork: stacks
     pub focus_stacked: Vec<IndexedKeybind>,
     pub next_stacked: ActionKeybinds,
     pub previous_stacked: ActionKeybinds,
@@ -398,6 +399,7 @@ pub struct Keybinds {
     pub last_pane: ActionKeybinds,
     pub split_vertical: ActionKeybinds,
     pub split_horizontal: ActionKeybinds,
+    // fork: stacks
     pub stack_pane: ActionKeybinds,
     pub close_stacked: ActionKeybinds,
     pub close_pane: ActionKeybinds,
@@ -557,6 +559,7 @@ impl Config {
             previous_agent: empty_action!(),
             next_agent: empty_action!(),
             focus_agent: Vec::new(),
+            // fork: stacks
             focus_stacked: Vec::new(),
             next_stacked: empty_action!(),
             previous_stacked: empty_action!(),
@@ -586,6 +589,7 @@ impl Config {
             last_pane: empty_action!(),
             split_vertical: empty_action!(),
             split_horizontal: empty_action!(),
+            // fork: stacks
             stack_pane: empty_action!(),
             close_stacked: empty_action!(),
             close_pane: empty_action!(),
@@ -700,6 +704,7 @@ impl Config {
                 &self.keys.indexed.agents,
                 source
             );
+            // fork: stacks
             apply_indexed!(keybinds.focus_stacked, focus_stacked, "", source);
             apply_action!(keybinds.next_stacked, next_stacked, source);
             apply_action!(keybinds.previous_stacked, previous_stacked, source);
@@ -739,6 +744,7 @@ impl Config {
             apply_action!(keybinds.cycle_pane_previous, cycle_pane_previous, source);
             apply_action!(keybinds.split_vertical, split_vertical, source);
             apply_action!(keybinds.split_horizontal, split_horizontal, source);
+            // fork: stacks
             apply_action!(keybinds.stack_pane, stack_pane, source);
             apply_action!(keybinds.close_stacked, close_stacked, source);
             apply_action!(keybinds.close_pane, close_pane, source);

@@ -203,8 +203,10 @@ and merge instead.
 ## herdsman's edits to herdr files
 
 herdsman's features keep their logic in herdsman's own files and touch herdr files only through small
-hooks marked `// fork: <feature>`; the `fork-code` skill in `.agents/skills/` describes how.
-`rg '// fork:'` lists every hook. When a merge conflicts in one of these files, keep herdsman's side.
+hooks marked `// fork: <feature>` (`# fork:` in Python); the `fork-code` skill in `.agents/skills/`
+describes how. `rg '(//|#) fork:'` lists every hook, and `git diff --diff-filter=A --name-only
+herdr-import -- src` every herdsman file. herdsman's own state on `AppState` lives in its one field,
+`fork` (`src/app/state/fork.rs`). When a merge conflicts in one of these files, keep herdsman's side.
 
 | File | herdsman's change |
 | --- | --- |
@@ -227,8 +229,10 @@ hooks marked `// fork: <feature>`; the `fork-code` skill in `.agents/skills/` de
 
 ### Stacks
 
-Stacks change 37 herdr files, almost all additively. The new files are
-`src/ui/stack_strip.rs`, `src/client/shell/stack_marks.rs` and `src/client/shell/tests/stacks.rs`.
+Stacks live in herdsman's own files: `ui/stack_strip.rs`, `client/shell/stack_marks.rs`,
+`client/shell/tests/stacks.rs`, and a `stack.rs` child module beside each herdr module they extend,
+such as `layout/stack.rs` and `app/api/panes/stack.rs`. The herdr files below carry only hooks marked
+`// fork: stacks`.
 
 | Area | Files |
 | --- | --- |
@@ -250,13 +254,13 @@ Stacks change 37 herdr files, almost all additively. The new files are
 | Generated | `docs/next/api/herdsman-api.schema.json` |
 | Docs data | `docs/next/website/src/data/config-reference.json` |
 
-The lines stacks changed rather than added are few: the `split_slot` calls in `layout.rs`, the
-visibility checks in `app/actions.rs` and `workspace.rs`, the strip calls in `ui/panes.rs`, the click
-method in `client/shell/mouse.rs`, and imports.
+The lines stacks change rather than add are few: the `split_slot` calls in `layout.rs`, the
+visibility checks in `app/actions.rs` and `workspace.rs`, and the press method in
+`client/shell/mouse.rs`.
 
-Stacks add four JSON API methods (`pane.stack`, `pane.focus_stacked`, `pane.focus_stacked_at`,
-`pane.stacks`) and a `stack` destination for `pane.move`, advertised to client shells with frozen
-shapes. No bincode struct, frozen codec or `PROTOCOL_VERSION` changed: `ClientShellSnapshot` also
+Stacks add five JSON API methods (`pane.stack`, `pane.focus_stacked`, `pane.focus_stacked_at`,
+`pane.focus_stack_strip`, `pane.stacks`) and a `stack` destination for `pane.move`, advertised to
+client shells with frozen shapes. No bincode struct, frozen codec or `PROTOCOL_VERSION` changed: `ClientShellSnapshot` also
 travels as positional bincode, so stack data is fetched through the new methods instead.
 
 ## Releasing

@@ -50,6 +50,8 @@ pub(super) fn command() -> Command {
     configure_help(command, 0)
 }
 
+mod stack; // fork: stacks
+
 fn configure_help(command: Command, depth: usize) -> Command {
     let command = if depth == 0 {
         command
@@ -553,35 +555,7 @@ fn pane_command() -> Command {
                 .arg(flag("focus"))
                 .arg(flag("no-focus")),
         )
-        .subcommand(
-            Command::new("stacks")
-                .about("List stacks: members and the visible one")
-                .arg(option("workspace", "ID")),
-        )
-        .subcommand(
-            Command::new("focus-stacked")
-                .about("Show and focus a member of a pane's stack")
-                // `[PANE_ID] MEMBER`: an optional positional cannot precede a
-                // required one, so both share one argument of one or two values.
-                .arg(
-                    Arg::new("member")
-                        .value_name("[PANE_ID] N|next|previous")
-                        .num_args(1..=2)
-                        .required(true),
-                )
-                .args(current_pane_args()),
-        )
-        .subcommand(
-            Command::new("stack")
-                .about("Open a pane stacked in a pane's slot")
-                .arg(Arg::new("pane_id").value_name("PANE_ID"))
-                .args(current_pane_args())
-                .arg(path_option("cwd", "PATH"))
-                .arg(env_option())
-                .arg(option("right-click", "TARGET").value_parser(["herdsman", "pane"]))
-                .arg(flag("focus"))
-                .arg(flag("no-focus")),
-        )
+        .subcommands(stack::pane_subcommands()) // fork: stacks
         .subcommand(
             Command::new("swap")
                 .about("Swap panes")
@@ -596,7 +570,7 @@ fn pane_command() -> Command {
                 .arg(required("pane_id", "PANE_ID"))
                 .arg(option("tab", "TAB_ID"))
                 .arg(option("split", "DIRECTION").value_parser(["right", "down"]))
-                .arg(option("stack", "PANE_ID"))
+                .arg(option("stack", "PANE_ID")) // fork: stacks
                 .arg(option("target-pane", "ID"))
                 .arg(option("ratio", "FLOAT"))
                 .arg(flag("new-tab"))

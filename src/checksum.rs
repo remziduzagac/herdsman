@@ -60,6 +60,7 @@ mod tests {
         fs::write(&path, b"herdsman").unwrap();
         let result = super::verify_sha256(
             &path,
+            // fork: rename. The renamed text hashes differently.
             "ebe83c12cfd4d70dfe86a6f9e874189c4f8cc9cfaa22d3ebd8ed8e4d8f61b629",
         );
         let _ = fs::remove_file(&path);

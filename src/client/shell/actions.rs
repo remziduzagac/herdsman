@@ -1,5 +1,7 @@
 use super::*;
 
+mod stack; // fork: stacks
+
 impl ClientShellState {
     pub(super) fn record_binding(
         &mut self,
@@ -45,7 +47,7 @@ impl ClientShellState {
                 }
                 if action == crate::input::KeybindAction::OpenNavigator {
                     self.open_navigator_overlay();
-                    self.request_navigator_stacks(outcome);
+                    self.request_navigator_stacks(outcome); // fork: stacks
                     outcome.repaint = true;
                     return;
                 }
@@ -354,13 +356,14 @@ impl ClientShellState {
             | crate::api::schema::Method::TabFocus(_)
             | crate::api::schema::Method::PaneFocus(_)
             | crate::api::schema::Method::PaneFocusDirection(_)
+            // fork: stacks
             | crate::api::schema::Method::PaneFocusStacked(_)
             | crate::api::schema::Method::PaneFocusStackedAt(_)
             | crate::api::schema::Method::PaneFocusStackStrip(_) => true,
             crate::api::schema::Method::WorkspaceCreate(params) => params.focus,
             crate::api::schema::Method::TabCreate(params) => params.focus,
             crate::api::schema::Method::PaneSplit(params) => params.focus,
-            crate::api::schema::Method::PaneStack(params) => params.focus,
+            crate::api::schema::Method::PaneStack(params) => params.focus, // fork: stacks
             _ => false,
         };
         if changes_focus {
@@ -511,6 +514,7 @@ impl ClientShellState {
         if let PendingEndpointKind::PaneLinkResolve { target } = pending.kind {
             return self.complete_link_hover(target, result);
         }
+        // fork: stacks
         if let PendingEndpointKind::NavigatorStacks { endpoint_id } = pending.kind {
             return (
                 self.receive_navigator_stacks(endpoint_id, result),
@@ -570,7 +574,7 @@ impl ClientShellState {
         match pending.kind {
             PendingEndpointKind::Generic => {}
             PendingEndpointKind::PaneLinkResolve { .. } => unreachable!("handled above"),
-            PendingEndpointKind::NavigatorStacks { .. } => unreachable!("handled above"),
+            PendingEndpointKind::NavigatorStacks { .. } => unreachable!("handled above"), // fork: stacks
             PendingEndpointKind::ProductAnnouncementDismiss { version, id } => {
                 return match result {
                     Ok(_) => (false, Vec::new()),
@@ -860,10 +864,9 @@ impl ClientShellState {
         action: crate::input::KeybindAction,
     ) -> Option<crate::api::schema::Method> {
         use crate::api::schema::{
-            Method, PaneDirection, PaneFocusDirectionParams, PaneFocusStackedParams,
-            PaneResizeParams, PaneSplitParams, PaneStackParams, PaneSwapParams, PaneTarget,
-            PaneZoomMode, PaneZoomParams, SplitDirection, TabCreateParams, TabMoveParams,
-            TabTarget, WorkspaceTarget,
+            Method, PaneDirection, PaneFocusDirectionParams, PaneResizeParams, PaneSplitParams,
+            PaneSwapParams, PaneTarget, PaneZoomMode, PaneZoomParams, SplitDirection,
+            TabCreateParams, TabMoveParams, TabTarget, WorkspaceTarget,
         };
         use crate::input::KeybindAction;
 
@@ -1059,30 +1062,12 @@ impl ClientShellState {
                     env: Default::default(),
                 }))
             }
-            KeybindAction::StackPane => Some(Method::PaneStack(PaneStackParams {
-                workspace_id: Some(focused_workspace),
-                target_pane_id: focused_pane,
-                focus: true,
-                ..Default::default()
-            })),
-            // Stack membership is server layout, so the endpoint resolves the index.
-            KeybindAction::FocusStacked(index) => {
-                Some(Method::PaneFocusStacked(PaneFocusStackedParams {
-                    pane_id: focused_pane,
-                    index: Some(index),
-                    step: None,
-                }))
-            }
-            KeybindAction::NextStacked | KeybindAction::PreviousStacked => {
-                Some(Method::PaneFocusStacked(PaneFocusStackedParams {
-                    pane_id: focused_pane,
-                    index: None,
-                    step: Some(if action == KeybindAction::NextStacked {
-                        1
-                    } else {
-                        -1
-                    }),
-                }))
+            // fork: stacks
+            KeybindAction::StackPane
+            | KeybindAction::FocusStacked(_)
+            | KeybindAction::NextStacked
+            | KeybindAction::PreviousStacked => {
+                stack::keybind_method(action, focused_workspace, focused_pane)
             }
             KeybindAction::ClosePane => Some(Method::PaneClose(PaneTarget {
                 pane_id: focused_pane.clone()?,

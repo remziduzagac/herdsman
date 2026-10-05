@@ -39,6 +39,7 @@ mod tests {
 
     #[test]
     fn truncate_end_uses_display_width() {
+        // fork: rename. The longer name needs a wider truncation width.
         let text = truncate_end("提交 herdsman 的反馈", 19);
 
         assert_eq!(text, "提交 herdsman 的反…");
