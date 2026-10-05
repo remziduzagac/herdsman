@@ -202,7 +202,9 @@ and merge instead.
 
 ## herdsman's edits to herdr files
 
-When a merge conflicts in one of these, keep herdsman's side.
+herdsman's features keep their logic in herdsman's own files and touch herdr files only through small
+hooks marked `// fork: <feature>`; the `fork-code` skill in `.agents/skills/` describes how.
+`rg '// fork:'` lists every hook. When a merge conflicts in one of these files, keep herdsman's side.
 
 | File | herdsman's change |
 | --- | --- |

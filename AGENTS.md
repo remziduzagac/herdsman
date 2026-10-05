@@ -9,7 +9,10 @@ repository. `MAINTAINING.md` covers the branches, how the base project's code
 arrives through `upstream/import`, and how releases are made.
 
 Most of the code comes from the base project. Keep changes to those files small
-and deliberate so later merges stay cheap.
+and deliberate so later merges stay cheap: base-project files get hooks marked
+`// fork:`, and herdsman's logic and tests live in herdsman's own files. Follow
+the `fork-code` skill (`.agents/skills/fork-code/SKILL.md`) for any change to
+herdsman behaviour.
 
 ## Universal Project Rules
 
