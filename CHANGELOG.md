@@ -5,6 +5,8 @@ Each herdsman release names the herdr release it is built on. Versions are herds
 
 ## Unreleased
 
+Based on herdr 0.9.3 (`347f9c99`).
+
 ### Added
 
 - A line separates a stack's strip from the content of its visible member, so the strip no longer

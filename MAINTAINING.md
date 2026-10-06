@@ -318,6 +318,12 @@ updates the Homebrew formula.
    gh release delete vX.Y.Z-rehearsal.<run> --yes
    ```
 
+   `X.Y.Z` here is the version `Cargo.toml` has now, not the one being released: `just release`
+   sets the new version, and the rehearsal checks the two agree. It rehearses the builds and the
+   draft release; Linux packages, `latest.json` and the Homebrew formula only run for a real
+   release, and `gh workflow run linux-packages.yml -f version=X.Y.Z` tries the packages for an
+   existing release.
+
 4. **Release:**
 
    ```bash
