@@ -5,6 +5,8 @@ Each herdsman release names the herdr release it is built on. Versions are herds
 
 ## Unreleased
 
+## [1.1.0] - 2026-10-06
+
 Based on herdr 0.9.3 (`347f9c99`).
 
 ### Added
