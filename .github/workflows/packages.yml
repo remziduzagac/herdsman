@@ -2,9 +2,11 @@ name: Packages
 
 # Installs the latest herdsman release through every channel the install docs
 # list, on clean machines: the install script, the Homebrew tap, mise, the Nix
-# flake, and the apt, dnf and pacman repositories. Runs by hand, and after each
-# Pages deploy, which is the last step of a release: by then the tap, the
-# manifest and the repositories all carry it.
+# flake, and the apt, dnf and pacman repositories. The release workflow starts
+# it once the release's Pages deploy is done; it also runs by hand, and after
+# other Pages deploys. A Pages deploy in the middle of a release, such as the
+# one the release's push to main starts, skips the run: the release is not
+# everywhere yet, and the release workflow tests it when it is.
 
 on:
   workflow_dispatch:
@@ -26,12 +28,24 @@ jobs:
       - id: latest
         env:
           GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
         run: |
           tag=$(gh release view -R "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+          if [ "$EVENT" = workflow_run ]; then
+            newest=$(gh api "repos/$GITHUB_REPOSITORY/tags" --paginate --jq '.[].name' \
+              | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
+            manifest=$(curl -fsSL "https://remziduzagac.github.io/herdsman/latest.json?$(date +%s)" \
+              | python3 -c 'import json, sys; print(json.load(sys.stdin)["version"])')
+            if [ "$newest" != "$tag" ] || [ "$manifest" != "${tag#v}" ]; then
+              echo "::notice::$newest is still being released (latest release $tag, latest.json $manifest); the release workflow tests it when it is done"
+              exit 0
+            fi
+          fi
           echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
 
   install-script:
     needs: version
+    if: needs.version.outputs.version != ''
     strategy:
       fail-fast: false
       matrix:
@@ -47,6 +61,7 @@ jobs:
 
   homebrew:
     needs: version
+    if: needs.version.outputs.version != ''
     strategy:
       fail-fast: false
       matrix:
@@ -63,6 +78,7 @@ jobs:
 
   mise:
     needs: version
+    if: needs.version.outputs.version != ''
     strategy:
       fail-fast: false
       matrix:
@@ -86,6 +102,7 @@ jobs:
 
   nix:
     needs: version
+    if: needs.version.outputs.version != ''
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
@@ -101,6 +118,7 @@ jobs:
 
   apt:
     needs: version
+    if: needs.version.outputs.version != ''
     strategy:
       fail-fast: false
       matrix:
@@ -122,6 +140,7 @@ jobs:
 
   dnf:
     needs: version
+    if: needs.version.outputs.version != ''
     runs-on: ubuntu-latest
     container: fedora:latest
     env:
@@ -135,6 +154,7 @@ jobs:
 
   pacman:
     needs: version
+    if: needs.version.outputs.version != ''
     runs-on: ubuntu-latest
     container: archlinux:latest
     env:

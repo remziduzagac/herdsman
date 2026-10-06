@@ -218,6 +218,8 @@ jobs:
     needs: [check, release, linux-packages]
     if: needs.check.outputs.draft == 'false'
     runs-on: ubuntu-latest
+    outputs:
+      pages_after: ${{ steps.pages.outputs.after }}
     permissions:
       contents: write
       actions: write
@@ -250,7 +252,10 @@ jobs:
             || echo "::warning::dev moved since the release; merge main into dev to pick up the manifest"
 
       - name: Redeploy Pages from main
-        run: gh workflow run pages.yml --ref main
+        id: pages
+        run: |
+          echo "after=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          gh workflow run pages.yml --ref main
 
   homebrew:
     needs: [check, manifest]
@@ -282,3 +287,29 @@ jobs:
           git diff --cached --quiet && { echo "formula already at $VERSION"; exit 0; }
           git commit -m "herdsman $VERSION"
           git push origin HEAD:main
+
+  packages:
+    needs: [check, manifest, homebrew]
+    if: needs.check.outputs.draft == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      AFTER: ${{ needs.manifest.outputs.pages_after }}
+    steps:
+      # Runs this workflow starts with its own token start no workflow_run
+      # chain, so Packages does not follow that Pages deploy by itself.
+      - name: Test every install channel once Pages carries the release
+        run: |
+          run=
+          for _ in $(seq 30); do
+            run=$(gh run list -R "$GITHUB_REPOSITORY" --workflow pages.yml --event workflow_dispatch \
+              --json databaseId,createdAt \
+              --jq "[.[] | select(.createdAt >= \"$AFTER\")] | last | .databaseId // empty")
+            [ -n "$run" ] && break
+            sleep 10
+          done
+          [ -n "$run" ] || { echo "::error::the release's Pages deploy did not start"; exit 1; }
+          gh run watch -R "$GITHUB_REPOSITORY" "$run" --exit-status > /dev/null
+          gh workflow run packages.yml -R "$GITHUB_REPOSITORY" --ref main

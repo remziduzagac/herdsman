@@ -335,9 +335,11 @@ updates the Homebrew formula.
    Pushing `test` also publishes the release commit as a preview, so the preview channel never
    falls behind stable.
 5. **Watch the workflow**, then `git pull` on `dev` to pick up the manifest commit it made.
-6. **Check the packages.** `packages.yml` starts on its own after the release's Pages deploy and
-   installs it through the install script, the Homebrew tap, mise, Nix and the apt, dnf and pacman
-   repositories on clean machines. Run it by hand with `gh workflow run packages.yml`.
+6. **Check the packages.** The release workflow's last job waits for the release's Pages deploy,
+   then starts `packages.yml`, which installs the release through the install script, the Homebrew
+   tap, mise, Nix and the apt, dnf and pacman repositories on clean machines. A Pages deploy in the
+   middle of a release, such as the one the release's push to `main` starts, skips its run. Run it
+   by hand with `gh workflow run packages.yml`.
 
 Pages serves `latest.json`, the install scripts, the agent guide and the agent-detection catalog
 from `main`'s `distribution/` folder. A push to `main` that changes that folder redeploys it too.
