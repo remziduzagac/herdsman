@@ -246,6 +246,19 @@ The user's keys add `alt` to the tab keys: `prefix+alt+1..9` goes to a member,
 visible one. Clicking a strip segment shows that member, and the `prefix+g` navigator tags rows
 `stacked N/M` and `hidden`.
 
+## Group worktrees
+
+A repository's linked worktrees can be sorted into named groups, which the sidebar nests under the
+repository with a header that collapses. Put a worktree's workspace in a group, or take it out:
+
+```bash
+herdsman workspace group <workspace_id> <name>
+herdsman workspace group <workspace_id> --clear
+```
+
+Only a linked worktree's workspace can join a group. Members carry the name as the `worktree_group`
+token in `workspace list`, and keep it when their workspace closes and opens again.
+
 ## Safety and coordination rules
 
 - Use `--no-focus` for background work unless the user asked to switch context.

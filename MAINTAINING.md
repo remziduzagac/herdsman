@@ -151,10 +151,10 @@ Failures that come from the rename rather than from real bugs:
 
 - **A pinned hash or width** of text that contained the old name: a new herdr test, or one of the
   re-pinned values below. The assertion prints the new value; pin it.
-- **`advertised_client_shell_method_shapes_stay_at_the_v1_contract`**: if it fails on a stack
-  method, a shared parameter type changed; update the five pinned `pane.*` digests in
-  `src/server/client_commands.rs`. If it fails on a herdr method whose enum carries the name,
-  re-pin it in the fixture. Other shape changes are herdr's own.
+- **`advertised_client_shell_method_shapes_stay_at_the_v1_contract`**: if it fails on one of
+  herdsman's methods, a shared parameter type changed; update its pinned digest in
+  `src/server/client_commands/fork_methods.rs`. If it fails on a herdr method whose enum carries the
+  name, re-pin it in the fixture. Other shape changes are herdr's own.
 
 ### 6. Changelog, promote
 
@@ -260,8 +260,41 @@ visibility checks in `app/actions.rs` and `workspace.rs`, and the press method i
 
 Stacks add five JSON API methods (`pane.stack`, `pane.focus_stacked`, `pane.focus_stacked_at`,
 `pane.focus_stack_strip`, `pane.stacks`) and a `stack` destination for `pane.move`, advertised to
-client shells with frozen shapes. No bincode struct, frozen codec or `PROTOCOL_VERSION` changed: `ClientShellSnapshot` also
-travels as positional bincode, so stack data is fetched through the new methods instead.
+client shells with frozen shapes. No bincode struct, frozen codec or `PROTOCOL_VERSION` changed:
+`ClientShellSnapshot` also travels as positional bincode, so stack data is fetched through the new
+methods instead.
+
+### Worktree groups
+
+Named groups of a repository's linked worktrees live in herdsman's own files:
+
+- `app/state/fork/worktree_groups.rs`: the groups, by checkout path, saved as
+  `worktree-groups.json` in the session's data directory rather than in herdr's session format;
+- `app/api/workspaces/worktree_groups.rs` and `api/schema/workspaces/worktree_groups.rs`: the
+  `workspace.set_worktree_group` method;
+- `cli/workspace/worktree_groups.rs` and `cli/spec/worktree_groups.rs`: `herdsman workspace group`;
+- `client/shell/sidebar/worktree_groups.rs`: ordering, headers, clicks and the name prompt, with its
+  tests in `client/shell/tests/worktree_groups.rs`; `client/shell/fork.rs` holds herdsman's click
+  targets.
+
+The herdr files below carry hooks marked `// fork: worktree groups`.
+
+| Area | Files |
+| --- | --- |
+| Method | `api/schema.rs`, `api/schema/workspaces.rs`, `api/mod.rs`, `api/server.rs`, `app/api.rs` |
+| Handler and advertising | `app/api/workspaces.rs`, `server/client_commands.rs` |
+| Group token and saving | `app/creation.rs`, `app/mod.rs` |
+| CLI | `cli/workspace.rs`, `cli/spec.rs` |
+| Sidebar | `client/shell/sidebar.rs`, `client/shell/endpoint_sidebar.rs`, `client/shell/mouse.rs` |
+| Hit map | `client/shell.rs`, `client/shell/state.rs` |
+| Menu and prompt | `client/shell/state.rs`, `client/shell/context_menu.rs`, `client/shell/overlay_input.rs` |
+| Test wiring | `client/shell/tests/mod.rs`, `client/shell/tests/endpoints.rs` |
+| Docs | `configuration.mdx`, `cli-reference.mdx`, `socket-api.mdx` |
+
+A group reaches clients as its members' `worktree_group` workspace token, so no snapshot field, wire
+format or `PROTOCOL_VERSION` changed. `workspace_entries` still returns one entry per workspace,
+ordered by group and without the hidden members of a collapsed group; the header rows exist only in
+the two expanded sidebar renderers, drawn as extra lines of a neighbouring entry.
 
 ## Releasing
 

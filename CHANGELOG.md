@@ -9,6 +9,9 @@ Each herdsman release names the herdr release it is built on. Versions are herds
 
 - A line separates a stack's strip from the content of its visible member, so the strip no longer
   runs into the program above or below it. `ui.stack_strip_separator = false` turns it off.
+- Worktree groups: sort a repository's worktrees into named groups from a worktree's right-click
+  menu or with `herdsman workspace group`. Each group sits under a header in the repository's
+  sidebar tree and collapses on a click.
 
 ### Changed
 

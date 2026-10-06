@@ -2096,6 +2096,10 @@ impl ClientShellState {
                     self.persist_chrome_preferences(outcome);
                     return;
                 }
+                // fork: worktree groups
+                if self.toggle_worktree_group_at(point, outcome) {
+                    return;
+                }
                 let workspace_press = self
                     .hits
                     .workspaces

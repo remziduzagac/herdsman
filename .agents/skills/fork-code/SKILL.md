@@ -45,7 +45,9 @@ mod tests { /* ... */ }
 - Methods on herdr types go in a separate `impl` block in the herdsman file. Rust allows any number of
   inherent `impl` blocks for a type anywhere in the crate.
 - Use `#[path = "..."]` only when a natural child location does not exist. Plain child modules keep
-  rustfmt and rust-analyzer happy.
+  rustfmt and rust-analyzer happy. One case needs it: a herdr module that is itself loaded through
+  `#[path]`, such as `client/shell/sidebar.rs` from `render.rs`, resolves child modules beside its
+  own file, so declare yours as `#[path = "sidebar/worktree_groups.rs"] mod worktree_groups;`.
 - Tests for herdsman behaviour go in the herdsman file's own `mod tests`, never in herdr's.
 
 ## The hooks, one by one
@@ -112,6 +114,11 @@ one after it.
 let pane_inner = pane_inner_rect(info.rect, info.borders); // herdr's line, untouched
 let pane_inner = stack::content_rect(app, tab, info.id, pane_inner); // fork: stacks
 ```
+
+When a herdsman feature needs new kinds of items in a list many herdr functions walk, keep what the
+list means and teach only the few places that draw it. Worktree groups keep the sidebar's entry
+list at one entry per workspace, so navigation, numbering and scrolling stay untouched, and draw
+each group header as extra lines of a neighbouring entry in the two renderers.
 
 When a herdsman feature needs a herdr function to behave differently, keep the function's signature
 and let it consult herdsman state through a hook. `pane.stack` reuses `handle_pane_split` this way:

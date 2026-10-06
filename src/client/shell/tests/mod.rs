@@ -261,3 +261,4 @@ mod mouse_selection;
 mod popup_focus_projection;
 mod stacks; // fork: stacks
 mod startup_overlays;
+mod worktree_groups; // fork: worktree groups

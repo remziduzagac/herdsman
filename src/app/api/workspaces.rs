@@ -10,6 +10,8 @@ use crate::app::App;
 use super::super::api_helpers::{normalize_metadata_source, normalize_metadata_ttl};
 use super::responses::{encode_error, encode_success};
 
+mod worktree_groups; // fork: worktree groups
+
 impl App {
     pub(super) fn handle_workspace_list(&mut self, id: String) -> String {
         encode_success(

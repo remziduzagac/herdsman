@@ -4,6 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use super::common::AgentStatus;
 
+mod worktree_groups; // fork: worktree groups
+pub use worktree_groups::*; // fork: worktree groups
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct WorkspaceCreateParams {
     /// Workspace whose focused pane supplies the `follow` cwd policy.

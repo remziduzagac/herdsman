@@ -4,6 +4,10 @@ use ratatui::{
     widgets::{Paragraph, Widget},
 };
 
+// fork: worktree groups; `sidebar.rs` is itself a `#[path]` module of `render.rs`.
+#[path = "sidebar/worktree_groups.rs"]
+pub(in crate::client::shell) mod worktree_groups;
+
 fn workspace_selection_background(palette: &Palette) -> ratatui::style::Color {
     if palette.selection_bg == ratatui::style::Color::Reset {
         palette.active_row_bg
@@ -227,6 +231,7 @@ pub(crate) fn render_sidebar(
     );
 
     let entries = workspace_entries(snapshot, state.collapsed_groups);
+    let groups = worktree_groups::SidebarGroups::new(snapshot, state.collapsed_groups); // fork: worktree groups
     let body = Rect::new(
         workspace_area.x,
         workspace_area.y.saturating_add(WORKSPACE_HEADER_ROWS),
@@ -255,6 +260,10 @@ pub(crate) fn render_sidebar(
                 })
                 .unwrap_or(1)
         })
+        .collect::<Vec<_>>();
+    // fork: worktree groups
+    let row_heights = (entries.iter().zip(row_heights))
+        .map(|(entry, height)| height.saturating_add(groups.header_rows(entry.index)))
         .collect::<Vec<_>>();
     let gaps = entries
         .iter()
@@ -303,6 +312,20 @@ pub(crate) fn render_sidebar(
         let Some(workspace) = snapshot.workspaces.get(entry.index) else {
             continue;
         };
+        // fork: worktree groups
+        y = y.saturating_add(worktree_groups::render_headers(
+            Some(&groups),
+            worktree_groups::Placement::Before,
+            entry.index,
+            worktree_groups::HeaderCanvas {
+                buffer,
+                area: Rect::new(body.x, y, content_width, body.bottom().saturating_sub(y)),
+                endpoint_id: &ClientEndpointId::Local,
+                hits,
+                indicators: config.status_indicators,
+                palette,
+            },
+        ));
         let status = displayed_workspace_status(snapshot, workspace, state.collapsed_groups);
         let rows = workspace_rows(workspace, status, entry.indented, &config.spaces);
         let row_height = (rows.len().max(1).min(u16::MAX as usize) as u16).min(body.height);
@@ -323,7 +346,7 @@ pub(crate) fn render_sidebar(
         }
         render_workspace_rows(
             buffer,
-            rect,
+            worktree_groups::rows_rect(Some(&groups), entry.index, rect), // fork: worktree groups
             status,
             config.status_indicators,
             entry,
@@ -334,6 +357,7 @@ pub(crate) fn render_sidebar(
             dragged,
             palette,
         );
+        worktree_groups::render_rail(Some(&groups), buffer, entry.index, rect, palette); // fork: worktree groups
         let group_toggle = render_parent_group_toggle(
             buffer,
             rect,
@@ -349,6 +373,25 @@ pub(crate) fn render_sidebar(
             indented: entry.indented,
             group_toggle,
         });
+        // fork: worktree groups
+        y = y.saturating_add(worktree_groups::render_headers(
+            Some(&groups),
+            worktree_groups::Placement::After,
+            entry.index,
+            worktree_groups::HeaderCanvas {
+                buffer,
+                area: Rect::new(
+                    body.x,
+                    y.saturating_add(row_height),
+                    content_width,
+                    body.bottom().saturating_sub(y.saturating_add(row_height)),
+                ),
+                endpoint_id: &ClientEndpointId::Local,
+                hits,
+                indicators: config.status_indicators,
+                palette,
+            },
+        ));
         let gap = entries
             .get(entry_position + 1)
             .map_or(0, |next| u16::from(!next.indented) * config.spaces.row_gap);
@@ -550,7 +593,7 @@ pub(crate) fn workspace_entries(
             });
         }
     }
-    entries
+    worktree_groups::arrange(snapshot, entries, collapsed_groups) // fork: worktree groups
 }
 
 fn parent_group_key(snapshot: &ClientShellSnapshot, index: usize) -> Option<String> {

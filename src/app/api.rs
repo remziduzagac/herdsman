@@ -1045,6 +1045,10 @@ impl App {
             Method::WorkspaceReportMetadata(params) => {
                 return self.handle_workspace_report_metadata(request.id, params);
             }
+            // fork: worktree groups
+            Method::WorkspaceSetWorktreeGroup(params) => {
+                return self.handle_workspace_set_worktree_group(request.id, params);
+            }
             Method::WorkspaceClose(target) => {
                 return self.handle_workspace_close(request.id, target);
             }

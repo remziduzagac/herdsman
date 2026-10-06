@@ -158,6 +158,7 @@ herdsman workspace create [--cwd PATH] [--label TEXT] [--env KEY=VALUE] [--focus
 herdsman workspace get <workspace_id>
 herdsman workspace focus <workspace_id>
 herdsman workspace rename <workspace_id> <label>
+herdsman workspace group <workspace_id> <name>|--clear
 herdsman workspace report-metadata <workspace_id> --source ID [--token NAME=VALUE] [--clear-token NAME] [--seq N] [--ttl-ms N]
 herdsman workspace close <workspace_id> [--group]
 ```
@@ -180,6 +181,8 @@ herdsman worktree remove --workspace ID [--force] [--trust-repository]
 ```
 
 Worktrees are normal Herdsman workspaces with Git checkout provenance. `worktree create` creates a Git worktree checkout, opens it as a workspace, and groups it with the parent repo workspace. If `--branch` names an existing local branch, Herdsman checks it out; otherwise it creates the branch from `--base` or `HEAD`. Without `--path`, Herdsman creates the checkout under `<worktrees.directory>/<repo>/<branch-slug>`.
+
+`workspace group` puts a linked worktree's workspace into a named group within its repository, or takes it out with `--clear`. The sidebar nests each group under its repository; members report the name as their `worktree_group` token.
 
 `workspace close` closes only Herdsman state. Closing a primary workspace while linked-worktree workspaces are open requires `--group`; without it, the command leaves the group open and returns `workspace_group_close_required`. To delete the checkout, run `worktree remove`. It runs `git worktree remove`, never deletes the branch, and requires `--force` when Git refuses a dirty checkout.
 

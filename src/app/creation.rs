@@ -390,7 +390,7 @@ impl App {
                 crate::workspace::public_tab_id_for_number(&ws.id, ws.active_tab + 1)
             }),
             agent_status: pane_agent_status(agg_state, seen),
-            tokens: ws.metadata_tokens.values(),
+            tokens: self.state.fork.workspace_tokens(ws), // fork: worktree groups
             worktree: ws
                 .worktree_space()
                 .map(|space| crate::api::schema::WorkspaceWorktreeInfo {

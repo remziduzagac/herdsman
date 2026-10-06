@@ -108,6 +108,8 @@ Worktree actions are available from Git workspace rows. `New worktree` creates a
 
 Grouped worktrees still behave like normal Herdsman workspaces: they can be focused, renamed, closed, and contain their own tabs and panes. The parent row is the original workspace. Closing the parent row closes the whole Herdsman group, but it does not delete checkout folders or branches.
 
+Sort a repository's worktrees into named groups with `Worktree group...` on a worktree's row: type a name to put it in that group, or clear the name to take it out. Inside the repository's group, each named group gets a header row with its worktrees nested below it, groups first and ungrouped worktrees last. Click a header to collapse or expand the group; a collapsed group still shows a focused worktree, and its header shows the group's most urgent agent state. A worktree keeps its group when its workspace is closed and opened again. `herdsman workspace group` does the same from the CLI.
+
 To delete a worktree checkout, use `Delete worktree checkout...` on a grouped child workspace. Herdsman runs `git worktree remove`, first asking Git to remove safely. If Git refuses because the checkout has modified or untracked files, Herdsman asks again before running the forced remove. Branches are not deleted.
 
 ## Remote attach

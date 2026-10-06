@@ -492,7 +492,7 @@ impl App {
             pane_scrollbars: config.ui.pane_scrollbars,
             pane_gaps: config.ui.pane_gaps,
             show_agent_labels_on_pane_borders: config.ui.show_agent_labels_on_pane_borders,
-            fork: state::fork::ForkState::from_config(config), // fork: state
+            fork: state::fork::ForkState::new(config, &policy), // fork: state
             tab_bar_right: Vec::new(),
             tab_bar_right_separator: String::new(),
             reveal_hidden_cursor_for_cjk_ime: config.experimental.reveal_hidden_cursor_for_cjk_ime,

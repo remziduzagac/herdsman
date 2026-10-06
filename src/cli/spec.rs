@@ -51,6 +51,7 @@ pub(super) fn command() -> Command {
 }
 
 mod stack; // fork: stacks
+mod worktree_groups; // fork: worktree groups
 
 fn configure_help(command: Command, depth: usize) -> Command {
     let command = if depth == 0 {
@@ -212,6 +213,7 @@ fn workspace_command() -> Command {
                 .arg(required("workspace_id", "WORKSPACE_ID"))
                 .arg(required("label", "LABEL").num_args(1..)),
         )
+        .subcommand(worktree_groups::workspace_group_command()) // fork: worktree groups
         .subcommand(
             Command::new("report-metadata")
                 .about("Report display-only workspace metadata")

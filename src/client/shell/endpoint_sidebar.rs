@@ -292,6 +292,20 @@ pub(super) fn render_expanded(
             );
         }
     }
+    // fork: worktree groups
+    let groups = state
+        .endpoints
+        .iter()
+        .map(|endpoint| {
+            endpoint.snapshot.as_deref().map(|snapshot| {
+                super::sidebar::worktree_groups::SidebarGroups::new(
+                    snapshot,
+                    collapsed_groups_for_endpoint(state, &endpoint.endpoint_id)
+                        .unwrap_or(&empty_collapsed_groups),
+                )
+            })
+        })
+        .collect::<Vec<_>>();
     let body = Rect::new(
         workspace_area.x,
         workspace_area.y.saturating_add(WORKSPACE_HEADER_ROWS),
@@ -332,6 +346,17 @@ pub(super) fn render_expanded(
                     })
                     .unwrap_or(1)
             }
+        })
+        .collect::<Vec<_>>();
+    // fork: worktree groups
+    let row_heights = (rows.iter().zip(row_heights))
+        .map(|(row, height)| match row {
+            Row::Workspace { endpoint, entry } => height.saturating_add(
+                groups[*endpoint]
+                    .as_ref()
+                    .map_or(0, |groups| groups.header_rows(entry.index)),
+            ),
+            Row::Endpoint(_) => height,
         })
         .collect::<Vec<_>>();
     let gaps = rows
@@ -433,6 +458,7 @@ pub(super) fn render_expanded(
                     .saturating_add(gaps.get(row_index).copied().unwrap_or(0));
             }
             Row::Workspace { endpoint, entry } => {
+                let endpoint_groups = groups[*endpoint].as_ref(); // fork: worktree groups
                 let endpoint = &state.endpoints[*endpoint];
                 let Some(snapshot) = endpoint.snapshot.as_deref() else {
                     continue;
@@ -440,6 +466,25 @@ pub(super) fn render_expanded(
                 let Some(workspace) = snapshot.workspaces.get(entry.index) else {
                     continue;
                 };
+                // fork: worktree groups
+                y = y.saturating_add(super::sidebar::worktree_groups::render_headers(
+                    endpoint_groups,
+                    super::sidebar::worktree_groups::Placement::Before,
+                    entry.index,
+                    super::sidebar::worktree_groups::HeaderCanvas {
+                        buffer,
+                        area: Rect::new(
+                            body.x.saturating_add(2),
+                            y,
+                            content_width.saturating_sub(2),
+                            body.bottom().saturating_sub(y),
+                        ),
+                        endpoint_id: &endpoint.endpoint_id,
+                        hits,
+                        indicators: config.status_indicators,
+                        palette,
+                    },
+                ));
                 let collapsed_groups = collapsed_groups_for_endpoint(state, &endpoint.endpoint_id)
                     .unwrap_or(&empty_collapsed_groups);
                 let status = super::sidebar::displayed_workspace_status(
@@ -470,7 +515,11 @@ pub(super) fn render_expanded(
                 });
                 super::sidebar::render_workspace_rows(
                     buffer,
-                    nested,
+                    super::sidebar::worktree_groups::rows_rect(
+                        endpoint_groups,
+                        entry.index,
+                        nested,
+                    ), // fork: worktree groups
                     status,
                     config.status_indicators,
                     entry,
@@ -481,6 +530,13 @@ pub(super) fn render_expanded(
                     false,
                     palette,
                 );
+                super::sidebar::worktree_groups::render_rail(
+                    endpoint_groups,
+                    buffer,
+                    entry.index,
+                    nested,
+                    palette,
+                ); // fork: worktree groups
                 if endpoint.status != ClientEndpointStatus::Online {
                     buffer.set_style(
                         rect,
@@ -504,6 +560,25 @@ pub(super) fn render_expanded(
                     indented: entry.indented,
                     group_toggle,
                 });
+                // fork: worktree groups
+                y = y.saturating_add(super::sidebar::worktree_groups::render_headers(
+                    endpoint_groups,
+                    super::sidebar::worktree_groups::Placement::After,
+                    entry.index,
+                    super::sidebar::worktree_groups::HeaderCanvas {
+                        buffer,
+                        area: Rect::new(
+                            body.x.saturating_add(2),
+                            y.saturating_add(height),
+                            content_width.saturating_sub(2),
+                            body.bottom().saturating_sub(y.saturating_add(height)),
+                        ),
+                        endpoint_id: &endpoint.endpoint_id,
+                        hits,
+                        indicators: config.status_indicators,
+                        palette,
+                    },
+                ));
                 y = y
                     .saturating_add(height)
                     .saturating_add(gaps.get(row_index).copied().unwrap_or(0));

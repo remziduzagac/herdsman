@@ -4743,6 +4743,24 @@
           ],
           "type": "object"
         },
+        "WorkspaceSetWorktreeGroupParams": {
+          "description": "Put a linked worktree's workspace into a named group within its\nrepository, or take it out when `group` is absent or empty. A group exists\nwhile it has members; each member carries its name as the\n`worktree_group` token.",
+          "properties": {
+            "group": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "workspace_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_id"
+          ],
+          "type": "object"
+        },
         "WorkspaceTarget": {
           "properties": {
             "workspace_id": {
@@ -5272,6 +5290,22 @@
             },
             "params": {
               "$ref": "#/schemas/request/$defs/WorkspaceReportMetadataParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "workspace.set_worktree_group",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/WorkspaceSetWorktreeGroupParams"
             }
           },
           "required": [

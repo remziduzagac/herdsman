@@ -54,6 +54,7 @@ const CLIENT_SHELL_METHODS: &[&str] = &[
     "workspace.move",
     "workspace.move_block",
     "workspace.rename",
+    "workspace.set_worktree_group", // fork: worktree groups
     "worktree.create",
     "worktree.list",
     "worktree.open",
@@ -188,7 +189,7 @@ pub(crate) fn spawn_response_waiter(
 }
 
 #[cfg(test)]
-mod stack; // fork: stacks
+mod fork_methods; // fork: stacks, worktree groups
 
 #[cfg(test)]
 mod tests {
@@ -305,7 +306,7 @@ mod tests {
             actual.remove("pane.link.resolve").as_deref(),
             Some("f5e4a3e01453ae7b188f127ce951c12c20e0bebcc17cc364eeb6d1a01fd5bf81")
         );
-        stack::remove_pinned_stack_methods(&mut actual); // fork: stacks
+        fork_methods::remove_pinned(&mut actual); // fork: stacks, worktree groups
 
         assert_eq!(
             actual, expected,

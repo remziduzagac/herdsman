@@ -26,6 +26,7 @@ impl ClientContextMenuOverlay {
                 item("Rename", Action::Rename),
                 item("Close", Action::Close),
                 item("Delete worktree checkout...", Action::RemoveWorktree),
+                item("Worktree group...", Action::WorktreeGroup), // fork: worktree groups
             ],
             ClientContextMenuTarget::Workspace {
                 has_worktree_children: true,
@@ -260,6 +261,7 @@ impl ClientShellState {
             ClientContextMenuAction::RemoveWorktree => {
                 self.begin_worktree_action_for(KeybindAction::RemoveWorktree, workspace_id, outcome)
             }
+            ClientContextMenuAction::WorktreeGroup => self.open_worktree_group_prompt(workspace_id), // fork: worktree groups
             ClientContextMenuAction::ToggleGroup => {
                 let key = self.snapshot.as_deref().and_then(|snapshot| {
                     snapshot

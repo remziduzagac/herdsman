@@ -1,15 +1,15 @@
-//! The stack methods' shapes, pinned apart from the frozen generation-1
-//! fixture.
+//! The shapes of herdsman's own client-shell methods, pinned apart from the
+//! frozen generation-1 fixture.
 //!
 //! herdsman's own module. `client_commands.rs` reaches it through hooks marked
-//! `// fork: stacks`.
+//! `// fork: stacks, worktree groups`.
 
 use std::collections::BTreeMap;
 
-/// Check and drop the stack methods from the advertised shapes, leaving the
-/// rest for the generation-1 fixture. A failure here means a stack method, or
-/// a parameter type it shares, changed shape.
-pub(super) fn remove_pinned_stack_methods(actual: &mut BTreeMap<String, String>) {
+/// Check and drop herdsman's methods from the advertised shapes, leaving the
+/// rest for the generation-1 fixture. A failure here means one of them, or a
+/// parameter type it shares, changed shape.
+pub(super) fn remove_pinned(actual: &mut BTreeMap<String, String>) {
     assert_eq!(
         actual.remove("pane.stack").as_deref(),
         Some("ea12f3ce7056d68bf76e3dc99ad7d9a3d7385616743ba46ac082270c9d2d40f3")
@@ -29,5 +29,9 @@ pub(super) fn remove_pinned_stack_methods(actual: &mut BTreeMap<String, String>)
     assert_eq!(
         actual.remove("pane.stacks").as_deref(),
         Some("c6d7c7e43e70e2f17108eff0bc5ee132c729b580b4cb9b266232243b1864b798")
+    );
+    assert_eq!(
+        actual.remove("workspace.set_worktree_group").as_deref(),
+        Some("321caf6a2508a073b2ad79f557b6f819d5bce7bd0e9618de913504a7531de73a")
     );
 }

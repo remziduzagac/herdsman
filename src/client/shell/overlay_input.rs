@@ -952,6 +952,10 @@ impl ClientShellState {
                     },
                 )
             }),
+            // fork: worktree groups
+            ClientRenameTarget::WorktreeGroup { workspace_id } => Some(
+                super::sidebar::worktree_groups::set_group_method(workspace_id, trimmed),
+            ),
             ClientRenameTarget::NewTab {
                 workspace_id,
                 default_name,
