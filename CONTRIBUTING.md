@@ -4,8 +4,11 @@ herdsman has a single maintainer, so this page is about making your effort count
 
 ## Issues
 
-Bug reports and ideas are welcome as GitHub issues. For a bug, include `herdsman --version`, your
-operating system and terminal, and the shortest steps that reproduce it.
+Bug reports and ideas are welcome as GitHub issues; the issue forms ask for what is needed. For a
+bug, that is `herdsman --version`, how you installed it, your operating system and terminal, and
+the shortest steps that reproduce it.
+
+Report security problems privately, as [SECURITY.md](SECURITY.md) explains, never in an issue.
 
 herdsman is built on [herdr](https://github.com/herdrdev/herdr) and takes in its releases. If a bug
 also happens in herdr, report it there too: a fix in herdr reaches herdsman with the next merge.
@@ -40,6 +43,10 @@ Use lowercase [conventional commit](https://www.conventionalcommits.org) subject
 ## Coding agents
 
 Agents working on the code read [AGENTS.md](AGENTS.md); `CLAUDE.md` links to it.
+
+## Conduct
+
+Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Licence
 

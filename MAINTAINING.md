@@ -393,6 +393,24 @@ missing page, heading or a path outside the site. A new page needs an entry in t
 `astro.config.mjs`. Everything in `docs/next/website` except `src/content/docs` and `src/data` is
 herdsman's own; herdr keeps its website in a separate, private repository.
 
+## Repository settings
+
+- **Rulesets.** "Long-lived branches" stops `main`, `dev` and `test` from being deleted or
+  force-pushed, for everyone; the release flow only fast-forwards them. "Release tags" lets only
+  repository admins create, move or delete `v*` tags, so nothing else can start a release. To get
+  past either in an emergency, disable it under Settings → Rules, then turn it back on.
+- **Dependabot** opens one grouped pull request a month each for Cargo, GitHub Actions and the docs
+  site's npm packages, into `dev`; review and merge them like any other. The Cargo and Actions
+  ones touch files herdr also updates: when a merge conflicts in `Cargo.lock` or in a herdr
+  workflow, take herdr's side and run `cargo check` to settle `Cargo.lock`. Dependabot alerts
+  are on; their security fixes arrive through these monthly updates or the next herdr merge.
+- **Security reports** arrive through private vulnerability reporting, as `SECURITY.md` describes.
+  Fix them in a private advisory fork or on a branch, ship the fix, then publish the advisory.
+- **Test retries.** `.config/nextest.toml` retries a failing integration test in `tests/` once;
+  nextest reports a test that passed on retry as FLAKY. Unit tests are never retried.
+- **Community files**: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1),
+  `SECURITY.md`, the issue forms and pull request template in `.github/`, and `CODEOWNERS`.
+
 ## Where herdsman lives
 
 `upstream/rename` sets the repository, `remziduzagac/herdsman`, and the site,

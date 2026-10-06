@@ -1,0 +1,9 @@
+# herdsman's own nextest settings.
+
+[[profile.default.overrides]]
+# The integration tests in tests/ start real servers and clients and depend on
+# timing, which busy CI machines occasionally miss. A failure is retried once;
+# nextest still reports a test that passed on retry as FLAKY. Unit tests are
+# never retried.
+filter = "kind(test)"
+retries = 1

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://remziduzagac.github.io/herdsman/docs/
+    about: Install, configuration, keys, agents, the CLI and the socket API.
+  - name: Security vulnerability
+    url: https://github.com/remziduzagac/herdsman/security/advisories/new
+    about: Report security problems privately, never in a public issue.

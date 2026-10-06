@@ -1,0 +1,49 @@
+name: Bug report
+description: Something in herdsman does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Keep it short: what happens, what should happen, and the shortest
+        steps that show it. Security problems go through the private report form instead.
+  - type: textarea
+    id: current
+    attributes:
+      label: What happens
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The shortest exact steps or commands that show the problem.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      value: |
+        - herdsman version (`herdsman --version`):
+        - Update channel (stable or preview):
+        - Installed with (install script, Homebrew, mise, Nix, apt, dnf, pacman, manual):
+        - Operating system:
+        - Terminal:
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Optional. The smallest relevant excerpt of the server log, or a screenshot.

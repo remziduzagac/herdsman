@@ -1,4 +1,4 @@
-//! herdsman's own state on `AppState`, kept in one field so herdr's struct
+//! herdsman's own state on `AppState`, kept in one field so the base project's struct
 //! gains a single line. `state.rs` and `app/mod.rs` reach it through hooks
 //! marked `// fork: state`.
 

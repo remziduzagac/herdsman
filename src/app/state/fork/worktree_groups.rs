@@ -2,7 +2,7 @@
 //! its group when its workspace closes and opens again.
 //!
 //! herdsman's own module. The groups are saved beside the session, in
-//! `worktree-groups.json`, so herdr's session format stays untouched.
+//! `worktree-groups.json`, so the base project's session format stays untouched.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
