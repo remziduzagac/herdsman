@@ -13,6 +13,7 @@ What herdsman changes:
 
 - **It is a separate app.** Every name from herdr is replaced: the `herdsman` binary, its own config and state directories, its socket, its `HERDSMAN_*` environment variables and its agent hooks. herdsman and herdr run side by side on the same machine without sharing anything.
 - **[Stacked panes](/docs/stacks/).** One layout slot holds several panes and shows one at a time, while the hidden ones keep running.
+- **[Worktree groups](/docs/configuration/#worktrees).** A repository's worktrees can be sorted into named groups, each under its own collapsible header in the sidebar.
 - **Its own releases and packages.** Versions, the install script, the Homebrew tap, the apt, dnf and pacman repositories and the preview channel are herdsman's, independent of herdr's.
 
 herdsman is not affiliated with or endorsed by the herdr project. Problems that also happen in herdr are best reported to herdr: a fix there reaches herdsman with the next merge.

@@ -35,6 +35,9 @@ Signed apt, dnf and pacman repositories, Windows, Nix and manual downloads are c
 - **Stacked panes.** `prefix+alt+c` puts a new pane behind the current one, and a strip along
   the slot switches between them. [The stacks page](https://remziduzagac.github.io/herdsman/docs/stacks/) has the keys, CLI and
   behaviour.
+- **Worktree groups.** A repository's worktrees can be sorted into named groups, each under its
+  own collapsible header in the sidebar, from a worktree's right-click menu or
+  `herdsman workspace group`.
 
 ## Building
 

@@ -103,7 +103,7 @@ Raw socket method names use dot notation:
 | Workspace | `workspace.create`, `workspace.list`, `workspace.get`, `workspace.focus`, `workspace.rename`, `workspace.move`, `workspace.move_block`, `workspace.report_metadata`, `workspace.set_worktree_group`, `workspace.close` |
 | Worktree | `worktree.list`, `worktree.create`, `worktree.open`, `worktree.remove` |
 | Tab | `tab.create`, `tab.list`, `tab.get`, `tab.focus`, `tab.rename`, `tab.move`, `tab.close` |
-| Pane | `pane.split`, `pane.swap`, `pane.move`, `pane.zoom`, `pane.layout`, `pane.process_info`, `pane.neighbor`, `pane.edges`, `pane.focus_direction`, `pane.resize`, `pane.list`, `pane.current`, `pane.get`, `pane.rename`, `pane.send_text`, `pane.send_keys`, `pane.send_input`, `pane.read`, `pane.report_agent`, `pane.report_agent_session`, `pane.report_metadata`, `pane.clear_agent_authority`, `pane.release_agent`, `pane.close`, `pane.wait_for_output` |
+| Pane | `pane.split`, `pane.stack`, `pane.stacks`, `pane.focus_stacked`, `pane.focus_stacked_at`, `pane.focus_stack_strip`, `pane.swap`, `pane.move`, `pane.zoom`, `pane.layout`, `pane.process_info`, `pane.neighbor`, `pane.edges`, `pane.focus_direction`, `pane.resize`, `pane.list`, `pane.current`, `pane.get`, `pane.rename`, `pane.send_text`, `pane.send_keys`, `pane.send_input`, `pane.read`, `pane.report_agent`, `pane.report_agent_session`, `pane.report_metadata`, `pane.clear_agent_authority`, `pane.release_agent`, `pane.close`, `pane.wait_for_output` |
 | Popup | `popup.close` |
 | Layout | `layout.export`, `layout.apply`, `layout.set_split_ratio` |
 | Agent | `agent.list`, `agent.get`, `agent.read`, `agent.explain`, `agent.send_keys`, `agent.prompt`, `agent.wait`, `agent.rename`, `agent.focus`, `agent.start`, `agent.view.set`, `agent.view.clear` |
@@ -205,7 +205,10 @@ export the tab containing that pane.
 The response includes `workspace_id`, `tab_id`, `zoomed`, `focused_pane_id`, and
 `root`. `root` is a BSP tree of `pane` and `split` nodes. Pane nodes can include
 `pane_id`, `label`, `cwd`, and argv `command`. Split nodes use
-`direction` (`right` or `down`), `ratio`, `first`, and `second`.
+`direction` (`right` or `down`), `ratio`, `first`, and `second`. A `stack` node
+holds several panes in one slot: `panes` lists them in strip order, as pane
+fields without `type`, and `active` is the index of the visible one.
+`layout.apply` builds stacks from the same node.
 
 `layout.apply` creates a fresh tab from a declarative tree. If `tab_id` is
 provided, Herdsman creates the replacement tab first and then closes the old tab.
@@ -275,7 +278,11 @@ workspace:
 {"id":"req_move_tab","method":"pane.move","params":{"pane_id":"w1:p2","destination":{"type":"tab","tab_id":"w1:t2","target_pane_id":"w1:p3","split":"right","ratio":0.5},"focus":true}}
 {"id":"req_move_new_tab","method":"pane.move","params":{"pane_id":"w1:p2","destination":{"type":"new_tab","workspace_id":"w1","label":"logs"},"focus":true}}
 {"id":"req_move_new_workspace","method":"pane.move","params":{"pane_id":"w1:p2","destination":{"type":"new_workspace","label":"logs","tab_label":"main"},"focus":true}}
+{"id":"req_move_stack","method":"pane.move","params":{"pane_id":"w1:p2","destination":{"type":"stack","target_pane_id":"w1:p3"},"focus":false}}
 ```
+
+A `stack` destination adds the pane to the stack in `target_pane_id`'s slot,
+from any tab or workspace; see [Stacked panes](#stacked-panes).
 
 Existing-tab moves require `split: "right" | "down"`. `target_pane_id` is
 optional and defaults to the target tab's focused pane. Same-tab layout changes
@@ -364,6 +371,39 @@ Use at most one of `workspace_id` or `cwd` for `worktree.list`, `worktree.create
 Worktree commands also emit lifecycle events. `worktree.create` emits `workspace.created`, `tab.created`, `pane.created`, and `worktree.created`. `worktree.open` emits `worktree.opened`, and it also emits workspace/tab/pane creation events when it opens a new Herdsman workspace. `worktree.remove` emits `worktree.removed`; if the linked workspace is still open, it also emits `workspace.closed`.
 
 `workspace.close` rejects closing a primary workspace while linked-worktree workspaces are open unless its params include `"close_group": true`, returning `workspace_group_close_required` when explicit group intent is missing. An explicit group close emits one `workspace.closed` event for each workspace it closes.
+
+### Stacked panes
+
+A [stack](/docs/stacks/) is a layout slot holding several panes, one visible at a time.
+
+```json
+{"id":"req_stack","method":"pane.stack","params":{"target_pane_id":"w1:p1","cwd":"/repo","focus":false}}
+{"id":"req_stacks","method":"pane.stacks","params":{"workspace_id":"w1"}}
+{"id":"req_member","method":"pane.focus_stacked","params":{"pane_id":"w1:p1","index":1}}
+{"id":"req_next","method":"pane.focus_stacked","params":{"step":1}}
+```
+
+- `pane.stack` opens a new pane in the slot of `target_pane_id`, else of the
+  focused pane in `workspace_id` or the active workspace, and takes `cwd`, `env`,
+  `focus` and `right_click` like `pane.split`. Without `focus` the new member starts hidden. The response is the
+  new pane as `type: "pane_info"`.
+- `pane.stacks` lists the stacks of `workspace_id`, or of every workspace, as
+  `type: "pane_stacks"` with `stacks[]`, each holding `workspace_id`, `tab_id`,
+  `pane_ids` in strip order and `visible_pane_id`.
+- `pane.focus_stacked` shows and focuses a member of the stack holding `pane_id`,
+  or the focused pane's: pass exactly one of `index`, counting from 0, or `step`,
+  the number of places from the visible member, wrapping. It answers with the
+  focused pane; a pane outside a stack or an index past the last member changes
+  nothing.
+- `pane.focus_stack_strip` resolves a click on a stack strip: `column` cells from
+  the left edge of `pane_id`'s content, in a strip `width` cells wide, `offset`
+  rows `top` or `bottom` (`edge`) of the content, 1 being the row next to it. It
+  focuses the member drawn there, and `pane_id` itself for any other point.
+  `pane.focus_stacked_at` is the older form without `offset`, meaning the row next
+  to the content.
+
+Focusing a hidden member by any method, `pane.focus` included, shows it.
+`pane.list` includes hidden members; `pane.layout` lists only visible panes.
 
 ## Agent view queries
 
