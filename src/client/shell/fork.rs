@@ -1,4 +1,4 @@
-//! herdsman's own client-shell state, kept in single fields of herdr's types.
+//! herdsman's own client-shell state, kept in single fields of the base project's types.
 //!
 //! herdsman's own module. `shell.rs` and `state.rs` reach it through hooks
 //! marked `// fork: worktree groups`.

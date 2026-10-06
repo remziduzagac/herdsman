@@ -105,6 +105,7 @@ DROP = [
 # herdsman's own once DROP has removed herdr's; the docs' about page is
 # herdsman's own outright.
 KEEP = [
+    ".agents/skills/fork-code",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "LICENSE",
@@ -113,6 +114,7 @@ KEEP = [
     "README.md",
     "distribution/latest.json",
     "docs/next/website/src/content/docs/about.mdx",
+    "scripts/release",
     "upstream",
 ]
 
