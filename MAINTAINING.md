@@ -407,11 +407,12 @@ herdsman's own; herdr keeps its website in a separate, private repository.
   force-pushed, for everyone; the release flow only fast-forwards them. "Release tags" lets only
   repository admins create, move or delete `v*` tags, so nothing else can start a release. To get
   past either in an emergency, disable it under Settings → Rules, then turn it back on.
-- **Dependabot** opens one grouped pull request a month each for Cargo, GitHub Actions and the docs
-  site's npm packages, into `dev`; review and merge them like any other. The Cargo and Actions
-  ones touch files herdr also updates: when a merge conflicts in `Cargo.lock` or in a herdr
-  workflow, take herdr's side and run `cargo check` to settle `Cargo.lock`. Dependabot alerts
-  are on; their security fixes arrive through these monthly updates or the next herdr merge.
+- **Dependabot** opens one grouped pull request a month each for GitHub Actions and the docs
+  site's npm packages, into `dev`; review and merge them like any other. Rust dependencies are not
+  in it: they arrive with each merged herdr release, so `Cargo.lock` stays herdr's and herdr's
+  choices hold, such as holding back an update that breaks rendering. Dependabot alerts still
+  report Rust advisories; a fix that cannot wait for herdr is a hand edit. The Actions updates
+  touch herdr's workflows too: when a merge conflicts in one, take herdr's side.
 - **Security reports** arrive through private vulnerability reporting, as `SECURITY.md` describes.
   Fix them in a private advisory fork or on a branch, ship the fix, then publish the advisory.
 - **Test retries.** `.config/nextest.toml` retries a failing integration test in `tests/` once;

@@ -1,19 +1,9 @@
 # Dependency updates, as monthly grouped pull requests into dev. Security
-# alerts are on in the repository settings. MAINTAINING.md explains how these
-# updates meet the dependencies that arrive with each merged base release.
+# alerts are on in the repository settings. Rust dependencies are left out on
+# purpose: they arrive with each merged base release, as MAINTAINING.md
+# explains.
 version: 2
 updates:
-  - package-ecosystem: cargo
-    directory: /
-    target-branch: dev
-    schedule:
-      interval: monthly
-    open-pull-requests-limit: 1
-    groups:
-      cargo-dependencies:
-        patterns:
-          - "*"
-
   - package-ecosystem: github-actions
     directory: /
     target-branch: dev
