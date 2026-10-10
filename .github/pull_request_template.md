@@ -12,4 +12,4 @@
 - [ ] `just lint` and `just test` pass.
 - [ ] User-facing changes update the docs and add a `CHANGELOG.md` entry under Unreleased.
 - [ ] Changes to code that comes from the base project are small hooks marked `// fork:`
-      (see the `fork-code` skill in `.agents/skills/`).
+      (see the `herdsman-maintain` skill in `.agents/skills/`).

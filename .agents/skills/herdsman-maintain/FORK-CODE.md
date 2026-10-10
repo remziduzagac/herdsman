@@ -1,25 +1,13 @@
----
-name: fork-code
-description: Write herdsman's own features so they stay cheap to merge with herdr. Use whenever you add or change herdsman-specific behaviour in this repository, especially in files that come from herdr (anything that exists on the herdr-import branch), and when moving existing herdsman code out of herdr files.
----
-
 # Fork code: hooks in herdr files, logic in ours
 
-herdsman takes in every herdr release with `git merge` (see `MAINTAINING.md`). Each line herdsman
-changes in a herdr file is a line that can conflict at the next merge, or break silently when herdr
-rewrites the code around it. So herdsman code follows one rule:
+Assumes [SKILL.md](SKILL.md): how to tell a herdr file from a herdsman file.
+
+Each line herdsman changes in a herdr file is a line that can conflict at the next merge, or break
+silently when herdr rewrites the code around it. So herdsman code follows one rule:
 
 **herdr files get hooks, herdsman files get logic.** A hook is the smallest edit that lets herdr's
 code reach ours: a `mod` line, an enum variant, a one-line match arm, a single struct field, a call
 site. Everything else, including tests, lives in files herdr does not have.
-
-## Whose file is it?
-
-A file is herdr's when it exists on the import branch, renamed:
-
-```bash
-git cat-file -e herdr-import:src/layout.rs && echo herdr || echo herdsman
-```
 
 ## Where herdsman code goes
 
@@ -153,3 +141,6 @@ whole block.
 2. Update the feature's row in `MAINTAINING.md`, "herdsman's edits to herdr files", with any herdr
    file that gained a hook.
 3. Run the checks in `AGENTS.md`, "Testing".
+
+Done when every hunk in a herdr file is a marked hook or has its reason in `MAINTAINING.md`, and
+`just check` passes.

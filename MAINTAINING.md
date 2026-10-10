@@ -68,7 +68,8 @@ release. A changed licence for vendored code also means updating `NOTICE` and th
 
 ## Taking a herdr release
 
-Commands without a `cd` run in the main checkout, on `dev`.
+Commands without a `cd` run in the main checkout, on `dev`. Agents follow the `herdsman-maintain`
+skill, whose `MERGE-HERDR.md` walks these steps.
 
 ### 1. See what changed
 
@@ -202,11 +203,12 @@ and merge instead.
 
 ## herdsman's edits to herdr files
 
-herdsman's features keep their logic in herdsman's own files and touch herdr files only through small
-hooks marked `// fork: <feature>` (`# fork:` in Python); the `fork-code` skill in `.agents/skills/`
-describes how. `rg '(//|#) fork:'` lists every hook, and `git diff --diff-filter=A --name-only
-herdr-import -- src` every herdsman file. herdsman's own state on `AppState` lives in its one field,
-`fork` (`src/app/state/fork.rs`). When a merge conflicts in one of these files, keep herdsman's side.
+herdsman's features keep their logic in herdsman's own files and touch herdr files only through
+small hooks marked `// fork: <feature>` (`# fork:` in Python); the `herdsman-maintain` skill in
+`.agents/skills/` describes how. `rg '(//|#) fork:'` lists every hook, and `git diff --diff-filter=A
+--name-only herdr-import -- src` every herdsman file. herdsman's own state on `AppState` lives in
+its one field, `fork` (`src/app/state/fork.rs`). When a merge conflicts in one of these files, keep
+herdsman's side.
 
 | File | herdsman's change |
 | --- | --- |
