@@ -409,6 +409,9 @@ pub struct Keybinds {
     pub resize_pane_down: ActionKeybinds,
     pub resize_pane_up: ActionKeybinds,
     pub resize_pane_right: ActionKeybinds,
+    // fork: equalize
+    pub equalize_widths: ActionKeybinds,
+    pub equalize_heights: ActionKeybinds,
     pub toggle_sidebar: ActionKeybinds,
     pub custom_commands: Vec<CustomCommandKeybind>,
 }
@@ -599,6 +602,9 @@ impl Config {
             resize_pane_down: empty_action!(),
             resize_pane_up: empty_action!(),
             resize_pane_right: empty_action!(),
+            // fork: equalize
+            equalize_widths: empty_action!(),
+            equalize_heights: empty_action!(),
             toggle_sidebar: empty_action!(),
             custom_commands: Vec::new(),
         };
@@ -754,6 +760,9 @@ impl Config {
             apply_action!(keybinds.resize_pane_down, resize_pane_down, source);
             apply_action!(keybinds.resize_pane_up, resize_pane_up, source);
             apply_action!(keybinds.resize_pane_right, resize_pane_right, source);
+            // fork: equalize
+            apply_action!(keybinds.equalize_widths, equalize_widths, source);
+            apply_action!(keybinds.equalize_heights, equalize_heights, source);
             apply_action!(keybinds.toggle_sidebar, toggle_sidebar, source);
 
             if source == field_source!(indexed) {

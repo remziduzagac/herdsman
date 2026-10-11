@@ -1,5 +1,6 @@
 use super::*;
 
+mod equalize; // fork: equalize
 mod stack; // fork: stacks
 
 impl ClientShellState {
@@ -1117,6 +1118,10 @@ impl ClientShellState {
             KeybindAction::EditScrollback => Some(Method::PaneEditScrollback(PaneTarget {
                 pane_id: focused_pane?,
             })),
+            // fork: equalize
+            KeybindAction::EqualizeWidths | KeybindAction::EqualizeHeights => {
+                equalize::keybind_method(action, focused_tab)
+            }
             KeybindAction::ResizePaneLeft
             | KeybindAction::ResizePaneDown
             | KeybindAction::ResizePaneUp

@@ -65,6 +65,9 @@ pub(crate) enum KeybindAction {
     ResizePaneDown,
     ResizePaneUp,
     ResizePaneRight,
+    // fork: equalize
+    EqualizeWidths,
+    EqualizeHeights,
     ToggleSidebar,
     CyclePaneNext,
     CyclePanePrevious,
@@ -156,6 +159,9 @@ pub(crate) fn resolve_non_indexed_action(
         (&keybinds.resize_pane_down, KeybindAction::ResizePaneDown),
         (&keybinds.resize_pane_up, KeybindAction::ResizePaneUp),
         (&keybinds.resize_pane_right, KeybindAction::ResizePaneRight),
+        // fork: equalize
+        (&keybinds.equalize_widths, KeybindAction::EqualizeWidths),
+        (&keybinds.equalize_heights, KeybindAction::EqualizeHeights),
         (&keybinds.toggle_sidebar, KeybindAction::ToggleSidebar),
         (&keybinds.reload_config, KeybindAction::ReloadConfig),
         (

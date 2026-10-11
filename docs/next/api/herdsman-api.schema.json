@@ -2228,6 +2228,44 @@
           ],
           "type": "object"
         },
+        "LayoutDimension": {
+          "oneOf": [
+            {
+              "const": "width",
+              "description": "Every column the same width; heights keep their ratios.",
+              "type": "string"
+            },
+            {
+              "const": "height",
+              "description": "Every row the same height; widths keep their ratios.",
+              "type": "string"
+            }
+          ]
+        },
+        "LayoutEqualizeParams": {
+          "description": "Give a tab's panes equal widths or equal heights. `tab_id` or `pane_id`\npicks the tab; without either, the active tab.",
+          "properties": {
+            "dimension": {
+              "$ref": "#/schemas/request/$defs/LayoutDimension"
+            },
+            "pane_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tab_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "dimension"
+          ],
+          "type": "object"
+        },
         "LayoutExportParams": {
           "properties": {
             "pane_id": {
@@ -5914,6 +5952,22 @@
             },
             "params": {
               "$ref": "#/schemas/request/$defs/LayoutSetSplitRatioParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "layout.equalize",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/LayoutEqualizeParams"
             }
           },
           "required": [
@@ -10164,6 +10218,22 @@
                 },
                 "type": {
                   "const": "layout_split_ratio_set",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "layout"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "layout": {
+                  "$ref": "#/schemas/success_response/$defs/LayoutDescription"
+                },
+                "type": {
+                  "const": "layout_equalized",
                   "type": "string"
                 }
               },

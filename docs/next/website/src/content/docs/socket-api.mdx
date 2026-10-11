@@ -106,6 +106,7 @@ Raw socket method names use dot notation:
 | Pane | `pane.split`, `pane.stack`, `pane.stacks`, `pane.focus_stacked`, `pane.focus_stacked_at`, `pane.focus_stack_strip`, `pane.swap`, `pane.move`, `pane.zoom`, `pane.layout`, `pane.process_info`, `pane.neighbor`, `pane.edges`, `pane.focus_direction`, `pane.resize`, `pane.list`, `pane.current`, `pane.get`, `pane.rename`, `pane.send_text`, `pane.send_keys`, `pane.send_input`, `pane.read`, `pane.report_agent`, `pane.report_agent_session`, `pane.report_metadata`, `pane.clear_agent_authority`, `pane.release_agent`, `pane.close`, `pane.wait_for_output` |
 | Popup | `popup.close` |
 | Layout | `layout.export`, `layout.apply`, `layout.set_split_ratio` |
+| Equal pane sizes | `layout.equalize` |
 | Agent | `agent.list`, `agent.get`, `agent.read`, `agent.explain`, `agent.send_keys`, `agent.prompt`, `agent.wait`, `agent.rename`, `agent.focus`, `agent.start`, `agent.view.set`, `agent.view.clear` |
 | Events | `events.subscribe`, `events.wait` |
 | Integrations | `integration.install`, `integration.uninstall` |
@@ -249,6 +250,17 @@ is `type: "layout_split_ratio_set"` with the updated portable `layout`.
 
 ```json
 {"id":"req_ratio","method":"layout.set_split_ratio","params":{"tab_id":"w1:t1","path":[],"ratio":0.6}}
+```
+
+`layout.equalize` gives every column in a tab the same width (`"dimension": "width"`)
+or every row the same height (`"dimension": "height"`), leaving the other dimension
+alone. A pane above or below split columns spans them, so the narrowest columns
+end up equal; a stack counts as one pane. Pick the tab with `tab_id` or `pane_id`,
+or omit both for the active tab. The response is `type: "layout_equalized"` with
+the updated portable `layout`.
+
+```json
+{"id":"req_equal","method":"layout.equalize","params":{"tab_id":"w1:t1","dimension":"width"}}
 ```
 
 Process-launching methods accept an `env` object. Herdsman applies those key/value

@@ -196,10 +196,13 @@ herdsman tab create [--workspace <workspace_id>] [--cwd PATH] [--label TEXT] [--
 herdsman tab get <tab_id>
 herdsman tab focus <tab_id>
 herdsman tab rename <tab_id> <label>
+herdsman tab equalize width|height [<tab_id>|--current]
 herdsman tab close <tab_id>
 ```
 
 A tab is another terminal layout inside a workspace. Without `--workspace`, `tab create` uses the active workspace and fails if none exists. Its JSON response exposes `.result.tab.tab_id` and `.result.root_pane.pane_id`. Closing a workspace's last tab also closes the workspace, matching the TUI close-tab action. If `confirm_close` is enabled and closing the tab would also close a whole worktree group, `tab close` returns a `confirmation_required` error instead.
+
+`tab equalize width` gives every column in the tab the same width and leaves heights alone; `tab equalize height` does the same for rows. Without a tab ID it acts on the active tab, and `--current` picks the caller's own tab. A pane above or below split columns spans them, so the narrowest columns end up equal.
 
 With `ui.confirm_close` enabled, the TUI asks for confirmation before closing a workspace's last tab from a keybinding or the tab menu. Ordinary CLI/API tab closes remain immediate.
 

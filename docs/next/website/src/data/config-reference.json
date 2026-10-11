@@ -860,6 +860,18 @@
           "description": "Resize the focused pane toward the right. Unset by default."
         },
         {
+          "key": "keys.equalize_widths",
+          "type": "keybinding",
+          "default": "\"prefix+|\"",
+          "description": "Give every column in the focused tab the same width. Heights stay as they are."
+        },
+        {
+          "key": "keys.equalize_heights",
+          "type": "keybinding",
+          "default": "\"prefix+_\"",
+          "description": "Give every row in the focused tab the same height. Widths stay as they are."
+        },
+        {
           "key": "keys.toggle_sidebar",
           "type": "keybinding",
           "default": "\"prefix+b\"",

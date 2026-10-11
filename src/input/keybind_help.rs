@@ -186,6 +186,12 @@ pub(crate) fn keybind_help_groups(
                     binding_label(&keybinds.resize_pane_right),
                     "resize pane right",
                 ),
+                // fork: equalize
+                entry(binding_label(&keybinds.equalize_widths), "equalize widths"),
+                entry(
+                    binding_label(&keybinds.equalize_heights),
+                    "equalize heights",
+                ),
                 entry(binding_label(&keybinds.toggle_sidebar), "toggle sidebar"),
                 entry(binding_label(&keybinds.focus_pane_left), "focus pane left"),
                 entry(binding_label(&keybinds.focus_pane_down), "focus pane down"),

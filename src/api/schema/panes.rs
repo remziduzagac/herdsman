@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 use super::agents::AgentSessionInfo;
 use super::common::{AgentStatus, PaneAgentState, ReadFormat, ReadSource, SplitDirection};
 
+mod equalize; // fork: equalize
+pub use equalize::*; // fork: equalize
 mod stack; // fork: stacks
 pub use stack::*; // fork: stacks
 

@@ -259,6 +259,18 @@ herdsman workspace group <workspace_id> --clear
 Only a linked worktree's workspace can join a group. Members carry the name as the `worktree_group`
 token in `workspace list`, and keep it when their workspace closes and opens again.
 
+## Even out pane sizes
+
+Give every column in the caller's tab the same width, or every row the same height:
+
+```bash
+herdsman tab equalize width --current
+herdsman tab equalize height --current
+```
+
+Each leaves the other dimension alone. A pane above or below split columns spans them, so the
+narrowest columns end up equal. The user's keys are `prefix+|` and `prefix+_`.
+
 ## Safety and coordination rules
 
 - Use `--no-focus` for background work unless the user asked to switch context.

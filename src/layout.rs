@@ -7,6 +7,7 @@ use ratatui::{
     widgets::Borders,
 };
 
+mod equalize; // fork: equalize
 pub(crate) mod stack; // fork: stacks
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]

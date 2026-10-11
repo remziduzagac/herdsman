@@ -118,7 +118,8 @@ Steps 3 to 5 run in that worktree. `git merge --abort` returns to the start. Dur
   in step 4. Never merge it by hand.
 - **Config reference**, `docs/next/website/src/data/config-reference.json`: take theirs, then re-add
   the seven stack entries: `keys.focus_stacked`, `keys.next_stacked`, `keys.previous_stacked`,
-  `keys.stack_pane`, `keys.close_stacked`, `ui.stack_strip_position` and `ui.stack_strip_separator`.
+  `keys.stack_pane`, `keys.close_stacked`, `ui.stack_strip_position` and `ui.stack_strip_separator`;
+  and the two equalize entries, `keys.equalize_widths` and `keys.equalize_heights`.
   `just maintenance-test` fails until they are back.
 - **Lists both sides extend**, such as the `Method` enum, method names, `CLIENT_SHELL_METHODS`,
   keybinding tables and defaults: keep both. `CLIENT_SHELL_METHODS` must stay sorted.
@@ -227,7 +228,7 @@ herdsman's side.
 | `src/ui/text.rs` | the truncation test's width widened for the longer name |
 | `scripts/agent_detection_manifest_check.py` | `STAGED_PUBLISHED_MANIFESTS` digest re-pinned |
 | `tests/fixtures/endpoint-method-shapes-v1.json` | `pane.split` and `pane.input.set` re-pinned |
-| `skills/herdsman/SKILL.md` | a stacks section |
+| `skills/herdsman/SKILL.md` | stacks, worktree groups and equal pane sizes sections |
 
 ### Stacks
 
@@ -297,6 +298,35 @@ A group reaches clients as its members' `worktree_group` workspace token, so no 
 format or `PROTOCOL_VERSION` changed. `workspace_entries` still returns one entry per workspace,
 ordered by group and without the hidden members of a collapsed group; the header rows exist only in
 the two expanded sidebar renderers, drawn as extra lines of a neighbouring entry.
+
+### Equal pane sizes
+
+`prefix+|` and `prefix+_` give a tab's columns equal widths or its rows equal heights. The logic
+lives in herdsman's own files:
+
+- `layout/equalize.rs`: the ratios, and their tests;
+- `app/api/layouts/equalize.rs` and `api/schema/panes/equalize.rs`: the `layout.equalize` method;
+- `cli/tab/equalize.rs` and `cli/spec/equalize.rs`: `herdsman tab equalize`;
+- `client/shell/actions/equalize.rs`: the keys as `layout.equalize` requests for the shown tab.
+
+The herdr files below carry hooks marked `// fork: equalize`.
+
+| Area | Files |
+| --- | --- |
+| Layout core | `layout.rs` |
+| Method | `api/schema.rs`, `api/schema/panes.rs`, `api/schema/response.rs`, `api/mod.rs` |
+| Handler | `api/server.rs`, `app/api.rs`, `app/api/layouts.rs` |
+| Advertising and geometry | `server/client_commands.rs`, `server/headless/client_views.rs` |
+| Config | `config/model.rs`, `config/keybinds.rs` |
+| Input | `input/keybindings.rs`, `input/keybind_help.rs`, `client/shell/actions.rs` |
+| CLI | `cli/tab.rs`, `cli/spec.rs` |
+| Generated | `docs/next/api/herdsman-api.schema.json` |
+| Docs data | `docs/next/website/src/data/config-reference.json` |
+| Docs | `keyboard.mdx`, `cli-reference.mdx`, `socket-api.mdx` |
+
+`layout.equalize` is a JSON method advertised to client shells, its shape pinned in
+`server/client_commands/fork_methods.rs`. No bincode struct, frozen codec or `PROTOCOL_VERSION`
+changed. A client attached to a server without the method shows "Action unavailable" for the keys.
 
 ## Releasing
 

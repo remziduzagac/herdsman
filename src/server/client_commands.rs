@@ -17,6 +17,7 @@ const CLIENT_SHELL_METHODS: &[&str] = &[
     "command.invoke",
     "integration.install",
     "integration.list",
+    "layout.equalize", // fork: equalize
     "layout.set_split_ratio",
     "pane.clear",
     "pane.close",
@@ -189,7 +190,7 @@ pub(crate) fn spawn_response_waiter(
 }
 
 #[cfg(test)]
-mod fork_methods; // fork: stacks, worktree groups
+mod fork_methods; // fork: stacks, worktree groups, equalize
 
 #[cfg(test)]
 mod tests {
@@ -306,7 +307,7 @@ mod tests {
             actual.remove("pane.link.resolve").as_deref(),
             Some("f5e4a3e01453ae7b188f127ce951c12c20e0bebcc17cc364eeb6d1a01fd5bf81")
         );
-        fork_methods::remove_pinned(&mut actual); // fork: stacks, worktree groups
+        fork_methods::remove_pinned(&mut actual); // fork: stacks, worktree groups, equalize
 
         assert_eq!(
             actual, expected,

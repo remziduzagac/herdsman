@@ -466,6 +466,11 @@ pub struct KeysConfig {
     pub resize_pane_up: BindingConfig,
     /// Resize the focused pane toward the right. Unset by default.
     pub resize_pane_right: BindingConfig,
+    // fork: equalize
+    /// Give the focused tab's columns equal widths. Default: "prefix+|"
+    pub equalize_widths: BindingConfig,
+    /// Give the focused tab's rows equal heights. Default: "prefix+_"
+    pub equalize_heights: BindingConfig,
     /// Toggle sidebar collapse. Default: "prefix+b"
     pub toggle_sidebar: BindingConfig,
     /// Optional indexed shortcuts expanded over number keys 1-9.
@@ -614,6 +619,11 @@ pub(crate) struct KeysConfigOverlay {
     resize_pane_up: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     resize_pane_right: Option<BindingConfig>,
+    // fork: equalize
+    #[serde(skip_serializing_if = "Option::is_none")]
+    equalize_widths: Option<BindingConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    equalize_heights: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     toggle_sidebar: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -734,6 +744,9 @@ impl<'de> Deserialize<'de> for KeysConfig {
         apply_field!(resize_pane_down);
         apply_field!(resize_pane_up);
         apply_field!(resize_pane_right);
+        // fork: equalize
+        apply_field!(equalize_widths);
+        apply_field!(equalize_heights);
         apply_field!(toggle_sidebar);
         apply_field!(indexed);
         apply_field!(command);
@@ -846,6 +859,9 @@ impl KeysConfig {
         copy_effective_action_field!(resize_pane_down, keybinds.resize_pane_down);
         copy_effective_action_field!(resize_pane_up, keybinds.resize_pane_up);
         copy_effective_action_field!(resize_pane_right, keybinds.resize_pane_right);
+        // fork: equalize
+        copy_effective_action_field!(equalize_widths, keybinds.equalize_widths);
+        copy_effective_action_field!(equalize_heights, keybinds.equalize_heights);
         copy_effective_action_field!(toggle_sidebar, keybinds.toggle_sidebar);
         copy_user_field!(indexed);
 
@@ -1227,6 +1243,9 @@ impl Default for KeysConfig {
             resize_pane_down: BindingConfig::empty(),
             resize_pane_up: BindingConfig::empty(),
             resize_pane_right: BindingConfig::empty(),
+            // fork: equalize
+            equalize_widths: BindingConfig::one("prefix+|"),
+            equalize_heights: BindingConfig::one("prefix+_"),
             toggle_sidebar: BindingConfig::one("prefix+b"),
             indexed: IndexedKeysConfig::default(),
             command: Vec::new(),

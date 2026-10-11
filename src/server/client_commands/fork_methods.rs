@@ -2,7 +2,7 @@
 //! frozen generation-1 fixture.
 //!
 //! herdsman's own module. `client_commands.rs` reaches it through hooks marked
-//! `// fork: stacks, worktree groups`.
+//! `// fork: stacks, worktree groups, equalize`.
 
 use std::collections::BTreeMap;
 
@@ -29,6 +29,10 @@ pub(super) fn remove_pinned(actual: &mut BTreeMap<String, String>) {
     assert_eq!(
         actual.remove("pane.stacks").as_deref(),
         Some("c6d7c7e43e70e2f17108eff0bc5ee132c729b580b4cb9b266232243b1864b798")
+    );
+    assert_eq!(
+        actual.remove("layout.equalize").as_deref(),
+        Some("94f7408bcd95f009d28c60cdf46adfb116d8ee0b37bab302a8871ab6dfb10674")
     );
     assert_eq!(
         actual.remove("workspace.set_worktree_group").as_deref(),

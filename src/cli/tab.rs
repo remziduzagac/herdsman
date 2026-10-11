@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use crate::api::schema::{TabCreateParams, TabListParams, TabRenameParams};
 
+mod equalize; // fork: equalize
+
 pub(super) fn run_tab_command(args: &[String]) -> std::io::Result<i32> {
     let Some(subcommand) = args.first().map(|arg| arg.as_str()) else {
         print_tab_help();
@@ -14,6 +16,7 @@ pub(super) fn run_tab_command(args: &[String]) -> std::io::Result<i32> {
         "get" => tab_get(&args[1..]),
         "focus" => tab_focus(&args[1..]),
         "rename" => tab_rename(&args[1..]),
+        "equalize" => equalize::tab_equalize(&args[1..]), // fork: equalize
         "close" => tab_close(&args[1..]),
         "help" | "--help" | "-h" => {
             print_tab_help();
@@ -183,5 +186,6 @@ fn print_tab_help() {
     eprintln!("  herdsman tab get <tab_id>");
     eprintln!("  herdsman tab focus <tab_id>");
     eprintln!("  herdsman tab rename <tab_id> <label>");
+    eprintln!("  herdsman tab equalize width|height [<tab_id>|--current]"); // fork: equalize
     eprintln!("  herdsman tab close <tab_id>");
 }

@@ -50,6 +50,7 @@ pub(super) fn command() -> Command {
     configure_help(command, 0)
 }
 
+mod equalize; // fork: equalize
 mod stack; // fork: stacks
 mod worktree_groups; // fork: worktree groups
 
@@ -297,6 +298,7 @@ fn tab_command() -> Command {
                 .arg(required("tab_id", "TAB_ID"))
                 .arg(required("label", "LABEL").num_args(1..)),
         )
+        .subcommand(equalize::tab_equalize_command()) // fork: equalize
         .subcommand(id_command("close", "tab_id", "Close a tab"))
 }
 
