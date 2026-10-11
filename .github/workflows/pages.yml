@@ -6,9 +6,10 @@ name: Pages
 # signed apt, dnf and pacman repositories from the Linux packages attached to
 # recent releases, the version file Homebrew installs check, and preview.json
 # from the newest preview pre-releases, and the documentation site under
-# /docs/, built from docs/next/website. The Release and Preview workflows start
-# this when they publish; a push to main that touches distribution/ or the docs
-# does too.
+# /docs/, built from docs/next/website on main, with the newest preview's under
+# /docs/preview/, built from that preview's commit. The Release and Preview
+# workflows start this when they publish; a push to main that touches
+# distribution/ or the docs does too.
 
 on:
   push:
@@ -65,6 +66,24 @@ jobs:
           sudo apt-get install -y -q createrepo-c
           scripts/package-repos _site
 
+      - name: Build the preview manifest
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/preview-manifest _site/preview.json
+          if [ -f _site/preview.json ]; then
+            echo "commit=$(python3 -c 'import json; print(json.load(open("_site/preview.json"))["commit"])')" \
+              >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.preview.outputs.commit
+        with:
+          ref: ${{ steps.preview.outputs.commit }}
+          path: _preview
+          persist-credentials: false
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
@@ -79,10 +98,16 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/_site/docs"
           cp -R dist/. "$GITHUB_WORKSPACE/_site/docs/"
 
-      - name: Build the preview manifest
+      - name: Build the newest preview's documentation
+        if: steps.preview.outputs.commit
+        working-directory: _preview/docs/next/website
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: scripts/preview-manifest _site/preview.json
+          HERDSMAN_DOCS_CHANNEL: preview
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          mkdir -p "$GITHUB_WORKSPACE/_site/docs/preview"
+          cp -R dist/. "$GITHUB_WORKSPACE/_site/docs/preview/"
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

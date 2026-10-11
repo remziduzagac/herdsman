@@ -373,7 +373,8 @@ Pushing `test` starts `.github/workflows/preview.yml`. It builds the five binari
 builds (`herdsman --version` prints `X.Y.Z-preview.<build id>`, the build id being the commit date
 and short hash), publishes them as the GitHub pre-release `preview-<build id>` with a
 `build-info.json`, deletes all but the newest ten previews, and redeploys Pages, where
-`scripts/preview-manifest` turns them into `preview.json`.
+`scripts/preview-manifest` turns them into `preview.json` and the newest preview's commit gets its
+documentation built at `/herdsman/docs/preview/`.
 
 ```bash
 git fetch . dev:test && git push origin test       # publish what dev has as a preview
@@ -386,22 +387,28 @@ there. Pre-releases never reach the package repositories, the Homebrew tap or `l
 ## The documentation site
 
 `docs/next/website` is an Astro Starlight project that builds the pages in
-`docs/next/website/src/content/docs`. The Pages workflow publishes it at
-https://remziduzagac.github.io/herdsman/docs/ on every deploy, and a push to `main` that changes
-`docs/next/` triggers one.
+`docs/next/website/src/content/docs`. Every Pages deploy publishes it twice: `main`'s at
+<https://remziduzagac.github.io/herdsman/docs/>, and the newest preview's, from that preview's
+commit, at <https://remziduzagac.github.io/herdsman/docs/preview/> with a banner pointing back to
+the stable docs. A push to `main` that changes `docs/next/` starts a deploy, and so does every
+published preview or release. There are no copies of the docs per version: the branch, or the
+preview's commit, decides which docs a build shows, and `docs/next` is simply the folder herdr keeps
+them in.
 
 ```bash
 cd docs/next/website
 npm ci
 npm run dev      # live preview at http://localhost:4321/herdsman/docs/
 npm run build    # the site in dist/; fails on any broken internal link
+HERDSMAN_DOCS_CHANNEL=preview npm run build    # the preview build, for /herdsman/docs/preview/
 ```
 
 The pages link to each other as `/docs/<page>/`, as herdr's site did; `scripts/rebase-links.mjs`
-adds the `/herdsman` prefix after the build, and `scripts/check-links.mjs` then fails the build on a
-missing page, heading or a path outside the site. A new page needs an entry in the sidebar in
-`astro.config.mjs`. Everything in `docs/next/website` except `src/content/docs` and `src/data` is
-herdsman's own; herdr keeps its website in a separate, private repository.
+rewrites them to the site's base (`scripts/site.mjs`) after the build, and `scripts/check-links.mjs`
+then fails the build on a missing page, heading or a path outside the site. A new page needs an
+entry in the sidebar in `astro.config.mjs`. Everything in `docs/next/website` except
+`src/content/docs` and `src/data` is herdsman's own; herdr keeps its website in a separate, private
+repository.
 
 ## Repository settings
 
