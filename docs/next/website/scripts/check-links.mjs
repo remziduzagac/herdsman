@@ -3,8 +3,9 @@
 // outside the herdsman site. External links are not checked.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { base as siteBase } from './site.mjs';
 
-const base = '/herdsman/docs/';
+const base = `${siteBase}/`;
 const pages = new Map();
 
 function walk(dir) {

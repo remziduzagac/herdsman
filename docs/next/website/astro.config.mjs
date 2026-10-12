@@ -1,12 +1,14 @@
-// The herdsman documentation site, served from GitHub Pages at /herdsman/docs/.
+// The herdsman documentation site, served from GitHub Pages at /herdsman/docs/,
+// and the newest preview's at /herdsman/docs/preview/ (see scripts/site.mjs).
 // The pages in src/content/docs link to each other as /docs/<page>/; after the
-// build, scripts/rebase-links.mjs adds the /herdsman prefix the Pages site needs.
+// build, scripts/rebase-links.mjs turns /docs/ into the site's base.
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import { base, preview } from './scripts/site.mjs';
 
 export default defineConfig({
   site: 'https://remziduzagac.github.io',
-  base: '/herdsman/docs',
+  base,
   trailingSlash: 'always',
   integrations: [
     starlight({
@@ -18,6 +20,7 @@ export default defineConfig({
       editLink: {
         baseUrl: 'https://github.com/remziduzagac/herdsman/edit/dev/docs/next/website/',
       },
+      routeMiddleware: preview ? ['./src/preview-banner.ts'] : [],
       sidebar: [
         { label: 'Start', items: ['install', 'quick-start', 'concepts', 'keyboard', 'how-to-work'] },
         {
