@@ -228,6 +228,7 @@ herdsman's side.
 | `src/ui/text.rs` | the truncation test's width widened for the longer name |
 | `scripts/agent_detection_manifest_check.py` | `STAGED_PUBLISHED_MANIFESTS` digest re-pinned |
 | `tests/fixtures/endpoint-method-shapes-v1.json` | `pane.split` and `pane.input.set` re-pinned |
+| `Cargo.lock` | `rand` 0.8.6 for GHSA-cq8v-f236-94qc; take herdr's version once it is 0.8.6 or later |
 | `skills/herdsman/SKILL.md` | stacks, worktree groups and equal pane sizes sections |
 
 ### Stacks
