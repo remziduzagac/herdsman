@@ -455,6 +455,11 @@ entry in the sidebar in `astro.config.mjs`. Everything in `docs/next/website` ex
 `src/content/docs` and `src/data` is herdsman's own; herdr keeps its website in a separate, private
 repository.
 
+`package.json` overrides `postcss-selector-parser` to 7.1.6 inside `postcss-nested`, for
+GHSA-rj75-hqrm-r3gf: Starlight's code blocks still pull in `postcss-nested` 6, which wants the
+vulnerable 6.x, and the site builds byte for byte the same either way. Remove the override once
+`npm ls postcss-nested` shows 7 or later without it.
+
 ## Repository settings
 
 - **Rulesets.** "Long-lived branches" stops `main`, `dev` and `test` from being deleted or
