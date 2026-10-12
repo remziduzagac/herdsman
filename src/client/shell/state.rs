@@ -529,6 +529,10 @@ pub(super) enum ClientContextMenuAction {
     SwapWithFocusedPane,
     SplitRight,
     SplitDown,
+    // fork: pane menu
+    StackHere,
+    EqualWidths,
+    EqualHeights,
     Zoom,
     ToggleRightClickPassthrough,
     ClosePane,
@@ -552,6 +556,7 @@ pub(super) enum ClientContextMenuTarget {
         pane_id: String,
         workspace_id: String,
         source_pane_id: Option<String>,
+        layout: super::pane_menu::LayoutItems, // fork: pane menu
         has_manual_label: bool,
         right_click_passthrough: bool,
     },

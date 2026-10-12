@@ -10,6 +10,8 @@ Each herdsman release names the herdr release it is built on. Versions are herds
 - Equal pane sizes: `prefix+|` gives every column in the tab the same width and `prefix+_` every
   row the same height, each leaving the other dimension alone. `herdsman tab equalize width|height`
   and the `layout.equalize` API method do the same from scripts.
+- A pane's right-click menu offers Stack here, which opens a new pane in that pane's slot, and Equal
+  widths and Equal heights when the tab is split that way.
 
 ## [1.1.0] - 2026-10-06
 

@@ -53,6 +53,7 @@ impl ClientContextMenuOverlay {
             ],
             ClientContextMenuTarget::Pane {
                 source_pane_id,
+                layout, // fork: pane menu
                 has_manual_label,
                 right_click_passthrough,
                 ..
@@ -78,6 +79,7 @@ impl ClientContextMenuOverlay {
                     ),
                     item("Close pane", Action::ClosePane),
                 ]);
+                layout.add_to(&mut items); // fork: pane menu
                 items
             }
         }
@@ -159,6 +161,7 @@ impl ClientShellState {
                 pane_id,
                 workspace_id: pane.workspace_id.clone(),
                 source_pane_id,
+                layout: self.pane_menu_layout_items(), // fork: pane menu
                 has_manual_label: pane.label.is_some(),
                 right_click_passthrough: pane.right_click_passthrough,
             },
@@ -430,6 +433,12 @@ impl ClientShellState {
                     }),
                     outcome,
                 );
+            }
+            // fork: pane menu
+            ClientContextMenuAction::StackHere
+            | ClientContextMenuAction::EqualWidths
+            | ClientContextMenuAction::EqualHeights => {
+                self.activate_pane_layout_action(pane_id, workspace_id, action, outcome)
             }
             ClientContextMenuAction::Zoom => self.push_endpoint_method(
                 Method::PaneZoom(PaneZoomParams {

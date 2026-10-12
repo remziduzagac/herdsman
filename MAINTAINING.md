@@ -328,6 +328,21 @@ The herdr files below carry hooks marked `// fork: equalize`.
 `server/client_commands/fork_methods.rs`. No bincode struct, frozen codec or `PROTOCOL_VERSION`
 changed. A client attached to a server without the method shows "Action unavailable" for the keys.
 
+### Layout items in the pane menu
+
+A pane's right-click menu offers Stack here, Equal widths and Equal heights after Split down. The
+items live in `client/shell/pane_menu.rs`, with their tests in `client/shell/tests/pane_menu.rs`; the
+client sends the existing `pane.stack` and `layout.equalize`, and shows an item only when the server
+advertises its method. Equal widths needs a side-by-side split in the shown tab, and Equal heights a
+split above and below.
+
+The herdr files below carry hooks marked `// fork: pane menu`.
+
+| Area | Files |
+| --- | --- |
+| Menu | `client/shell.rs`, `client/shell/state.rs`, `client/shell/context_menu.rs` |
+| Test wiring | `client/shell/tests/mod.rs` |
+
 ## Releasing
 
 A release is a `vX.Y.Z` tag on `main`. Pushing it starts `.github/workflows/release.yml`, which
