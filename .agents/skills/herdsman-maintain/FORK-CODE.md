@@ -112,6 +112,24 @@ When a herdsman feature needs a herdr function to behave differently, keep the f
 and let it consult herdsman state through a hook. `pane.stack` reuses `handle_pane_split` this way:
 it sets `ForkState::split_into_stack`, and one hook in the split folds the new pane into the stack.
 
+## Docs in herdr pages
+
+herdr's pages in `docs/next/website/src/content/docs` merge like its code, so the same rule holds:
+herdsman adds lines and leaves herdr's alone. Markdown has no `// fork:` marker; a hunk that only
+adds lines is the hook.
+
+- A method, command or key gets its own line next to the related one: a table row such as
+  `| Stacks | pane.stack, ... |` under herdr's Pane row, or a line in a command list. Never extend
+  herdr's row or sentence.
+- More detail goes in a paragraph of its own after herdr's, not at the end of herdr's.
+- A feature's full description belongs on a herdsman page, such as `stacks.mdx`, linked from herdr's
+  page. MDX imports work too, but headings in an imported file stay out of the page's table of
+  contents.
+- Names, URLs and branch names that differ everywhere belong in `upstream/rename`, which applies
+  them before herdr's code reaches `herdr-import`, so they never conflict.
+- Where herdsman decides differently, such as its install channels, edit herdr's text and list the
+  page in `MAINTAINING.md`, "herdsman's edits to herdr files".
+
 ## What not to do in herdr files
 
 - No reformatting, reordering, renaming or moving herdr code, and no drive-by fixes. Each of these
@@ -137,7 +155,8 @@ whole block.
    done
    ```
 
-   Every hunk should be a hook carrying `// fork:`. Anything else needs a reason.
+   Every hunk should be a hook carrying `// fork:`, and every hunk in a docs page should only add
+   lines. Anything else needs a reason.
 2. Update the feature's row in `MAINTAINING.md`, "herdsman's edits to herdr files", with any herdr
    file that gained a hook.
 3. Run the checks in `AGENTS.md`, "Testing".

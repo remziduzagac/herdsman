@@ -100,10 +100,12 @@ Raw socket method names use dot notation:
 | Notification | `notification.show` |
 | Client | `client.window_title.set`, `client.window_title.clear` |
 | Session | `session.snapshot` |
-| Workspace | `workspace.create`, `workspace.list`, `workspace.get`, `workspace.focus`, `workspace.rename`, `workspace.move`, `workspace.move_block`, `workspace.report_metadata`, `workspace.set_worktree_group`, `workspace.close` |
+| Workspace | `workspace.create`, `workspace.list`, `workspace.get`, `workspace.focus`, `workspace.rename`, `workspace.move`, `workspace.move_block`, `workspace.report_metadata`, `workspace.close` |
 | Worktree | `worktree.list`, `worktree.create`, `worktree.open`, `worktree.remove` |
+| Worktree groups | `workspace.set_worktree_group` |
 | Tab | `tab.create`, `tab.list`, `tab.get`, `tab.focus`, `tab.rename`, `tab.move`, `tab.close` |
-| Pane | `pane.split`, `pane.stack`, `pane.stacks`, `pane.focus_stacked`, `pane.focus_stacked_at`, `pane.focus_stack_strip`, `pane.swap`, `pane.move`, `pane.zoom`, `pane.layout`, `pane.process_info`, `pane.neighbor`, `pane.edges`, `pane.focus_direction`, `pane.resize`, `pane.list`, `pane.current`, `pane.get`, `pane.rename`, `pane.send_text`, `pane.send_keys`, `pane.send_input`, `pane.read`, `pane.report_agent`, `pane.report_agent_session`, `pane.report_metadata`, `pane.clear_agent_authority`, `pane.release_agent`, `pane.close`, `pane.wait_for_output` |
+| Pane | `pane.split`, `pane.swap`, `pane.move`, `pane.zoom`, `pane.layout`, `pane.process_info`, `pane.neighbor`, `pane.edges`, `pane.focus_direction`, `pane.resize`, `pane.list`, `pane.current`, `pane.get`, `pane.rename`, `pane.send_text`, `pane.send_keys`, `pane.send_input`, `pane.read`, `pane.report_agent`, `pane.report_agent_session`, `pane.report_metadata`, `pane.clear_agent_authority`, `pane.release_agent`, `pane.close`, `pane.wait_for_output` |
+| Stacks | `pane.stack`, `pane.stacks`, `pane.focus_stacked`, `pane.focus_stacked_at`, `pane.focus_stack_strip` |
 | Popup | `popup.close` |
 | Layout | `layout.export`, `layout.apply`, `layout.set_split_ratio` |
 | Agent | `agent.list`, `agent.get`, `agent.read`, `agent.explain`, `agent.send_keys`, `agent.prompt`, `agent.wait`, `agent.rename`, `agent.focus`, `agent.start`, `agent.view.set`, `agent.view.clear` |
@@ -205,10 +207,11 @@ export the tab containing that pane.
 The response includes `workspace_id`, `tab_id`, `zoomed`, `focused_pane_id`, and
 `root`. `root` is a BSP tree of `pane` and `split` nodes. Pane nodes can include
 `pane_id`, `label`, `cwd`, and argv `command`. Split nodes use
-`direction` (`right` or `down`), `ratio`, `first`, and `second`. A `stack` node
-holds several panes in one slot: `panes` lists them in strip order, as pane
-fields without `type`, and `active` is the index of the visible one.
-`layout.apply` builds stacks from the same node.
+`direction` (`right` or `down`), `ratio`, `first`, and `second`.
+
+A `stack` node holds several panes in one slot: `panes` lists them in strip
+order, as pane fields without `type`, and `active` is the index of the visible
+one. `layout.apply` builds stacks from the same node.
 
 `layout.apply` creates a fresh tab from a declarative tree. If `tab_id` is
 provided, Herdsman creates the replacement tab first and then closes the old tab.
