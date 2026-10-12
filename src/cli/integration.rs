@@ -32,6 +32,7 @@ fn integration_status(args: &[String]) -> std::io::Result<i32> {
     };
 
     if outdated_only {
+        crate::integration::skill::refresh_after_update(); // fork: skill install
         crate::integration::print_outdated_update_notice();
         return Ok(0);
     }
@@ -45,6 +46,7 @@ fn integration_status(args: &[String]) -> std::io::Result<i32> {
         );
         println!("{target}: {state} ({})", status.path.display());
     }
+    crate::integration::skill::print_statuses(); // fork: skill install
 
     if let Some(status) = crate::integration::experimental_letta_integration_status() {
         let state = describe_integration_state(

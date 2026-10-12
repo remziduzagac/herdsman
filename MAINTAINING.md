@@ -344,6 +344,23 @@ The herdr files below carry hooks marked `// fork: pane menu`.
 | Menu | `client/shell.rs`, `client/shell/state.rs`, `client/shell/context_menu.rs` |
 | Test wiring | `client/shell/tests/mod.rs` |
 
+### The agent skill with the integrations
+
+Installing the Claude Code, Codex or OpenCode integration also writes the skill the binary embeds
+(`skills/herdsman/SKILL.md`, which `herdsman --skill` prints) into that agent's `skills/herdsman/`,
+and uninstalling removes it. `herdsman update` runs the binary it installed with `integration status
+--outdated-only`, which rewrites older herdsman skills, so an update brings the skill along. A link,
+or a skill whose front matter names another skill, is left alone. The logic and its tests live in
+`integration/skill.rs`.
+
+The herdr files below carry hooks marked `// fork: skill install`.
+
+| Area | Files |
+| --- | --- |
+| Install and uninstall | `integration/mod.rs`, `integration/actions.rs` |
+| Refresh and status | `cli/integration.rs` |
+| Docs | `agent-skill.mdx`, `integrations.mdx`, `cli-reference.mdx` |
+
 ## Releasing
 
 A release is a `vX.Y.Z` tag on `main`. Pushing it starts `.github/workflows/release.yml`, which

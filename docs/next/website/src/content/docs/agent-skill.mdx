@@ -25,6 +25,8 @@ The skill is a Markdown instruction file for agents. If Herdsman is already inst
 
 ## Install it
 
+Installing the Claude Code, Codex, or OpenCode [integration](/docs/integrations/) also installs the skill for that agent, as `skills/herdsman/SKILL.md` in its config directory: `~/.claude` or `CLAUDE_CONFIG_DIR`, `~/.codex` or `CODEX_HOME`, and `~/.config/opencode`. `herdsman update` rewrites those copies to match the new binary, `herdsman integration status` shows whether each one is current, and uninstalling the integration removes it. Herdsman leaves alone a skill it did not write, such as a link into a dotfiles checkout or another skill with the same folder name.
+
 Install the skill with `npx skills`:
 
 ```bash

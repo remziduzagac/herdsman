@@ -7,6 +7,7 @@ mod env;
 mod file_ops;
 mod opencode_config;
 mod registry;
+pub(crate) mod skill; // fork: skill install
 mod targets;
 mod types;
 mod version;

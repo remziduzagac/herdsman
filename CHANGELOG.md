@@ -12,6 +12,9 @@ Each herdsman release names the herdr release it is built on. Versions are herds
   and the `layout.equalize` API method do the same from scripts.
 - A pane's right-click menu offers Stack here, which opens a new pane in that pane's slot, and Equal
   widths and Equal heights when the tab is split that way.
+- `herdsman integration install claude`, `codex` and `opencode` also install herdsman's agent skill
+  for that agent, and `herdsman update` keeps those copies matched to the new binary. A skill
+  herdsman did not write, such as a link into a dotfiles checkout, is left alone.
 
 ## [1.1.0] - 2026-10-06
 

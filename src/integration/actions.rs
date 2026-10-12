@@ -316,6 +316,8 @@ fn install_target_inner(target: crate::api::schema::IntegrationTarget) -> io::Re
         }
     };
 
+    messages.extend(super::skill::install(target)); // fork: skill install
+
     if let Some(warning) = version_warning {
         messages.push(warning);
     }
@@ -768,6 +770,8 @@ pub(crate) fn uninstall_target(
             messages
         }
     };
+    let mut messages = messages; // fork: skill install
+    messages.extend(super::skill::uninstall(target)); // fork: skill install
 
     crate::logging::integration_action("uninstall", integration_target_label(target), "ok");
     Ok(messages)
