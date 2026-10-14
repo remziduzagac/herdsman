@@ -6,6 +6,10 @@ A terminal workspace for running coding agents: workspaces, tabs and panes, SSH-
 machines, and agents recognised by state in the sidebar. On top of that, **stacked panes**:
 one layout slot holds several panes and shows one at a time, while the hidden ones keep running.
 
+![herdsman: a repository's worktrees in named groups in the sidebar, and an editor beside a stack of agent panes][shot]
+
+[shot]: docs/next/website/src/assets/screenshots/overview.webp
+
 herdsman is built on [herdr](https://github.com/herdrdev/herdr): a modified version, renamed into
 a separate app, that keeps taking in herdr's releases. It is not affiliated with or endorsed by
 herdr. See [NOTICE](NOTICE).

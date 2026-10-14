@@ -220,7 +220,7 @@ herdsman's side.
 | `docs/next/website/src/content/docs/install.mdx` | herdsman's install channels and preview channel |
 | `docs/next/website/src/content/docs/{persistence-remote,session-state}.mdx` | system packages named with the other package managers |
 | `docs/next/website/src/content/docs/plugins.mdx` | example repository not published yet; "Sharing plugins" replaces the marketplace |
-| `docs/next/website/src/content/docs/index.mdx` | a Stacked panes card replaces the marketplace card |
+| `docs/next/website/src/content/docs/index.mdx` | a Stacked panes card replaces the marketplace card; a screenshot |
 | `docs/next/product-announcement.json` | herdsman's own; `null` until a release announces something |
 | `src/update.rs` | fake-update notes read herdsman's `1.0.0` changelog section; `/usr/bin` installs count as system packages |
 | `src/checksum.rs` | the test's SHA-256 re-pinned |
