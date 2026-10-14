@@ -215,7 +215,7 @@ herdsman's side.
 | --- | --- |
 | `AGENTS.md` | herdr's governance and release-process sections removed; Scope and Docs rewritten |
 | `build.rs` | herdr's contributor-policy warning removed |
-| `justfile` | herdr's release recipes and their tests removed; herdsman's `release` recipe added |
+| `justfile` | herdr's release recipes and their tests removed; herdsman's `release` and `screenshots` recipes added |
 | `distribution/latest.json` | herdsman's own manifest, written by herdsman's releases |
 | `docs/next/website/src/content/docs/install.mdx` | herdsman's install channels and preview channel |
 | `docs/next/website/src/content/docs/{persistence-remote,session-state}.mdx` | system packages named with the other package managers |
@@ -478,6 +478,12 @@ keeps its website in a separate, private repository.
 `public/assets/mobile-*.jpeg`, are placeholders: herdr's would show herdr, and taking the block out
 of herdr's page would conflict at merges. Replace them with phone screenshots of herdsman under the
 same names.
+
+The screenshots in `src/assets/screenshots/`, which the README shows too, come from
+`just screenshots`. It builds a release binary and runs `scripts/screenshots/run`, which stages a demo
+with made-up repositories and agent states in its own HOME, sockets and tmux session, and writes the
+same images byte for byte while herdsman's look stays the same. Rerun it when the sidebar, panes,
+stacks or menus change how they look, check the images, and commit them.
 
 `package.json` overrides `postcss-selector-parser` to 7.1.6 inside `postcss-nested`, for
 GHSA-rj75-hqrm-r3gf: Starlight's code blocks still pull in `postcss-nested` 6, which wants the

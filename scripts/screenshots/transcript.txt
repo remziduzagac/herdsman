@@ -1,0 +1,20 @@
+
+{dim}›{r} {b}Retry failed card payments in checkout, but never{r}
+  {b}retry a declined card.{r}
+
+{blue}●{r} Read {mauve}src/checkout/index.js{r}, {mauve}src/payments/client.js{r}
+
+{blue}●{r} Plan
+  {dim}1.{r} wrap {teal}charge(){r} in a retry with exponential backoff
+  {dim}2.{r} retry timeouts and 5xx responses only
+  {dim}3.{r} send one idempotency key across attempts
+
+{blue}●{r} Edit {mauve}src/checkout/index.js{r}  {green}+24{r} {red}−3{r}
+
+{blue}●{r} Run {teal}npm test -- checkout{r}
+  {green}✓{r} retries a timed-out charge {dim}(12 ms){r}
+  {green}✓{r} does not retry a declined card {dim}(3 ms){r}
+  {green}✓{r} gives up after 3 attempts {dim}(31 ms){r}
+  {green}✓{r} sends the same idempotency key {dim}(4 ms){r}
+
+{yellow}●{r} Updating the checkout docs{dim}…{r}

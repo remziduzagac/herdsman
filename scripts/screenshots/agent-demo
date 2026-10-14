@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Stands in for an agent in a demo pane: prints transcript.txt with its colour
+# markers ({blue}, {dim}, {r} for reset ...) turned into escapes, then waits
+# with the cursor hidden. herdsman learns the agent's state from
+# `herdsman pane report-agent`, not from this output.
+esc=$'\e'
+sed -e "s/{r}/${esc}[0m/g" -e "s/{b}/${esc}[1m/g" \
+  -e "s/{dim}/${esc}[38;2;127;132;156m/g" \
+  -e "s/{blue}/${esc}[38;2;137;180;250m/g" -e "s/{green}/${esc}[38;2;166;227;161m/g" \
+  -e "s/{red}/${esc}[38;2;243;139;168m/g" -e "s/{yellow}/${esc}[38;2;249;226;175m/g" \
+  -e "s/{mauve}/${esc}[38;2;203;166;247m/g" -e "s/{teal}/${esc}[38;2;148;226;213m/g" \
+  "$(dirname "$0")/transcript.txt"
+printf '\e[?25l'
+exec sleep 86400

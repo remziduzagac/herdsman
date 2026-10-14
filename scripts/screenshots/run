@@ -1,0 +1,268 @@
+#!/usr/bin/env bash
+# Regenerates the documentation screenshots in docs/next/website/src/assets/screenshots/
+# from a staged demo: made-up repositories, worktrees in named groups, and a stack of
+# three panes beside an editor. Agent states are reported with `herdsman pane report-agent`
+# and the agent pane prints a scripted transcript (agent-demo); no agent runs.
+#
+# The demo has its own HOME, config and sockets under /tmp/herdsman-screenshots and runs
+# in a detached tmux session, so it never touches a herdsman you are running.
+#
+# usage: scripts/screenshots/run <herdsman-binary>   (`just screenshots` builds and runs it)
+#
+# Needs tmux, git, nvim, curl, python3 and uv. freeze, which draws the captured screen,
+# and the JetBrains Mono NL font are downloaded once, checked against the SHA-256 sums
+# below, into ~/.cache/herdsman/screenshots.
+set -euo pipefail
+
+if [[ $# -ne 1 ]]; then
+  echo "usage: $0 <herdsman-binary>" >&2
+  exit 2
+fi
+bin=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
+[[ -x "$bin" ]] || { echo "herdsman binary is not executable: $bin" >&2; exit 1; }
+here=$(cd "$(dirname "$0")" && pwd)
+out=$(cd "$here/../.." && pwd)/docs/next/website/src/assets/screenshots
+for command in tmux git nvim curl python3 uv; do
+  command -v "$command" >/dev/null || { echo "required command not found: $command" >&2; exit 1; }
+done
+
+freeze_version=0.2.2
+case "$(uname -s)-$(uname -m)" in
+  Linux-x86_64) freeze_asset=Linux_x86_64 freeze_sum=012fdbdd16c0c19570f9052aac34d16d93d7d0d3b565b05374cc59492f53539b ;;
+  Linux-aarch64 | Linux-arm64) freeze_asset=Linux_arm64 freeze_sum=ba1164c2e6d573af32df13ddc5868f7cdfc8b9992f26f53695787ca5f4274023 ;;
+  Darwin-x86_64) freeze_asset=Darwin_x86_64 freeze_sum=7ba01bc3f7f255bee2fe84847e8beeb1caa84914a49f4cf32e0147693d5e385f ;;
+  Darwin-arm64) freeze_asset=Darwin_arm64 freeze_sum=6936ebad96dda73a6c952d7e945106916c4d4345334828109b4db6ddbb9aabee ;;
+  *) echo "screenshots run on Linux and macOS, x86_64 or arm64" >&2; exit 1 ;;
+esac
+font_version=2.304
+font_sum=6f6376c6ed2960ea8a963cd7387ec9d76e3f629125bc33d1fdcd7eb7012f7bbf
+
+cache=${XDG_CACHE_HOME:-$HOME/.cache}/herdsman/screenshots
+freeze=$cache/freeze-$freeze_version
+font=$cache/JetBrainsMonoNL-Regular-$font_version.ttf
+mkdir -p "$cache"
+
+sha256() {
+  if command -v sha256sum >/dev/null; then sha256sum "$1"; else shasum -a 256 "$1"; fi | cut -d' ' -f1
+}
+
+fetch() { # fetch <url> <sha256> <file>
+  curl -fsSL -o "$3.part" "$1"
+  if [[ $(sha256 "$3.part") != "$2" ]]; then
+    rm -f "$3.part"
+    echo "checksum mismatch for $1" >&2
+    exit 1
+  fi
+  mv "$3.part" "$3"
+}
+
+if [[ ! -x $freeze ]]; then
+  fetch "https://github.com/charmbracelet/freeze/releases/download/v$freeze_version/freeze_${freeze_version}_$freeze_asset.tar.gz" \
+    "$freeze_sum" "$cache/freeze.tar.gz"
+  tar -xzf "$cache/freeze.tar.gz" -C "$cache" --strip-components 1 "freeze_${freeze_version}_$freeze_asset/freeze"
+  mv "$cache/freeze" "$freeze"
+  rm "$cache/freeze.tar.gz"
+fi
+if [[ ! -f $font ]]; then
+  fetch "https://github.com/JetBrains/JetBrainsMono/releases/download/v$font_version/JetBrainsMono-$font_version.zip" \
+    "$font_sum" "$cache/font.zip"
+  python3 - "$cache/font.zip" "$font" <<'PY'
+import sys, zipfile
+with zipfile.ZipFile(sys.argv[1]) as archive:
+    open(sys.argv[2], "wb").write(archive.read("fonts/ttf/JetBrainsMonoNL-Regular.ttf"))
+PY
+  rm "$cache/font.zip"
+fi
+
+# The demo's environment. Socket paths stay short: Unix sockets allow about 104 bytes.
+demo=/tmp/herdsman-screenshots
+demo_env=(
+  HOME="$demo/home" USER=demo LOGNAME=demo SHELL=/bin/bash LANG=C.UTF-8 COLORTERM=truecolor
+  PATH="$demo/bin:/usr/bin:/bin"
+  XDG_CONFIG_HOME="$demo/home/.config" XDG_STATE_HOME="$demo/home/.local/state"
+  XDG_DATA_HOME="$demo/home/.local/share" XDG_CACHE_HOME="$demo/home/.cache" XDG_RUNTIME_DIR="$demo/run"
+  HERDSMAN_CONFIG_PATH="$demo/home/config.toml"
+  HERDSMAN_SOCKET_PATH="$demo/hs.sock" HERDSMAN_CLIENT_SOCKET_PATH="$demo/hs-client.sock"
+)
+hs() { env -i "${demo_env[@]}" "$bin" "$@"; }
+dgit() { env -i "${demo_env[@]}" git "$@"; }
+tm() { tmux -L herdsman-screenshots "$@"; }
+cleanup() {
+  hs server stop >/dev/null 2>&1 || true
+  tm kill-server 2>/dev/null || true
+  rm -rf "$demo"
+}
+cleanup
+trap cleanup EXIT
+
+mkdir -p "$demo/bin" "$demo/run" "$demo/home/.config/nvim" "$demo/shots"
+chmod 700 "$demo/run"
+ln -s "$bin" "$demo/bin/herdsman"
+ln -s "$(command -v nvim)" "$demo/bin/nvim"
+ln -s "$(command -v git)" "$demo/bin/git"
+cp "$here/agent-demo" "$here/transcript.txt" "$demo/bin/"
+cat > "$demo/home/config.toml" <<'TOML'
+onboarding = false
+
+[update]
+version_check = false
+manifest_check = false
+
+[ui]
+sidebar_width = 30
+TOML
+printf '%s\n' 'PS1='\''\[\e[38;2;137;180;250m\]\W\[\e[0m\] \[\e[38;2;166;227;161m\]$\[\e[0m\] '\' > "$demo/home/.bashrc"
+cp "$demo/home/.bashrc" "$demo/home/.bash_profile"
+printf '[user]\n\tname = Demo\n\temail = demo@example.com\n[init]\n\tdefaultBranch = main\n' > "$demo/home/.gitconfig"
+cat > "$demo/home/.config/nvim/init.lua" <<'LUA'
+vim.o.number = true
+vim.o.termguicolors = true
+vim.o.wrap = false
+vim.o.laststatus = 0
+vim.o.ruler = false
+vim.o.showmode = false
+vim.o.shortmess = vim.o.shortmess .. "I"
+vim.opt.fillchars = { eob = " " }
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    vim.cmd("hi Normal guibg=NONE")
+    vim.cmd("hi NormalNC guibg=NONE")
+  end,
+})
+LUA
+
+# The repositories.
+store=$demo/home/code/storefront
+mkdir -p "$store/src/cart" "$store/src/checkout" "$store/src/payments" "$store/src/search" "$demo/home/code/api-gateway"
+cp "$here/checkout.js" "$store/src/checkout/index.js"
+printf '# storefront\n\nA small shop backend.\n' > "$store/README.md"
+printf 'export function total(items) {\n  return items.reduce((sum, i) => sum + i.price * i.qty, 0);\n}\n' \
+  > "$store/src/cart/total.js"
+printf 'export async function charge({ card, amount, key }) {\n  return { ok: true, id: key };\n}\n' \
+  > "$store/src/payments/client.js"
+printf 'export function search(q) {\n  return [];\n}\n' > "$store/src/search/index.js"
+(cd "$store" && dgit init -q && dgit add -A && dgit commit -qm "initial storefront")
+printf '# api-gateway\n' > "$demo/home/code/api-gateway/README.md"
+(cd "$demo/home/code/api-gateway" && dgit init -q && dgit add -A && dgit commit -qm "initial gateway")
+
+screen() { tm capture-pane -p -N -t demo; }
+
+wait_for() { # wait_for <text>: until the screen shows it
+  for _ in $(seq 100); do
+    screen | grep -qF -- "$1" && return 0
+    sleep 0.1
+  done
+  echo "timed out waiting for '$1' on the demo screen" >&2
+  exit 1
+}
+
+find_text() { # find_text <text> [max-column]: 1-based "column row" of its first occurrence
+  screen | python3 -c '
+import sys
+text, limit = sys.argv[1], int(sys.argv[2])
+for row, line in enumerate(sys.stdin, 1):
+    col = line.find(text)
+    if 0 <= col < limit:
+        print(col + 1, row)
+        break
+else:
+    sys.exit(f"{text!r} is not on the demo screen")
+' "$1" "${2:-100000}"
+}
+
+mouse() { # mouse <button> <column> <row>: an SGR mouse press and release
+  tm send-keys -t demo -l $'\e'"[<$1;$2;$3M"
+  tm send-keys -t demo -l $'\e'"[<$1;$2;$3m"
+}
+
+hover() { tm send-keys -t demo -l $'\e'"[<35;$1;$2M"; sleep 0.5; }
+
+shot() { # shot <name> [render.py crop flags]
+  local name=$1
+  shift
+  tm capture-pane -e -p -N -t demo > "$demo/shots/$name.ansi"
+  uv run --quiet "$here/render.py" --freeze "$freeze" --font "$font" "$@" \
+    "$demo/shots/$name.ansi" "$out/$name.webp"
+}
+
+tm -f "$here/tmux.conf" new-session -d -s demo -x 150 -y 40 -c "$store" \
+  "env -i ${demo_env[*]} TERM=tmux-256color $bin"
+wait_for "spaces"
+
+json() { # json <key.path>: a field of a CLI result
+  python3 -c '
+import json, sys
+value = json.load(sys.stdin)["result"]
+for key in sys.argv[1].split("."):
+    value = value[key]
+print(value)
+' "$1"
+}
+worktree() { hs worktree create --cwd "$store" --branch "$1" --no-focus | json workspace.workspace_id; }
+agent() { hs pane report-agent --source demo --agent "$2" --state "$3" "$1" >/dev/null; }
+
+checkout=$(worktree checkout-flow)
+payment=$(worktree payment-retry)
+search=$(worktree search-v2)
+cart=$(worktree fix-cart-total)
+docs=$(worktree docs-refresh)
+hs workspace group "$checkout" "in progress" >/dev/null
+hs workspace group "$payment" "in progress" >/dev/null
+hs workspace group "$search" review >/dev/null
+hs workspace group "$cart" review >/dev/null
+gateway=$(hs workspace create --cwd "$demo/home/code/api-gateway" --no-focus | json workspace.workspace_id)
+
+# checkout-flow: an editor, and beside it a stack of claude, codex and tests.
+editor=$checkout:p1
+hs pane run "$editor" "nvim src/checkout/index.js" >/dev/null
+claude=$(hs pane split "$editor" --direction right --ratio 0.5 --no-focus | json pane.pane_id)
+codex=$(hs pane stack "$claude" --no-focus | json pane.pane_id)
+tests=$(hs pane stack "$claude" --no-focus | json pane.pane_id)
+hs pane rename "$claude" claude >/dev/null
+hs pane rename "$codex" codex >/dev/null
+hs pane rename "$tests" tests >/dev/null
+hs tab rename "$checkout:t1" checkout >/dev/null
+hs pane run "$claude" "clear; agent-demo" >/dev/null
+hs pane run "$tests" clear >/dev/null
+
+# Working, done (working, then idle unseen), blocked and idle agents.
+agent "$codex" codex working
+agent "$codex" codex idle
+agent "$claude" claude working
+agent "$payment:p1" codex blocked
+agent "$search:p1" claude working
+agent "$search:p1" claude idle
+agent "$cart:p1" claude idle
+agent "$docs:p1" claude working
+agent "$gateway:p1" claude working
+
+hs workspace focus "$checkout" >/dev/null
+hs pane focus "$claude" >/dev/null
+wait_for "1 claude"
+wait_for "Updating the checkout docs"
+wait_for "MAX_ATTEMPTS"
+sleep 1
+
+shot overview
+
+# The pane menu over the stack, at Stack here; the sidebar cropped away.
+read -r col row < <(find_text "Updating the checkout docs")
+mouse 2 $((col + 20)) $((row + 4))
+wait_for "Stack here"
+read -r col row < <(find_text "Stack here")
+hover $((col + 2)) "$row"
+shot stacks --cols 30:150
+
+# The sidebar: review collapsed, and a worktree's menu at Worktree group...
+tm send-keys -t demo Escape
+sleep 0.3
+read -r col row < <(find_text "review" 30)
+mouse 0 "$col" "$row"
+wait_for "review ●"
+# Right-clicked past the end of its name, so the menu opens beside the name.
+read -r col row < <(find_text "docs-refresh" 30)
+mouse 2 $((col + 13)) "$row"
+wait_for "Worktree group..."
+read -r col row < <(find_text "Worktree group..." 60)
+hover $((col + 2)) "$row"
+shot worktree-groups --cols 0:62 --rows 0:15

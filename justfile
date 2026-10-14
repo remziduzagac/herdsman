@@ -128,6 +128,11 @@ build-libghostty-vt:
 release version *flags:
     scripts/release {{flags}} {{version}}
 
+# Regenerate the documentation screenshots from a staged demo: see scripts/screenshots/run
+screenshots:
+    cargo build --release --locked
+    scripts/screenshots/run "${CARGO_TARGET_DIR:-target}/release/herdsman"
+
 # Print default config
 default-config:
     cargo run --release --locked -- --default-config
