@@ -240,3 +240,145 @@ fn stack_actions_are_disabled_against_an_endpoint_without_them() {
     assert!(endpoint_method(&mut state, KeybindAction::StackPane).is_none());
     assert!(endpoint_method(&mut state, KeybindAction::FocusStacked(0)).is_none());
 }
+
+/// A one-tab workspace whose only slot is a stack: `pane_1` shows and
+/// `pane_2` waits behind it. The endpoint lists a stack's hidden members as
+/// panes of their tab, so the snapshot holds both.
+fn one_slot_stack(confirm_close: bool) -> ClientShellState {
+    let mut projected = snapshot();
+    let mut hidden = projected.panes[0].clone();
+    hidden.pane_id = "pane_2".into();
+    hidden.focused = false;
+    projected.panes.push(hidden);
+    let mut state = ClientShellState::new(ClientShellConfig::from_config(&Config::default()));
+    state.config.confirm_close = confirm_close;
+    state.set_snapshot(Box::new(projected));
+    state.set_pane_surface(surface());
+    state
+}
+
+fn close_from_pane_menu(state: &mut ClientShellState) -> Option<Method> {
+    state.open_pane_context_menu("pane_1".into(), 0, 0);
+    let Some(ClientShellOverlay::ContextMenu(menu)) = state.overlay.as_ref() else {
+        panic!("pane context menu");
+    };
+    let index = menu
+        .items()
+        .iter()
+        .position(|item| item.action == ClientContextMenuAction::ClosePane)
+        .expect("close item");
+    let mut outcome = ClientShellInput::default();
+    state.activate_context_menu_item(index, &mut outcome);
+    match &outcome.actions[..] {
+        [ClientShellAction::Endpoint { request, .. }] => Some(request.method.clone()),
+        _ => None,
+    }
+}
+
+#[test]
+fn closing_a_stack_member_with_others_behind_it_closes_without_asking() {
+    for confirm_close in [true, false] {
+        let mut keyed = one_slot_stack(confirm_close);
+        assert!(matches!(
+            endpoint_method(&mut keyed, KeybindAction::ClosePane),
+            Some(Method::PaneClose(target)) if target.pane_id == "pane_1"
+        ));
+        assert!(!matches!(
+            keyed.overlay,
+            Some(ClientShellOverlay::ConfirmClose(_))
+        ));
+
+        let mut clicked = one_slot_stack(confirm_close);
+        assert!(matches!(
+            close_from_pane_menu(&mut clicked),
+            Some(Method::PaneClose(target)) if target.pane_id == "pane_1"
+        ));
+        assert!(!matches!(
+            clicked.overlay,
+            Some(ClientShellOverlay::ConfirmClose(_))
+        ));
+    }
+}
+
+/// Whether an endpoint method is the one a key should send.
+type ExpectedMethod = Box<dyn Fn(&Method) -> bool>;
+
+fn endpoint_methods(outcome: &ClientShellInput) -> Vec<Method> {
+    outcome
+        .actions
+        .iter()
+        .filter_map(|action| match action {
+            ClientShellAction::Endpoint { request, .. } => Some(request.method.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The bytes a terminal sends for the prefix, ctrl+b, then each of herdsman's
+/// prefix keys, in the legacy encoding and in the kitty keyboard protocol, with
+/// the bindings taken locally and from the endpoint's keybinding profile.
+#[test]
+fn herdsman_prefix_keys_reach_their_endpoint_methods_from_terminal_bytes() {
+    use crate::api::schema::LayoutDimension;
+
+    let config = Config::default();
+    for source in [
+        ClientShellKeybindingSource::Local,
+        ClientShellKeybindingSource::Endpoint,
+    ] {
+        let mut state = ClientShellState::new(
+            ClientShellConfig::from_config(&config).with_keybinding_source(source),
+        );
+        let mut projected = snapshot();
+        projected.server_keybindings_toml = config.local_keybindings_profile_toml().ok();
+        state.set_snapshot(Box::new(projected));
+        state.set_pane_surface(surface());
+
+        let equalize = |dimension| {
+            move |method: &Method| {
+                matches!(method, Method::LayoutEqualize(params)
+                    if params.tab_id.as_deref() == Some("tab_1") && params.dimension == dimension)
+            }
+        };
+        let stack = |method: &Method| {
+            matches!(method, Method::PaneStack(params)
+                if params.target_pane_id.as_deref() == Some("pane_1") && params.focus)
+        };
+        let stacked = |index: Option<usize>, step: Option<i32>| {
+            move |method: &Method| {
+                matches!(method, Method::PaneFocusStacked(params)
+                    if params.pane_id.as_deref() == Some("pane_1")
+                        && params.index == index
+                        && params.step == step)
+            }
+        };
+        let cases: Vec<(&[u8], ExpectedMethod)> = vec![
+            (b"\x02|", Box::new(equalize(LayoutDimension::Width))),
+            (b"\x02_", Box::new(equalize(LayoutDimension::Height))),
+            (b"\x02\x1bc", Box::new(stack)),
+            (b"\x02\x1bn", Box::new(stacked(None, Some(1)))),
+            (b"\x02\x1bp", Box::new(stacked(None, Some(-1)))),
+            (b"\x02\x1b1", Box::new(stacked(Some(0), None))),
+            (b"\x02\x1b9", Box::new(stacked(Some(8), None))),
+            (
+                b"\x1b[98;5u\x1b[124;2u",
+                Box::new(equalize(LayoutDimension::Width)),
+            ),
+            (
+                b"\x1b[98;5u\x1b[95;2u",
+                Box::new(equalize(LayoutDimension::Height)),
+            ),
+            (b"\x1b[98;5u\x1b[99;3u", Box::new(stack)),
+            (b"\x1b[98;5u\x1b[51;3u", Box::new(stacked(Some(2), None))),
+        ];
+        for (bytes, expected) in cases {
+            let outcome = state.handle_input_bytes(bytes);
+            let methods = endpoint_methods(&outcome);
+            assert!(
+                matches!(methods.as_slice(), [method] if expected(method)),
+                "{source:?} {:?}: {methods:?}",
+                String::from_utf8_lossy(bytes)
+            );
+        }
+    }
+}

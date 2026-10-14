@@ -65,3 +65,67 @@ impl ForkState {
         tokens
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+    use std::sync::Arc;
+
+    use tokio::sync::{mpsc, Notify};
+
+    use super::*;
+    use crate::api::schema::WORKTREE_GROUP_TOKEN;
+
+    #[tokio::test]
+    async fn a_restored_worktree_keeps_its_group_while_its_checkout_is_missing() {
+        let mut snapshot: crate::persist::SessionSnapshot = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/session/current-herdsman-session.json"
+        ))
+        .unwrap();
+        let cwd = std::env::current_dir().unwrap();
+        let missing = cwd.join("__herdsman_missing_worktree_group_checkout__");
+        assert!(!missing.exists());
+        for workspace in &mut snapshot.workspaces {
+            workspace.identity_cwd = cwd.clone();
+            for tab in &mut workspace.tabs {
+                for pane in tab.panes.values_mut() {
+                    pane.cwd = missing.clone();
+                }
+            }
+        }
+        snapshot.workspaces[0].worktree_space = Some(crate::workspace::WorktreeSpaceMembership {
+            key: "saved-repo-key".into(),
+            label: "saved-repo".into(),
+            repo_root: cwd.clone(),
+            checkout_path: missing.clone(),
+            is_linked_worktree: true,
+        });
+
+        // A missing shell keeps every pane unavailable, so nothing is spawned.
+        let (events, _rx) = mpsc::channel(32);
+        let (workspaces, _terminals, _runtimes) = crate::persist::restore(
+            &snapshot,
+            None,
+            24,
+            80,
+            0,
+            "__herdsman_missing_restore_shell__",
+            crate::config::ShellModeConfig::NonLogin,
+            false,
+            events,
+            Arc::new(Notify::new()),
+            Arc::new(crate::render_signal::RenderSignal::new()),
+        );
+
+        let mut fork = ForkState {
+            worktree_groups: WorktreeGroups::open(PathBuf::from("unused.json"), false, false),
+            ..ForkState::default()
+        };
+        assert!(fork.worktree_groups.set(&missing, Some("review".into())));
+        let tokens = fork.workspace_tokens(&workspaces[0]);
+        assert_eq!(
+            tokens.get(WORKTREE_GROUP_TOKEN).map(String::as_str),
+            Some("review")
+        );
+    }
+}

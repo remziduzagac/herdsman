@@ -737,4 +737,37 @@ mod tests {
         let error: ErrorResponse = serde_json::from_str(&response).unwrap();
         assert_eq!(error.error.code, "pane_not_found");
     }
+
+    #[test]
+    fn a_stacks_hidden_members_are_listed_as_panes_of_its_tab() {
+        // A client asks before closing a workspace's last pane when no other
+        // pane of its tab is listed, so a stack's hidden members must be listed.
+        let (mut app, _) = app_with_test_workspace();
+        app.state.active = Some(0);
+        let root = app.state.workspaces[0].tabs[0].root_pane;
+        let member = app.state.workspaces[0].test_split(ratatui::layout::Direction::Horizontal);
+        app.state.ensure_test_terminals();
+        let layout = &mut app.state.workspaces[0].tabs[0].layout;
+        assert!(layout.move_into_stack(member, root));
+        assert_eq!(
+            layout.stack_members(root).map(|(members, _)| members.len()),
+            Some(2)
+        );
+        assert!(!layout.is_visible(member) || !layout.is_visible(root));
+
+        let tab_id = app.public_tab_id(0, 0).unwrap();
+        let mut listed = app
+            .session_snapshot()
+            .panes
+            .into_iter()
+            .filter(|pane| pane.tab_id == tab_id)
+            .map(|pane| pane.pane_id)
+            .collect::<Vec<_>>();
+        listed.sort();
+        let mut members = [root, member]
+            .map(|id| app.public_pane_id(0, id).unwrap())
+            .to_vec();
+        members.sort();
+        assert_eq!(listed, members);
+    }
 }
