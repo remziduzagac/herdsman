@@ -3,7 +3,7 @@
 # managed by herdsman; reinstalling or updating the integration overwrites this file.
 # add custom hooks beside this file instead of editing it.
 # HERDSMAN_INTEGRATION_ID=devin
-# HERDSMAN_INTEGRATION_VERSION=2
+# HERDSMAN_INTEGRATION_VERSION=3
 
 set -eu
 

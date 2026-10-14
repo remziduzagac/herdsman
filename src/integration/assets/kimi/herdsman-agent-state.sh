@@ -1,7 +1,7 @@
 #!/bin/sh
 # managed by herdsman; reinstalling the integration replaces this file.
 # HERDSMAN_INTEGRATION_ID=kimi
-# HERDSMAN_INTEGRATION_VERSION=7
+# HERDSMAN_INTEGRATION_VERSION=8
 
 action="${1:-}"
 case "$action" in

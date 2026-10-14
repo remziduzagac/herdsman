@@ -6,7 +6,7 @@
 //! test checks it against the newest "Based on herdr" line in `CHANGELOG.md`.
 
 /// The herdr release this herdsman is built on.
-pub const HERDR_VERSION: &str = "0.9.4";
+pub const HERDR_VERSION: &str = "0.9.5";
 
 /// The line `herdsman --version` prints below the version. The version line
 /// itself stays `herdsman X.Y.Z`, which install checks match exactly.

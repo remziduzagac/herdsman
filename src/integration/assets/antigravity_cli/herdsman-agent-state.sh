@@ -3,7 +3,7 @@
 # managed by herdsman; reinstalling or updating the integration overwrites this file.
 # add custom hooks beside this file instead of editing it.
 # HERDSMAN_INTEGRATION_ID=antigravity_cli
-# HERDSMAN_INTEGRATION_VERSION=3
+# HERDSMAN_INTEGRATION_VERSION=4
 
 # Session-only: this hook reports the Antigravity conversation so Herdsman can
 # resume the pane. Lifecycle state comes from Herdsman's screen detection.

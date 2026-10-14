@@ -3,6 +3,41 @@
 Each herdsman release names the herdr release it is built on. Versions are herdsman's own;
 `MAINTAINING.md` explains how they are numbered.
 
+## Unreleased
+
+Based on herdr 0.9.5 (`2ecf19a9`).
+
+### From herdr 0.9.5
+
+A hotfix release for herdr 0.9.4, which herdsman 0.1.0 is already based on.
+
+#### Fixed
+
+- Prefix shortcuts work again when the terminal sends the next key as plain text. This affected
+  Tern, Chinese, Japanese and Korean input methods on macOS, and Ghostty `text:` keybinds that send
+  the prefix and a key together. Workspace navigation had the same problem.
+  ([herdr#5255](https://github.com/herdrdev/herdr/issues/5255))
+- Codex sessions no longer start with a "clamping Interrupt hook timeout" warning. Herdsman no
+  longer installs Codex turn hooks, and Codex status comes from screen detection again. Run
+  `herdsman integration install codex` to update.
+  ([herdr#5246](https://github.com/herdrdev/herdr/issues/5246),
+  [herdr#5278](https://github.com/herdrdev/herdr/issues/5278))
+- Claude Code questions show as blocked in named sessions.
+  ([herdr#4573](https://github.com/herdrdev/herdr/issues/4573),
+  [herdr#5192](https://github.com/herdrdev/herdr/issues/5192))
+- On Windows, plugin panes start even when a folder on `PATH` has the same name as the plugin's
+  program. ([herdr#5267](https://github.com/herdrdev/herdr/issues/5267),
+  [herdr#5269](https://github.com/herdrdev/herdr/issues/5269), thanks
+  [@JJLiebig](https://github.com/JJLiebig))
+- On Windows, Claude Code session tracking works when the user folder name contains non-ASCII
+  characters, such as Korean. ([herdr#5253](https://github.com/herdrdev/herdr/issues/5253),
+  [herdr#5270](https://github.com/herdrdev/herdr/issues/5270), thanks
+  [@JJLiebig](https://github.com/JJLiebig))
+- Adding a Windows machine no longer prints raw PowerShell progress output.
+  ([herdr#4639](https://github.com/herdrdev/herdr/issues/4639),
+  [herdr#5282](https://github.com/herdrdev/herdr/issues/5282), thanks
+  [@JJLiebig](https://github.com/JJLiebig))
+
 ## [0.1.0] - 2026-10-14
 
 Based on herdr 0.9.4 (`7e26bad9`).

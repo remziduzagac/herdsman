@@ -1,7 +1,7 @@
 #!/bin/sh
 # managed by herdsman; reinstalling the integration replaces this file.
 # HERDSMAN_INTEGRATION_ID=qodercli
-# HERDSMAN_INTEGRATION_VERSION=3
+# HERDSMAN_INTEGRATION_VERSION=4
 
 [ "${1:-}" = "session" ] || exit 0
 [ "${HERDSMAN_ENV:-}" = "1" ] || exit 0

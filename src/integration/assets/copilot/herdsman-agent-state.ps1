@@ -2,13 +2,16 @@
 # managed by herdsman; reinstalling or updating the integration overwrites this file.
 # add custom hooks beside this file instead of editing it.
 # HERDSMAN_INTEGRATION_ID=copilot
-# HERDSMAN_INTEGRATION_VERSION=3
+# HERDSMAN_INTEGRATION_VERSION=4
 
 if ($env:HERDSMAN_ENV -ne "1") { exit 0 }
 if ([string]::IsNullOrWhiteSpace($env:HERDSMAN_PANE_ID)) { exit 0 }
 if ([string]::IsNullOrWhiteSpace($env:HERDSMAN_SOCKET_PATH)) { exit 0 }
 
-$inputText = [Console]::In.ReadToEnd()
+# Read hook input as raw bytes so UTF-8 payloads decode correctly even when the
+# console input code page is not UTF-8 (for example CP949 on Korean Windows).
+$stdinReader = New-Object System.IO.StreamReader([Console]::OpenStandardInput(), [System.Text.Encoding]::UTF8)
+$inputText = $stdinReader.ReadToEnd()
 try {
     $payload = if ([string]::IsNullOrWhiteSpace($inputText)) { @{} } else { $inputText | ConvertFrom-Json }
 } catch {

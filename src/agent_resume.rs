@@ -164,6 +164,7 @@ pub fn is_reserved_native_state_source(source: &str, agent: &str) -> bool {
     matches!(
         (source, agent),
         ("herdsman:claude", "claude")
+            | ("herdsman:codex", "codex")
             | ("herdsman:copilot", "copilot")
             | ("herdsman:devin", "devin")
             | ("herdsman:droid", "droid")
@@ -406,7 +407,7 @@ mod tests {
     #[test]
     fn native_state_reservation_excludes_full_lifecycle_sources() {
         assert!(is_reserved_native_state_source("herdsman:claude", "claude"));
-        assert!(!is_reserved_native_state_source("herdsman:codex", "codex"));
+        assert!(is_reserved_native_state_source("herdsman:codex", "codex"));
         assert!(is_reserved_native_state_source("herdsman:devin", "devin"));
         assert!(!is_reserved_native_state_source("herdsman:kimi", "kimi"));
         assert!(!is_reserved_native_state_source(
