@@ -39,7 +39,7 @@ struct SpawnedHerdsman {
 impl Drop for SpawnedHerdsman {
     fn drop(&mut self) {
         let pid = self.child.process_id();
-        let _ = self.child.kill();
+        support::stop_spawned_herdsman(&mut *self.child);
 
         if let Some(pid) = pid {
             let deadline = Instant::now() + Duration::from_secs(2);
@@ -106,6 +106,7 @@ fn spawn_server(
         .unwrap();
 
     let mut cmd = CommandBuilder::new(env!("CARGO_BIN_EXE_herdsman"));
+    support::isolate_herdsman_test_process(&mut cmd);
     cmd.arg("server");
     cmd.env("XDG_CONFIG_HOME", config_home);
     cmd.env("XDG_RUNTIME_DIR", runtime_dir);
@@ -150,6 +151,7 @@ fn spawn_herdsman_auto(
         .unwrap();
 
     let mut cmd = CommandBuilder::new(env!("CARGO_BIN_EXE_herdsman"));
+    support::isolate_herdsman_test_process(&mut cmd);
     // No subcommand → auto-detect launch.
     cmd.env("XDG_CONFIG_HOME", config_home);
     cmd.env("XDG_RUNTIME_DIR", runtime_dir);
@@ -600,6 +602,7 @@ fn auto_detect_default_socket_path_from_config_dir() {
         .unwrap();
 
     let mut cmd = CommandBuilder::new(env!("CARGO_BIN_EXE_herdsman"));
+    support::isolate_herdsman_test_process(&mut cmd);
     cmd.arg("server");
     cmd.env("XDG_CONFIG_HOME", &config_home);
     cmd.env("XDG_RUNTIME_DIR", &runtime_dir);
