@@ -261,6 +261,8 @@ jobs:
     needs: [check, manifest]
     if: needs.check.outputs.draft == 'false'
     runs-on: ubuntu-latest
+    # Holds the tap's deploy key; only runs for v* tags can use it.
+    environment: homebrew-tap
     env:
       VERSION: ${{ needs.check.outputs.version }}
     steps:

@@ -468,7 +468,10 @@ new key, so announce it in the changelog.
 
 The Homebrew formula lives in [remziduzagac/homebrew-tap](https://github.com/remziduzagac/homebrew-tap).
 The release workflow regenerates it with `scripts/homebrew-formula` and pushes it with a deploy key
-that can write to that repository only, stored here as the `HOMEBREW_TAP_DEPLOY_KEY` secret.
+that can write to that repository only, stored here as the `HOMEBREW_TAP_DEPLOY_KEY` secret of the
+`homebrew-tap` environment, which only runs for `v*` tags can use. A ruleset on the tap's `main` blocks
+force pushes and deletion. Replace the key once a year: add a new deploy key with write access to the
+tap, set it as the environment's secret, and delete the old key.
 
 ## Previews
 
