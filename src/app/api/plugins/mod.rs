@@ -901,7 +901,7 @@ mod tests {
 id = "example.failed-link"
 name = "Failed link"
 version = "0.1.0"
-min_herdsman_version = "0.9.3"
+min_herdr_version = "0.9.3"
 platforms = ["linux", "macos", "windows"]
 [[actions]]
 id = "open"
@@ -1005,7 +1005,7 @@ action = "open"
 id = "example.worktree-bootstrap"
 name = "Worktree Bootstrap"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 description = "Prepare new worktrees"
 platforms = ["linux", "macos", "windows"]
 
@@ -1074,7 +1074,7 @@ action = "bootstrap"
 id = "example.config-dirs"
 name = "Config Dirs"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 "#,
         );
@@ -1109,7 +1109,7 @@ platforms = ["linux", "macos", "windows"]
 id = "example.legacy-config"
 name = "Legacy Config"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 "#,
         );
@@ -1217,7 +1217,7 @@ platforms = ["linux", "macos", "windows"]
 id = "example.whitespace-argv"
 name = "Whitespace argv"
 version = "0.1.0"
-min_herdsman_version = "0.7.0"
+min_herdr_version = "0.7.0"
 platforms = ["linux", "macos"]
 
 [[panes]]
@@ -1245,7 +1245,7 @@ command = ["awk", "-F", "\t", " {print $1} "]
 id = "example.empty-command-{name}"
 name = "Empty command {name}"
 version = "0.1.0"
-min_herdsman_version = "0.7.0"
+min_herdr_version = "0.7.0"
 platforms = ["linux", "macos"]
 
 [[panes]]
@@ -1272,7 +1272,7 @@ command = {command}
 id = "example.event-whitespace-order"
 name = "Event whitespace order"
 version = "0.1.0"
-min_herdsman_version = "0.7.0"
+min_herdr_version = "0.7.0"
 platforms = ["linux", "macos"]
 
 [[events]]
@@ -1351,7 +1351,7 @@ platforms = ["linux", "macos", "windows"]
 id = "example.invalid-min-herdsman"
 name = "Invalid Min Herdsman"
 version = "0.1.0"
-min_herdsman_version = "soon"
+min_herdr_version = "soon"
 platforms = ["linux", "macos", "windows"]
 "#,
                 "invalid_plugin_min_herdsman_version",
@@ -1362,7 +1362,7 @@ platforms = ["linux", "macos", "windows"]
 id = "example.future-min-herdsman"
 name = "Future Min Herdsman"
 version = "0.1.0"
-min_herdsman_version = "999.0.0"
+min_herdr_version = "999.0.0"
 platforms = ["linux", "macos", "windows"]
 "#,
                 "plugin_requires_newer_herdsman",
@@ -1373,7 +1373,7 @@ platforms = ["linux", "macos", "windows"]
 id = "example.non-popup-size"
 name = "Non Popup Size"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[panes]]
@@ -1409,7 +1409,7 @@ command = ["echo", "board"]
 id = "example.duplicate"
 name = "Duplicate"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[actions]]
@@ -1438,7 +1438,7 @@ command = ["echo", "b"]
 id = "example.dotted-action"
 name = "Dotted Action"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[actions]]
@@ -1462,7 +1462,7 @@ command = ["echo", "build"]
 id = "example.duplicate-pane"
 name = "Duplicate Pane"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[panes]]
@@ -1491,7 +1491,7 @@ command = ["echo", "b"]
 id = "example.startup-manifest"
 name = "Startup Manifest"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[startup]]
@@ -1683,7 +1683,7 @@ platforms = ["linux", "macos"]
 id = "example.pane-paths"
 name = "Pane Paths"
 version = "0.1.0"
-min_herdsman_version = "0.7.0"
+min_herdr_version = "0.7.0"
 platforms = ["windows"]
 
 [[panes]]
@@ -1832,7 +1832,7 @@ command = ["cmd.exe", "/d", "/c", "slot.cmd", "default"]
 id = "example.update"
 name = "Update Probe"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux"]
 
 [[actions]]
@@ -1943,7 +1943,7 @@ command = ["sh", "-c", '"$HERDSMAN_BIN_PATH" --list >/dev/null; printf "%s\n" "$
 id = "example.pane"
 name = "Pane Plugin"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[panes]]
@@ -2053,7 +2053,7 @@ command = ["sh", "-c", "printf '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n' \"$PWD\" \
 id = "example.path-env"
 name = "Path Env"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[panes]]
@@ -2157,7 +2157,7 @@ command = ["sh", "-c", "printf '%s\n%s\n%s\n' \"$HERDSMAN_PLUGIN_ROOT\" \"$HERDS
 id = "example.tab"
 name = "Tab Plugin"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[panes]]
@@ -2240,7 +2240,7 @@ command = ["sh", "-c", "sleep 1"]
 id = "example.split"
 name = "Split Plugin"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[panes]]
@@ -2319,7 +2319,7 @@ command = ["sh", "-c", "sleep 1"]
 id = "example.overlay"
 name = "Overlay Plugin"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[panes]]
@@ -2400,7 +2400,7 @@ command = ["sh", "-c", "sleep 1"]
 id = "example.popup"
 name = "Popup Plugin"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[panes]]
@@ -2818,7 +2818,7 @@ command = ["sh", "-c", "printf %s ${{HERDSMAN_PANE_ID-unset}} > '{}'; sleep 1"]
 id = "example.runner"
 name = "Runner"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[actions]]
@@ -2885,7 +2885,7 @@ command = ["sh", "-c", "printf '%s' \"$HERDSMAN_PLUGIN_ACTION_ID\""]
 id = "example.action-paths"
 name = "Action Paths"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[actions]]
@@ -2996,7 +2996,7 @@ command = ["sh", "-c", "printf '%s\n%s\n%s' \"$HERDSMAN_PLUGIN_ROOT\" \"$HERDSMA
 id = "example.startup"
 name = "Startup"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[startup]]
@@ -3043,7 +3043,7 @@ command = ["sh", "-c", "printf '%s:%s' \"$HERDSMAN_PLUGIN_ID\" \"$HERDSMAN_PLUGI
 id = "example.event-context"
 name = "Event Context"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[events]]
@@ -3261,7 +3261,7 @@ command = ["sh", "-c", "printf '%s' \"$HERDSMAN_PLUGIN_CONTEXT_JSON\" > {}"]
 id = "example.links"
 name = "Links"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[actions]]
@@ -3329,7 +3329,7 @@ action = "open"
 id = "example.link-order"
 name = "Link Order"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[actions]]
@@ -3376,7 +3376,7 @@ action = "generic"
 id = "example.bad-links"
 name = "Bad Links"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[actions]]
@@ -3419,7 +3419,7 @@ action = "open"
 id = "example.bad-link-action"
 name = "Bad Link Action"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[actions]]
@@ -3493,7 +3493,7 @@ action = "missing"
 id = "example.context"
 name = "Context"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 
 [[actions]]
 id = "show"
@@ -3590,7 +3590,7 @@ command = ["show-ctx"]
 id = "example.bad-event"
 name = "Bad Event Plugin"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 
 [[events]]
 on = "worktree.craeted"
@@ -3877,7 +3877,7 @@ command = ["sh", "-c", "echo ok"]
 id = "example.platforms"
 name = "Platforms"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[actions]]
@@ -3960,7 +3960,7 @@ command = ["run.bat"]
 id = "example.reject"
 name = "Reject"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 {excluded_platforms}
 
 [[actions]]
@@ -4025,7 +4025,7 @@ command = ["act"]
 id = "example.override"
 name = "Override"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[actions]]
@@ -4076,7 +4076,7 @@ command = ["act"]
 id = "example.nodecl"
 name = "No Decl"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 
 [[actions]]
 id = "act"
@@ -4134,7 +4134,7 @@ command = ["act"]
 id = "example.badplatform"
 name = "Bad Platform"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "beos"]
 
 [[actions]]
@@ -4166,7 +4166,7 @@ command = ["act"]
 id = "example.platform-rt"
 name = "Platform RT"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos"]
 
 [[actions]]
