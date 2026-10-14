@@ -11,7 +11,7 @@ use crate::api::schema::PaneStackParams;
 /// is a hidden stack member. None for every other form of `pane focus`.
 pub(super) fn focus_lone_pane_id(args: &[String]) -> Option<std::io::Result<i32>> {
     match args {
-        [pane_id] if !pane_id.starts_with('-') => Some(crate::cli::runtime::stack::pane_focus_id(
+        [pane_id] if !pane_id.starts_with('-') => Some(requests::pane_focus_id(
             crate::cli::normalize_pane_id(pane_id),
         )),
         _ => None,
@@ -28,7 +28,7 @@ pub(super) fn pane_stack(args: &[String]) -> std::io::Result<i32> {
         }
     };
 
-    super::super::runtime::stack::pane_stack(params)
+    requests::pane_stack(params)
 }
 
 const PANE_MOVE_TO_STACK_USAGE: &str =
@@ -78,7 +78,7 @@ const PANE_FOCUS_STACKED_USAGE: &str =
 pub(super) fn pane_focus_stacked(args: &[String]) -> std::io::Result<i32> {
     let env_pane_id = super::super::target::caller_pane_id();
     match parse_pane_focus_stacked_args(args, env_pane_id.as_deref()) {
-        Ok(params) => super::super::runtime::stack::pane_focus_stacked(params),
+        Ok(params) => requests::pane_focus_stacked(params),
         Err(message) => {
             eprintln!("{message}");
             Ok(2)
@@ -154,7 +154,7 @@ pub(super) fn pane_stacks(args: &[String]) -> std::io::Result<i32> {
             return Ok(2);
         }
     };
-    super::super::runtime::stack::pane_stacks(crate::api::schema::PaneStacksParams { workspace_id })
+    requests::pane_stacks(crate::api::schema::PaneStacksParams { workspace_id })
 }
 
 /// Stack takes split's options minus the geometry ones.
@@ -179,6 +179,38 @@ fn parse_pane_stack_args(
         right_click: split.right_click,
         env: split.env,
     })
+}
+
+/// The requests behind the stack commands. They go through the CLI's own
+/// `send_request` and `print_response`, so they need no parent module beyond
+/// this one.
+mod requests {
+    use crate::api::schema::{
+        Method, PaneFocusStackedParams, PaneStackParams, PaneStacksParams, PaneTarget, Request,
+    };
+
+    fn send(id: &'static str, method: Method) -> std::io::Result<i32> {
+        crate::cli::print_response(&crate::cli::send_request(&Request {
+            id: id.into(),
+            method,
+        })?)
+    }
+
+    pub(super) fn pane_stack(params: PaneStackParams) -> std::io::Result<i32> {
+        send("cli:pane:stack", Method::PaneStack(params))
+    }
+
+    pub(super) fn pane_stacks(params: PaneStacksParams) -> std::io::Result<i32> {
+        send("cli:pane:stacks", Method::PaneStacks(params))
+    }
+
+    pub(super) fn pane_focus_id(pane_id: String) -> std::io::Result<i32> {
+        send("cli:pane:focus", Method::PaneFocus(PaneTarget { pane_id }))
+    }
+
+    pub(super) fn pane_focus_stacked(params: PaneFocusStackedParams) -> std::io::Result<i32> {
+        send("cli:pane:focus-stacked", Method::PaneFocusStacked(params))
+    }
 }
 
 #[cfg(test)]

@@ -33,3 +33,17 @@ pub(super) fn pane_subcommands() -> Vec<Command> {
             .arg(flag("no-focus")),
     ]
 }
+
+// Own copies of two `spec.rs` helpers, which the base project is replacing,
+// so the stack commands keep their options whatever happens to those. Items
+// defined here take precedence over the `super::*` glob.
+
+fn current_pane_args() -> [Arg; 2] {
+    [option("pane", "ID"), flag("current")]
+}
+
+fn env_option() -> Arg {
+    option("env", "KEY=VALUE")
+        .action(ArgAction::Append)
+        .help("Set an environment variable for the launched process")
+}

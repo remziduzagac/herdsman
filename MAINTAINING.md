@@ -265,7 +265,7 @@ such as `layout/stack.rs` and `app/api/panes/stack.rs`. The herdr files below ca
 | Strip clicks | `client/shell/mouse.rs` |
 | Navigator | `client/shell.rs`, `client/shell/state.rs`, `client/shell/overlay_input.rs` |
 | Navigator rows | `client/shell/aggregate_navigation.rs`, `client/shell/worktrees.rs` |
-| CLI | `cli/pane.rs`, `cli/runtime.rs`, `cli/spec.rs` |
+| CLI | `cli/pane.rs`, `cli/spec.rs` |
 | Test wiring | `client/shell/tests/mod.rs`, `…/tests/graphics.rs`, `…/tests/popup_focus_projection.rs` |
 | Server test wiring | `server/headless/tests/mod.rs` |
 | Generated | `docs/next/api/herdsman-api.schema.json` |
