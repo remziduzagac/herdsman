@@ -1,5 +1,5 @@
-//! `herdsman workspace section` in the CLI spec. `group`, its name in 1.1.0,
-//! still works as a hidden alias.
+//! `herdsman workspace section` in the CLI spec. `group`, its first name, still
+//! works as a hidden alias.
 //!
 //! herdsman's own module. `spec.rs` reaches it through hooks marked
 //! `// fork: worktree groups`.

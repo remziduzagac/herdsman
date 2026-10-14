@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Cut a herdsman release.
 #
-#   scripts/release <version>     e.g. scripts/release 1.1.0
+#   scripts/release <version>     e.g. scripts/release 0.2.0
 #
 # Run in the main checkout, on dev, clean and pushed, at a commit CI passed.
 # The release notes are the CHANGELOG.md section headed "## [<version>] -
@@ -30,14 +30,10 @@ done
 [ ${#args[@]} -eq 1 ] || usage
 version=${args[0]}
 
-[[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "version must look like 1.2.3"
-# herdsman's major version stays one above herdr's (MAINTAINING.md, Versions).
-# The newest "Based on herdr" line names the herdr version this release carries.
-herdr=$(sed -n 's/^Based on herdr \([0-9][0-9.]*\)[^0-9].*/\1/p' CHANGELOG.md | head -n1)
-[ -n "$herdr" ] || die "CHANGELOG.md has no \"Based on herdr X.Y.Z\" line"
-major=$(( ${herdr%%.*} + 1 ))
-[ "${version%%.*}" -eq "$major" ] \
-    || die "this release carries herdr $herdr, so its major version must be $major, one above herdr's"
+[[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "version must look like 0.2.0"
+# Versions are herdsman's own (MAINTAINING.md, Versions); the notes name the herdr
+# release this one is built on.
+grep -q '^Based on herdr [0-9]' CHANGELOG.md || die "CHANGELOG.md has no \"Based on herdr X.Y.Z\" line"
 [ "$(git branch --show-current)" = dev ] || die "run this on dev"
 [ -z "$(git status --porcelain)" ] || die "commit or stash your changes first"
 git fetch -q --tags origin
@@ -45,6 +41,9 @@ git fetch -q --tags origin
 repo=$(git remote get-url origin | sed -E 's#^(git@github\.com:|https://github\.com/)##; s#\.git$##')
 [ "$(git rev-parse dev)" = "$(git rev-parse origin/dev)" ] || die "dev must match origin/dev; push or pull first"
 ! git rev-parse -q --verify "refs/tags/v$version" >/dev/null || die "v$version already exists"
+newest=$(git tag -l 'v*' | sed -n 's/^v\([0-9]*\.[0-9]*\.[0-9]*\)$/\1/p' | sort -V | tail -n1)
+[ -z "$newest" ] || [ "$(printf '%s\n%s\n' "$newest" "$version" | sort -V | tail -n1)" = "$version" ] \
+    || die "$version is older than the newest release, v$newest"
 
 current=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)
 [ "$(printf '%s\n%s\n' "$current" "$version" | sort -V | tail -n1)" = "$version" ] \

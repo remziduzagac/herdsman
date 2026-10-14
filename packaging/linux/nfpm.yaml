@@ -1,7 +1,7 @@
 # nfpm config for the .deb, .rpm and Arch packages of a released Linux binary.
 # .github/workflows/linux-packages.yml copies the release binary for ARCH to
 # build/herdsman and sets the variables:
-#   VERSION               the release version, such as 1.0.0
+#   VERSION               the release version, such as 0.1.0
 #   ARCH                  amd64 or arm64; nfpm names it per format
 #   RPM_SIGNING_KEY_FILE  the armored private key that signs the .rpm
 name: herdsman

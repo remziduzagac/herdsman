@@ -36,7 +36,7 @@ const SYSTEM_PACKAGE_UPDATE_COMMAND: &str = "update through your system package 
 const MISE_INSTALLS_DIR_ENV: &str = "MISE_INSTALLS_DIR";
 const FAKE_UPDATE_VERSION_ENV: &str = "HERDSMAN_FAKE_UPDATE_VERSION";
 const FAKE_UPDATE_NOTES_VERSION_ENV: &str = "HERDSMAN_FAKE_UPDATE_NOTES_VERSION";
-const DEFAULT_FAKE_UPDATE_NOTES_VERSION: &str = "1.0.0"; // fork: herdsman's first changelog section
+const DEFAULT_FAKE_UPDATE_NOTES_VERSION: &str = "0.1.0"; // fork: herdsman's first changelog section
 #[cfg(not(windows))]
 const SERVER_STOP_RESPONSE_TIMEOUT: Duration = Duration::from_secs(5);
 #[cfg(not(windows))]

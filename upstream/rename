@@ -27,7 +27,9 @@ In order, it:
    main, so links into the repository and workflow branch filters follow, and
    the Homebrew version check reads a file on SITE instead of Homebrew's API.
    A plugin manifest's `min_herdr_version = ...` keeps herdr's key, because its
-   value is a herdr release;
+   value is a herdr release, and in Markdown docs a herdr name followed by a
+   version number, such as "Herdr 0.9.2", stays herdr's: herdsman never had
+   that version;
 4. renames files and directories the same way, and rewrites symlink targets;
 5. sets the package version to 0.0.0, so herdr's version bumps never conflict
    with herdsman's own; upstream/import records herdr's version instead;
@@ -142,6 +144,10 @@ NAME = re.compile("herdr", re.IGNORECASE)
 # min_herdsman_version field and its error codes are renamed like the rest.
 MANIFEST_KEY = re.compile(r"(?<!let )min_herdr_version(?=\s*=(?!=))")
 KEPT_NAMES = re.compile(r"min_herdr_version")
+# A herdr release named in the docs, such as "needs Herdr 0.9.2", is herdr's
+# version, not herdsman's. Only docs: code and tests print herdsman's own name.
+DOC_VERSION = re.compile(r"(?<![\w/.-])[Hh]erdr(?= v?\d+\.\d+)")
+DOC_SUFFIXES = (".md", ".mdx")
 KEPT_PLACEHOLDER = "\x00kept-name-{}\x00"
 
 
@@ -189,6 +195,8 @@ def rename_text(text, path):
         return KEPT_PLACEHOLDER.format(len(kept) - 1)
 
     text = MANIFEST_KEY.sub(keep, text)
+    if path.endswith(DOC_SUFFIXES):
+        text = DOC_VERSION.sub(keep, text)
     text = rename_others(text, path)
     for index, name in enumerate(kept):
         text = text.replace(KEPT_PLACEHOLDER.format(index), name)
@@ -332,7 +340,10 @@ def check(root):
         if text is None:
             continue
         for number, line in enumerate(text.splitlines(), 1):
-            if NAME.search(KEPT_NAMES.sub("", line)):
+            line = KEPT_NAMES.sub("", line)
+            if rel.endswith(DOC_SUFFIXES):
+                line = DOC_VERSION.sub("", line)
+            if NAME.search(line):
                 print(f"{rel}:{number}: {line.strip()[:160]}")
                 found += 1
     if found:

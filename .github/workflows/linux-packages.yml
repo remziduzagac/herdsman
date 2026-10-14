@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: release version to package, such as 1.0.0
+        description: release version to package, such as 0.1.0
         required: true
 
 permissions:

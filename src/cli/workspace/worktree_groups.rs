@@ -1,4 +1,4 @@
-//! `herdsman workspace section`, or `group`, its name in 1.1.0: put a linked
+//! `herdsman workspace section`, or `group`, its first name: put a linked
 //! worktree's workspace into a section of its repository, or take it out.
 //!
 //! herdsman's own module. `workspace.rs` reaches it through hooks marked

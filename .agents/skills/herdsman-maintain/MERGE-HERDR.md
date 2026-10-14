@@ -65,8 +65,10 @@ is reported with its reason.
 
 Run `upstream/changelog <version> --write`, as "6. Changelog, promote" describes, then read the
 result and edit what herdsman does differently, such as a herdr feature herdsman drops or replaces.
+Set `HERDR_VERSION` in `src/build_info/base.rs` to the new herdr version; its test compares the two.
 
-Done when the `## Unreleased` section names the new herdr version and reads true for herdsman.
+Done when the `## Unreleased` section names the new herdr version and reads true for herdsman, and
+`HERDR_VERSION` matches it.
 
 ## 7. Hand back
 

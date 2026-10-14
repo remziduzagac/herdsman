@@ -22,9 +22,10 @@ variables read as herdsman's, and adjusted to stay true outside herdr's repo:
 - herdr.dev docs links point at herdsman's page of the same name, or stay on
   herdr.dev when herdsman has no such page.
 
---write puts the result into the Unreleased section of CHANGELOG.md: the
-"Based on" line first, replacing an earlier one, and the herdr notes before any
-from an earlier merge. Review the diff: herdr's notes describe herdr, and a
+--write puts the result into the Unreleased section of CHANGELOG.md, headed
+"## Unreleased" or "## [X.Y.Z] - Unreleased" (adding one when a release used it
+up): the "Based on" line first, replacing an earlier one, and the herdr notes
+before any from an earlier merge. Review the diff: herdr's notes describe herdr, and a
 change herdsman does differently or dropped needs editing by hand.
 """
 
@@ -203,19 +204,26 @@ def notes_for(upstream, start, end):
     return f"Based on herdr {end} (`{commit}`).\n", "\n".join(blocks), report
 
 
+UNRELEASED = re.compile(r"(?ms)^## (?P<heading>(?:\[\d+\.\d+\.\d+\] - )?Unreleased)\n(?P<body>.*?)(?=^## |\Z)")
+
+
 def write(based_on, blocks):
     text = CHANGELOG.read_text()
-    unreleased = re.search(r"(?ms)^## Unreleased\n(.*?)(?=^## |\Z)", text)
+    unreleased = UNRELEASED.search(text)
     if not unreleased:
-        die("CHANGELOG.md has no Unreleased section")
-    body = unreleased.group(1).strip("\n")
+        first = re.search(r"(?m)^## ", text)
+        if not first:
+            die("CHANGELOG.md has no release sections")
+        text = text[: first.start()] + "## Unreleased\n\n" + text[first.start() :]
+        unreleased = UNRELEASED.search(text)
+    body = unreleased.group("body").strip("\n")
     body = BASED_ON.sub("", body + "\n").strip("\n")
     earlier = re.search(r"(?m)^### From herdr ", body)
     if earlier:
         body = body[: earlier.start()] + blocks + "\n" + body[earlier.start() :]
     else:
         body = f"{body}\n\n{blocks}" if body else blocks
-    section = f"## Unreleased\n\n{based_on}\n{body.strip(chr(10))}\n\n"
+    section = f"## {unreleased.group('heading')}\n\n{based_on}\n{body.strip(chr(10))}\n\n"
     CHANGELOG.write_text(text[: unreleased.start()] + section + text[unreleased.end() :])
 
 
@@ -240,11 +248,7 @@ def main(argv):
     upstream = Path(os.environ.get("UPSTREAM_DIR", Path.home() / "Projects/herdr"))
 
     based_on, blocks, report = notes_for(upstream, start, end)
-    if parse_version(end)[0] != parse_version(start)[0]:
-        report.append(
-            f"herdr's major version changes to {parse_version(end)[0]}, so this herdsman release is"
-            f" {parse_version(end)[0] + 1}.0.0 (MAINTAINING.md, Versions)"
-        )
+    report.append(f"set HERDR_VERSION in src/build_info/base.rs to {end}")
     for line in report:
         print(f"changelog: {line}", file=sys.stderr)
     if args.write:

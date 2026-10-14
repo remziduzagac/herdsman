@@ -34,25 +34,27 @@ target `dev`. CI runs on pushes to `main` and `dev` and on every pull request.
 
 ## Versions
 
-herdsman versions are its own and plain `X.Y.Z`; the updater parses nothing else. They started at
-`1.0.0` so that they stay above herdr's 0.x numbers, which plugin minimum versions, docs and tests
-still use.
+herdsman versions are its own and plain `X.Y.Z`; the updater parses nothing else. They are 0.x and
+have nothing to do with herdr's numbers.
 
 - Merging a herdr release or adding a feature bumps the minor version.
 - A fix bumps the patch version.
-- The major version stays one above herdr's: herdr 0.x is herdsman 1.x, and the merge that brings
-  in herdr 1.0 makes herdsman 2.0.0. Otherwise both projects would soon share 1.x numbers.
-- Each `CHANGELOG.md` entry names the herdr version it is built on.
+- Each `CHANGELOG.md` entry names the herdr version it is built on. `HERDR_VERSION` in
+  `src/build_info/base.rs` holds the same version, which `herdsman --version` prints on its second
+  line; a test keeps the two in step.
 
-`just release` refuses a version whose major is not one above that of the herdr version named by
-the newest "Based on herdr" line in `CHANGELOG.md`, and `upstream/changelog` says when a merge
-crosses a herdr major version.
+`just release` refuses a version that is not newer than the newest `v*` tag, and notes without a
+"Based on herdr" line.
 
 `upstream/rename` sets the package version in every import to `0.0.0`, so herdr's version bumps never
 conflict with herdsman's. herdr's real version is in each import commit's `Version:` line.
 
-Plugin minimum versions, docs and tests that name herdr's numbers keep working across a major
-merge, because herdsman's major stays ahead.
+herdr's numbers stay herdr's: plugin manifests name them as `min_herdr_version`, which herdsman
+checks against `HERDR_VERSION` ("Plugin minimum versions" below), and the docs name them as herdr
+versions, such as "Herdr 0.9.2".
+
+herdsman 1.0.0 and 1.1.0 were withdrawn when herdsman moved to 0.x, before anyone else had
+installed them; 0.1.0 carries everything they had.
 
 ## Licence
 
@@ -176,7 +178,10 @@ GitHub, and docs links to herdsman's page of the same name. It prints every herd
 or kept. Read the result: herdr's notes describe herdr, so edit what herdsman does differently. Drop
 `--write` to print the notes instead.
 
-The version is set when releasing, by `just release`. Then:
+Then set `HERDR_VERSION` in `src/build_info/base.rs` to the new herdr version, as the script reminds
+you; a test compares it with the "Based on herdr" line.
+
+herdsman's version is set when releasing, by `just release`. Then:
 
 ```bash
 git commit                                   # in the worktree
@@ -222,12 +227,14 @@ herdsman's side.
 | `justfile` | herdr's release recipes and their tests removed; herdsman's `release` and `screenshots` recipes added |
 | `distribution/latest.json` | herdsman's own manifest, written by herdsman's releases |
 | `docs/next/website/src/content/docs/install.mdx` | herdsman's install channels and preview channel |
+| `docs/next/website/src/content/docs/add-herdsman-support.mdx` | "Herdr 0.9.2" until the next import |
 | `docs/next/website/src/content/docs/{persistence-remote,session-state}.mdx` | system packages named with the other package managers |
-| `docs/next/website/src/content/docs/plugins.mdx` | example repository not published yet; "Sharing plugins" replaces the marketplace |
+| `docs/next/website/src/content/docs/plugins.mdx` | example repository not published yet; "Sharing plugins" replaces the marketplace; "Herdr 0.7.3" until the next import |
 | `docs/next/website/src/content/docs/index.mdx` | a Stacked panes card replaces the marketplace card; a screenshot |
 | `docs/next/product-announcement.json` | herdsman's own; `null` until a release announces something |
-| `src/update.rs` | fake-update notes read herdsman's `1.0.0` changelog section; `/usr/bin` installs count as system packages |
+| `src/update.rs` | fake-update notes read herdsman's `0.1.0` changelog section; `/usr/bin` installs count as system packages |
 | `src/checksum.rs` | the test's SHA-256 re-pinned |
+| `src/app/mod.rs` | a test's stale saved version re-pinned below herdsman's own 0.x version |
 | `src/api/server.rs` | test socket prefix shortened to `hs-`; the longer name overflowed macOS's 104-byte socket path limit |
 | `src/ui/text.rs` | the truncation test's width widened for the longer name |
 | `tests/fixtures/endpoint-method-shapes-v1.json` | `pane.split` and `pane.input.set` re-pinned |
@@ -277,7 +284,7 @@ methods instead.
 ### Worktree groups
 
 Sections, named groups of a repository's linked worktrees, are called worktree groups in the code,
-the API, the saved file and the hook markers, their name in 1.1.0. People see "sections" because
+the API, the saved file and the hook markers, their first name. People see "sections" because
 herdr already calls a repository with its worktrees a worktree group. They live in herdsman's own
 files:
 
