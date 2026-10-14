@@ -270,7 +270,7 @@ mod tests {
         std::fs::write(
             checkout.join("herdsman-plugin.toml"),
             format!(
-                "id = {id:?}\nname = 'Cleanup'\nversion = '0.1.0'\nmin_herdsman_version = '0.6.10'\n"
+                "id = {id:?}\nname = 'Cleanup'\nversion = '0.1.0'\nmin_herdr_version = '0.6.10'\n"
             ),
         )
         .unwrap();

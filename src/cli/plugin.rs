@@ -2032,7 +2032,7 @@ mod tests {
 
     #[test]
     fn github_source_lookup_ignores_owner_and_repo_case() {
-        let source = GithubPluginSource::parse("OGULCANCELIK/HERDSMAN-PLUGIN-EXAMPLES").unwrap();
+        let source = GithubPluginSource::parse("REMZIDUZAGAC/HERDSMAN-PLUGIN-EXAMPLES").unwrap();
         let plugins = vec![github_plugin(
             "examples.root",
             "remziduzagac",

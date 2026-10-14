@@ -15,7 +15,7 @@ fn named_sessions_share_live_plugin_registry() {
         fs::write(
             dir.join("herdsman-plugin.toml"),
             format!(
-                "id = \"{id}\"\nname = \"{id}\"\nversion = \"0.1.0\"\nmin_herdsman_version = \"0.6.10\"\n\n[[actions]]\nid = \"run\"\ntitle = \"Run\"\ncommand = [\"sh\", \"-c\", \"echo run\"]\n"
+                "id = \"{id}\"\nname = \"{id}\"\nversion = \"0.1.0\"\nmin_herdr_version = \"0.6.10\"\n\n[[actions]]\nid = \"run\"\ntitle = \"Run\"\ncommand = [\"sh\", \"-c\", \"echo run\"]\n"
             ),
         )
         .unwrap();
@@ -125,7 +125,7 @@ fn plugin_link_works_offline_and_is_global() {
 id = "example.offline"
 name = "Offline Plugin"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 "#,
     )
@@ -184,7 +184,7 @@ fn plugin_install_through_named_server_is_global() {
 id = "example.global-plugin"
 name = "Global Plugin"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 "#,
     )
@@ -263,7 +263,7 @@ fn plugin_update_refreshes_selected_then_all_github_plugins() {
         fs::write(
             plugin_dir.join("herdsman-plugin.toml"),
             format!(
-                "id = \"{id}\"\nname = \"{id}\"\nversion = \"0.1.0\"\nmin_herdsman_version = \"0.6.10\"\n"
+                "id = \"{id}\"\nname = \"{id}\"\nversion = \"0.1.0\"\nmin_herdr_version = \"0.6.10\"\n"
             ),
         )
         .unwrap();
@@ -385,7 +385,7 @@ fn plugin_update_refreshes_selected_then_all_github_plugins() {
         fs::write(
             source_repo.join(subdir).join("herdsman-plugin.toml"),
             format!(
-                "id = \"{id}\"\nname = \"{id}\"\nversion = \"0.2.0\"\nmin_herdsman_version = \"0.6.10\"\n"
+                "id = \"{id}\"\nname = \"{id}\"\nversion = \"0.2.0\"\nmin_herdr_version = \"0.6.10\"\n"
             ),
         )
         .unwrap();
@@ -422,7 +422,7 @@ fn plugin_update_refreshes_selected_then_all_github_plugins() {
     fs::create_dir_all(&local_dir).unwrap();
     fs::write(
         local_dir.join("herdsman-plugin.toml"),
-        "id = \"example.local\"\nname = \"Local\"\nversion = \"0.1.0\"\nmin_herdsman_version = \"0.6.10\"\n",
+        "id = \"example.local\"\nname = \"Local\"\nversion = \"0.1.0\"\nmin_herdr_version = \"0.6.10\"\n",
     )
     .unwrap();
     let linked = run_named_cli(
@@ -496,7 +496,7 @@ fn plugin_update_does_not_resurrect_a_plugin_unlinked_during_build() {
     fs::create_dir_all(&plugin_dir).unwrap();
     fs::write(
         plugin_dir.join("herdsman-plugin.toml"),
-        "id = \"example.race\"\nname = \"Race\"\nversion = \"0.1.0\"\nmin_herdsman_version = \"0.6.10\"\n",
+        "id = \"example.race\"\nname = \"Race\"\nversion = \"0.1.0\"\nmin_herdr_version = \"0.6.10\"\n",
     )
     .unwrap();
     run_git(&source_repo, &["add", "."]);
@@ -545,7 +545,7 @@ fn plugin_update_does_not_resurrect_a_plugin_unlinked_during_build() {
     fs::write(
         plugin_dir.join("herdsman-plugin.toml"),
         format!(
-            "id = \"example.race\"\nname = \"Race\"\nversion = \"0.2.0\"\nmin_herdsman_version = \"0.6.10\"\n\n[[build]]\ncommand = [\"sh\", \"-c\", \"touch {}; while [ ! -e {} ]; do sleep 0.05; done\"]\n",
+            "id = \"example.race\"\nname = \"Race\"\nversion = \"0.2.0\"\nmin_herdr_version = \"0.6.10\"\n\n[[build]]\ncommand = [\"sh\", \"-c\", \"touch {}; while [ ! -e {} ]; do sleep 0.05; done\"]\n",
             build_started.display(),
             release_build.display()
         ),
@@ -626,7 +626,7 @@ fn plugin_updates_preserve_running_consumers_and_failed_activation() {
 id = "example.live"
 name = "Live"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 [[actions]]
 id = "read"
 title = "Read"
@@ -849,7 +849,7 @@ fn plugin_link_list_unlink_cli_smoke_test() {
 id = "example.layout"
 name = "Layout"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 description = "Apply a preferred Herdsman layout"
 
 [[actions]]
@@ -1023,7 +1023,7 @@ fn plugin_install_list_uninstall_offline_cli_smoke_test() {
 id = "example.worktree-bootstrap"
 name = "Worktree Bootstrap"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[build]]
@@ -1159,7 +1159,7 @@ fn plugin_install_build_failure_does_not_register_or_create_checkout() {
 id = "example.build-fail"
 name = "Build Fail"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[build]]
@@ -1255,7 +1255,7 @@ fn plugin_install_build_spawn_failure_prints_clean_error() {
 id = "example.missing-tool"
 name = "Missing Tool"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[build]]
@@ -1344,7 +1344,7 @@ fn plugin_install_rejects_manifest_changed_by_build() {
 id = "example.manifest-mutator"
 name = "Manifest Mutator"
 version = "0.1.0"
-min_herdsman_version = "0.6.10"
+min_herdr_version = "0.6.10"
 platforms = ["linux", "macos", "windows"]
 
 [[build]]
@@ -1363,7 +1363,7 @@ command = ["sh", "-c", "echo reviewed"]
 id = "example.manifest-mutator"
 name = "Manifest Mutator"
 version = "0.1.0"
-min_herdsman_version = "0.0.1"
+min_herdr_version = "0.0.1"
 platforms = ["linux", "macos", "windows"]
 
 [[build]]
