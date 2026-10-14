@@ -229,7 +229,7 @@ herdsman's side.
 | `tests/fixtures/endpoint-method-shapes-v1.json` | `pane.split` and `pane.input.set` re-pinned |
 | `src/cli/plugin.rs` | a test's upper-case owner re-pinned: `upstream/rename` maps it only in lower case |
 | `Cargo.lock` | `rand` 0.8.6 for GHSA-cq8v-f236-94qc; take herdr's version once it is 0.8.6 or later |
-| `skills/herdsman/SKILL.md` | stacks, worktree groups and equal pane sizes sections |
+| `skills/herdsman/SKILL.md` | stacks, worktree sections and equal pane sizes sections |
 
 ### Stacks
 
@@ -272,13 +272,17 @@ methods instead.
 
 ### Worktree groups
 
-Named groups of a repository's linked worktrees live in herdsman's own files:
+Sections, named groups of a repository's linked worktrees, are called worktree groups in the code,
+the API, the saved file and the hook markers, their name in 1.1.0. People see "sections" because
+herdr already calls a repository with its worktrees a worktree group. They live in herdsman's own
+files:
 
 - `app/state/fork/worktree_groups.rs`: the groups, by checkout path, saved as
   `worktree-groups.json` in the session's data directory rather than in herdr's session format;
 - `app/api/workspaces/worktree_groups.rs` and `api/schema/workspaces/worktree_groups.rs`: the
   `workspace.set_worktree_group` method;
-- `cli/workspace/worktree_groups.rs` and `cli/spec/worktree_groups.rs`: `herdsman workspace group`;
+- `cli/workspace/worktree_groups.rs` and `cli/spec/worktree_groups.rs`: `herdsman workspace section`,
+  with `group` as its alias;
 - `client/shell/sidebar/worktree_groups.rs`: ordering, headers, clicks and the name prompt, with its
   tests in `client/shell/tests/worktree_groups.rs`; `client/shell/fork.rs` holds herdsman's click
   targets.

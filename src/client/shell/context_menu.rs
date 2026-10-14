@@ -26,7 +26,7 @@ impl ClientContextMenuOverlay {
                 item("Rename", Action::Rename),
                 item("Close", Action::Close),
                 item("Delete worktree checkout...", Action::RemoveWorktree),
-                item("Worktree group...", Action::WorktreeGroup), // fork: worktree groups
+                item("Section...", Action::WorktreeGroup), // fork: worktree groups
             ],
             ClientContextMenuTarget::Workspace {
                 has_worktree_children: true,

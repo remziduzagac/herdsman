@@ -206,10 +206,10 @@ payment=$(worktree payment-retry)
 search=$(worktree search-v2)
 cart=$(worktree fix-cart-total)
 docs=$(worktree docs-refresh)
-hs workspace group "$checkout" "in progress" >/dev/null
-hs workspace group "$payment" "in progress" >/dev/null
-hs workspace group "$search" review >/dev/null
-hs workspace group "$cart" review >/dev/null
+hs workspace section "$checkout" "in progress" >/dev/null
+hs workspace section "$payment" "in progress" >/dev/null
+hs workspace section "$search" review >/dev/null
+hs workspace section "$cart" review >/dev/null
 gateway=$(hs workspace create --cwd "$demo/home/code/api-gateway" --no-focus | json workspace.workspace_id)
 
 # checkout-flow: an editor, and beside it a stack of claude, codex and tests.
@@ -253,7 +253,7 @@ read -r col row < <(find_text "Stack here")
 hover $((col + 2)) "$row"
 shot stacks --cols 30:150
 
-# The sidebar: review collapsed, and a worktree's menu at Worktree group...
+# The sidebar: review collapsed, and a worktree's menu at Section...
 tm send-keys -t demo Escape
 sleep 0.3
 read -r col row < <(find_text "review" 30)
@@ -262,7 +262,7 @@ wait_for "review ●"
 # Right-clicked past the end of its name, so the menu opens beside the name.
 read -r col row < <(find_text "docs-refresh" 30)
 mouse 2 $((col + 13)) "$row"
-wait_for "Worktree group..."
-read -r col row < <(find_text "Worktree group..." 60)
+wait_for "Section..."
+read -r col row < <(find_text "Section..." 60)
 hover $((col + 2)) "$row"
-shot worktree-groups --cols 0:62 --rows 0:15
+shot sections --cols 0:62 --rows 0:15

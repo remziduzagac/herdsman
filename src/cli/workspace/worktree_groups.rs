@@ -1,12 +1,12 @@
-//! `herdsman workspace group`: put a linked worktree's workspace into a named
-//! group, or take it out.
+//! `herdsman workspace section`, or `group`, its name in 1.1.0: put a linked
+//! worktree's workspace into a section of its repository, or take it out.
 //!
 //! herdsman's own module. `workspace.rs` reaches it through hooks marked
 //! `// fork: worktree groups`.
 
 use crate::api::schema::{Method, Request, WorkspaceSetWorktreeGroupParams};
 
-const USAGE: &str = "usage: herdsman workspace group <workspace_id> <name>|--clear";
+const USAGE: &str = "usage: herdsman workspace section <workspace_id> <name>|--clear";
 
 pub(super) fn workspace_group(args: &[String]) -> std::io::Result<i32> {
     let params = match parse_workspace_group_args(args) {
@@ -17,7 +17,7 @@ pub(super) fn workspace_group(args: &[String]) -> std::io::Result<i32> {
         }
     };
     crate::cli::print_response(&crate::cli::send_request(&Request {
-        id: "cli:workspace:group".into(),
+        id: "cli:workspace:section".into(),
         method: Method::WorkspaceSetWorktreeGroup(params),
     })?)
 }

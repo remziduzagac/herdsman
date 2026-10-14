@@ -472,7 +472,7 @@ impl ClientShellState {
             .unwrap_or_default()
             .to_owned();
         self.overlay = Some(ClientShellOverlay::Rename(ClientRenameOverlay {
-            title: "worktree group (empty to remove)",
+            title: "section (empty to remove)",
             input: TextEditor::new(&current, false),
             target: ClientRenameTarget::WorktreeGroup { workspace_id },
         }));

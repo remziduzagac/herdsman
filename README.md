@@ -6,7 +6,7 @@ A terminal workspace for running coding agents: workspaces, tabs and panes, SSH-
 machines, and agents recognised by state in the sidebar. On top of that, **stacked panes**:
 one layout slot holds several panes and shows one at a time, while the hidden ones keep running.
 
-![herdsman: a repository's worktrees in named groups in the sidebar, and an editor beside a stack of agent panes][shot]
+![herdsman: a repository's worktrees in sections in the sidebar, and an editor beside a stack of agent panes][shot]
 
 [shot]: docs/next/website/src/assets/screenshots/overview.webp
 
@@ -39,9 +39,9 @@ Signed apt, dnf and pacman repositories, Windows, Nix and manual downloads are c
 - **Stacked panes.** `prefix+alt+c` puts a new pane behind the current one, and a strip along
   the slot switches between them. [The stacks page](https://remziduzagac.github.io/herdsman/docs/stacks/) has the keys, CLI and
   behaviour.
-- **Worktree groups.** A repository's worktrees can be sorted into named groups, each under its
-  own collapsible header in the sidebar, from a worktree's right-click menu or
-  `herdsman workspace group`.
+- **Worktree sections.** A repository's worktrees can be sorted into named sections, each under
+  its own collapsible header in the sidebar, from a worktree's right-click menu or
+  `herdsman workspace section`.
 
 ## Building
 

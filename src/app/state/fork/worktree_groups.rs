@@ -96,11 +96,11 @@ pub(crate) fn normalize_group_name(name: Option<String>) -> Result<Option<String
     }
     if name.chars().count() > MAX_GROUP_NAME_CHARS {
         return Err(format!(
-            "a worktree group name is at most {MAX_GROUP_NAME_CHARS} characters"
+            "a section name is at most {MAX_GROUP_NAME_CHARS} characters"
         ));
     }
     if name.chars().any(char::is_control) {
-        return Err("a worktree group name cannot contain control characters".into());
+        return Err("a section name cannot contain control characters".into());
     }
     Ok(Some(name))
 }

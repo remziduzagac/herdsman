@@ -1,5 +1,7 @@
-//! `workspace.set_worktree_group`: named groups of a repository's linked
-//! worktrees.
+//! `workspace.set_worktree_group`: sections, named groups of a repository's
+//! linked worktrees. The API and the code keep their first name, worktree
+//! groups; people see "sections", because the base project calls a repository
+//! and its worktrees a worktree group.
 //!
 //! herdsman's own module. `workspaces.rs` reaches it through hooks marked
 //! `// fork: worktree groups`.
@@ -31,7 +33,7 @@ impl App {
             return encode_error(
                 id,
                 "not_a_linked_worktree",
-                "only a linked worktree's workspace can join a worktree group",
+                "only a linked worktree's workspace can join a section",
             );
         };
         let group = match normalize_group_name(params.group) {

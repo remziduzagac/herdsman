@@ -19,7 +19,7 @@ pub(super) fn run_workspace_command(args: &[String]) -> std::io::Result<i32> {
         "focus" => workspace_focus(&args[1..]),
         "rename" => workspace_rename(&args[1..]),
         "report-metadata" => workspace_report_metadata(&args[1..]),
-        "group" => worktree_groups::workspace_group(&args[1..]), // fork: worktree groups
+        "section" | "group" => worktree_groups::workspace_group(&args[1..]), // fork: worktree groups
         "close" => workspace_close(&args[1..]),
         "help" | "--help" | "-h" => {
             print_workspace_help();
@@ -251,7 +251,7 @@ fn print_workspace_help() {
     eprintln!("  herdsman workspace get <workspace_id>");
     eprintln!("  herdsman workspace focus <workspace_id>");
     eprintln!("  herdsman workspace rename <workspace_id> <label>");
-    eprintln!("  herdsman workspace group <workspace_id> <name>|--clear"); // fork: worktree groups
+    eprintln!("  herdsman workspace section <workspace_id> <name>|--clear"); // fork: worktree groups
     eprintln!("  herdsman workspace report-metadata <workspace_id> --source ID [--token NAME=VALUE] [--clear-token NAME] [--seq N] [--ttl-ms N]");
     eprintln!("  herdsman workspace close <workspace_id> [--group]");
 }

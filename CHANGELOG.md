@@ -18,6 +18,12 @@ Based on herdr 0.9.4 (`7e26bad9`).
   for that agent, and `herdsman update` keeps those copies matched to the new binary. A skill
   herdsman did not write, such as a link into a dotfiles checkout, is left alone.
 
+### Changed
+
+- Worktree groups are now called sections, so they are not mistaken for herdr's worktree groups, a
+  repository together with its worktrees. A worktree's right-click menu offers Section..., and
+  `herdsman workspace section` replaces `herdsman workspace group`, which still works.
+
 ### Fixed
 
 - A pane added to a stack fits its slot at once. Until the layout next changed, it could keep the
