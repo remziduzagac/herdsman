@@ -36,12 +36,21 @@ Signed apt, dnf and pacman repositories, Windows, Nix and manual downloads are c
 - **Its own app.** The binary, `~/.config/herdsman`, the socket, the `HERDSMAN_*` environment
   variables and the agent hooks all carry herdsman's name, so herdsman and herdr run side by side
   without sharing anything.
-- **Stacked panes.** `prefix+alt+c` puts a new pane behind the current one, and a strip along
-  the slot switches between them. [The stacks page](https://remziduzagac.github.io/herdsman/docs/stacks/) has the keys, CLI and
+- **Stacked panes.** `prefix+alt+c`, or Stack here in a pane's right-click menu, puts a new pane
+  behind the current one, and a strip along the slot switches between them.
+  [The stacks page](https://remziduzagac.github.io/herdsman/docs/stacks/) has the keys, CLI and
   behaviour.
+- **Equal pane sizes.** `prefix+|` gives every column in the tab the same width and `prefix+_`
+  every row the same height. A pane's right-click menu and `herdsman tab equalize` do the same.
 - **Worktree sections.** A repository's worktrees can be sorted into named sections, each under
   its own collapsible header in the sidebar, from a worktree's right-click menu or
   `herdsman workspace section`.
+- **The agent skill comes with the integrations.** `herdsman integration install claude`, `codex`
+  or `opencode` also installs herdsman's
+  [agent skill](https://remziduzagac.github.io/herdsman/docs/agent-skill/), and `herdsman update`
+  keeps it matched to the new binary.
+- **Updates that respect your package manager.** `herdsman update` points apt, dnf and pacman
+  installs at their package manager instead of replacing a file it owns.
 
 ## Building
 
