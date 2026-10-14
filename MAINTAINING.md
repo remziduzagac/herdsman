@@ -226,8 +226,8 @@ herdsman's side.
 | `src/checksum.rs` | the test's SHA-256 re-pinned |
 | `src/api/server.rs` | test socket prefix shortened to `hs-`; the longer name overflowed macOS's 104-byte socket path limit |
 | `src/ui/text.rs` | the truncation test's width widened for the longer name |
-| `scripts/agent_detection_manifest_check.py` | `STAGED_PUBLISHED_MANIFESTS` digest re-pinned |
 | `tests/fixtures/endpoint-method-shapes-v1.json` | `pane.split` and `pane.input.set` re-pinned |
+| `src/cli/plugin.rs` | a test's upper-case owner re-pinned: `upstream/rename` maps it only in lower case |
 | `Cargo.lock` | `rand` 0.8.6 for GHSA-cq8v-f236-94qc; take herdr's version once it is 0.8.6 or later |
 | `skills/herdsman/SKILL.md` | stacks, worktree groups and equal pane sizes sections |
 
@@ -246,6 +246,7 @@ such as `layout/stack.rs` and `app/api/panes/stack.rs`. The herdr files below ca
 | Methods | `api/schema.rs`, `api/schema/response.rs`, `api/mod.rs`, `api/server.rs` |
 | Handlers | `app/api.rs`, `app/api/panes.rs` |
 | Advertising | `server/client_commands.rs` |
+| Layout pass after a request | `server/headless/client_views.rs` |
 | Rendering | `ui.rs`, `ui/panes.rs` |
 | Done and idle | `app/actions.rs`, `workspace.rs` |
 | Config | `config/model.rs`, `config/keybinds.rs`, `app/state.rs`, `app/mod.rs` |
@@ -255,6 +256,7 @@ such as `layout/stack.rs` and `app/api/panes/stack.rs`. The herdr files below ca
 | Navigator rows | `client/shell/aggregate_navigation.rs`, `client/shell/worktrees.rs` |
 | CLI | `cli/pane.rs`, `cli/runtime.rs`, `cli/spec.rs` |
 | Test wiring | `client/shell/tests/mod.rs`, `…/tests/graphics.rs`, `…/tests/popup_focus_projection.rs` |
+| Server test wiring | `server/headless/tests/mod.rs` |
 | Generated | `docs/next/api/herdsman-api.schema.json` |
 | Docs data | `docs/next/website/src/data/config-reference.json` |
 

@@ -41,7 +41,7 @@ struct SpawnedHerdsman {
 impl Drop for SpawnedHerdsman {
     fn drop(&mut self) {
         let pid = self.child.process_id();
-        let _ = self.child.kill();
+        support::stop_spawned_herdsman(&mut *self.child);
         if let Some(pid) = pid {
             let deadline = Instant::now() + Duration::from_secs(2);
             while Instant::now() < deadline {
@@ -89,6 +89,7 @@ fn spawn_server(config: &Path, runtime: &Path, api: &Path) -> SpawnedHerdsman {
         })
         .unwrap();
     let mut cmd = CommandBuilder::new(env!("CARGO_BIN_EXE_herdsman"));
+    support::isolate_herdsman_test_process(&mut cmd);
     cmd.arg("server");
     cmd.env("XDG_CONFIG_HOME", config);
     cmd.env("XDG_RUNTIME_DIR", runtime);
@@ -116,6 +117,7 @@ fn spawn_client(config: &Path, runtime: &Path, api: &Path) -> SpawnedHerdsman {
         })
         .unwrap();
     let mut cmd = CommandBuilder::new(env!("CARGO_BIN_EXE_herdsman"));
+    support::isolate_herdsman_test_process(&mut cmd);
     cmd.arg("client");
     cmd.env("HERDSMAN_DISABLE_SOUND", "1");
     cmd.env("XDG_CONFIG_HOME", config);

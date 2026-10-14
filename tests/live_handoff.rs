@@ -33,7 +33,7 @@ struct RequestError {
 impl Drop for SpawnedHerdsman {
     fn drop(&mut self) {
         let pid = self.child.process_id();
-        let _ = self.child.kill();
+        support::stop_spawned_herdsman(&mut *self.child);
         unregister_spawned_herdsman_pid(pid);
     }
 }
@@ -78,6 +78,7 @@ fn spawn_server_with_env(
         })
         .unwrap();
     let mut cmd = CommandBuilder::new(env!("CARGO_BIN_EXE_herdsman"));
+    support::isolate_herdsman_test_process(&mut cmd);
     cmd.arg("server");
     cmd.env("XDG_CONFIG_HOME", config_home);
     cmd.env("XDG_RUNTIME_DIR", runtime_dir);
@@ -121,6 +122,7 @@ fn spawn_named_session_server(
         })
         .unwrap();
     let mut cmd = CommandBuilder::new(env!("CARGO_BIN_EXE_herdsman"));
+    support::isolate_herdsman_test_process(&mut cmd);
     cmd.arg("server");
     cmd.env("XDG_CONFIG_HOME", config_home);
     cmd.env("XDG_RUNTIME_DIR", runtime_dir);
@@ -155,6 +157,7 @@ fn spawn_default_session_server(config_home: &Path, runtime_dir: &Path) -> Spawn
         })
         .unwrap();
     let mut cmd = CommandBuilder::new(env!("CARGO_BIN_EXE_herdsman"));
+    support::isolate_herdsman_test_process(&mut cmd);
     cmd.arg("server");
     cmd.env("XDG_CONFIG_HOME", config_home);
     cmd.env("XDG_RUNTIME_DIR", runtime_dir);
@@ -196,6 +199,7 @@ fn spawn_server_with_args_and_socket_env(
         })
         .unwrap();
     let mut cmd = CommandBuilder::new(env!("CARGO_BIN_EXE_herdsman"));
+    support::isolate_herdsman_test_process(&mut cmd);
     if let Some(session_name) = session_name {
         cmd.arg("--session");
         cmd.arg(session_name);

@@ -25,21 +25,26 @@ impl App {
 
     /// `apply_layout_node_to_pane` for a stack: `pane_id` becomes the first
     /// member, the others spawn beside it and fold in, then `active` shows.
+    /// `pane_sizes` holds the one size of the slot every member fills.
     pub(super) fn apply_layout_stack_to_pane(
         &mut self,
         ws_idx: usize,
         pane_id: PaneId,
         panes: &[LayoutPane],
         active: usize,
+        pane_sizes: &[(u16, u16)],
     ) -> Result<(), String> {
+        let Some(&size) = pane_sizes.first() else {
+            return Err("layout pane sizes do not match the layout".into());
+        };
         let mut members = vec![pane_id];
         if let Some(first) = panes.first() {
             self.apply_layout_pane_label(ws_idx, pane_id, first);
         }
         for member in panes.iter().skip(1) {
-            // Spawn beside the slot, then fold the new pane into it.
+            // Spawn at the slot's size beside it, then fold the new pane in.
             let new_pane =
-                self.layout_split_pane(ws_idx, pane_id, SplitDirection::Right, 0.5, member)?;
+                self.layout_split_pane(ws_idx, pane_id, SplitDirection::Right, 0.5, member, size)?;
             if !self
                 .layout_mut_for_pane(ws_idx, pane_id)?
                 .move_into_stack(pane_id, new_pane)
@@ -70,6 +75,14 @@ impl App {
             .ok_or("pane not found")?;
         Ok(&mut ws.tabs[tab_idx].layout)
     }
+}
+
+/// `final_tile_layout` for a stack: the slot it fills, as one placeholder pane.
+/// Members share the slot, so `layout_leaf_count` counts a stack as one and
+/// every member starts at the slot's size.
+pub(super) fn final_slot(next_id: &mut u32) -> Node {
+    *next_id += 1;
+    Node::Pane(PaneId::from_raw(*next_id))
 }
 
 /// `first_layout_leaf` for a stack. Validation rejects empty stacks; the
@@ -213,6 +226,57 @@ mod tests {
             2
         );
         app.state.assert_invariants_for_test();
+        shutdown_test_runtimes(&mut app);
+    }
+
+    #[tokio::test]
+    async fn layout_apply_starts_every_stack_member_at_its_slot_size() {
+        let mut app = app_with_workspace();
+        let area = ratatui::layout::Rect::new(0, 0, 120, 40);
+        crate::ui::compute_view_without_resizing_panes(
+            &mut app.state,
+            &app.terminal_runtimes,
+            area,
+        );
+        let root = LayoutNode::Split {
+            direction: SplitDirection::Right,
+            ratio: 0.3,
+            first: Box::new(LayoutNode::Pane {
+                pane: labelled("editor"),
+            }),
+            second: Box::new(LayoutNode::Stack {
+                panes: vec![labelled("claude"), labelled("codex"), labelled("gemini")],
+                active: 2,
+            }),
+        };
+        let slots = app.state.new_layout_pane_sizes(&final_tile_layout(&root));
+        assert_eq!(slots.len(), 2, "a stack is one slot");
+
+        let response = app.handle_layout_apply(
+            "req".into(),
+            LayoutApplyParams {
+                workspace_id: None,
+                tab_id: None,
+                tab_label: None,
+                focus: false,
+                root,
+            },
+        );
+
+        let _: SuccessResponse = serde_json::from_str(&response).unwrap();
+        let tab_idx = app.state.workspaces[0].tabs.len() - 1;
+        let sizes = app.state.workspaces[0].tabs[tab_idx]
+            .layout
+            .pane_ids()
+            .into_iter()
+            .map(|pane_id| {
+                app.state
+                    .runtime_for_pane_in_workspace(&app.terminal_runtimes, 0, pane_id)
+                    .unwrap()
+                    .current_size()
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(sizes, [slots[0], slots[1], slots[1], slots[1]]);
         shutdown_test_runtimes(&mut app);
     }
 

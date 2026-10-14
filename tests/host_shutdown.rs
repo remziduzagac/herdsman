@@ -134,6 +134,7 @@ async fn host_shutdown_saves_layout_before_releasing_delay_lock() {
             .env_remove("HERDSMAN_SOCKET_PATH")
             .env("DBUS_SYSTEM_BUS_ADDRESS", address.trim())
             .env_remove("HERDSMAN_CLIENT_SOCKET_PATH")
+            .env_remove("HERDSMAN_STARTUP_CWD")
             .env_remove("HERDSMAN_SESSION")
             .env_remove("HERDSMAN_WORKSPACE_ID")
             .env_remove("HERDSMAN_TAB_ID")

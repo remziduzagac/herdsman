@@ -265,6 +265,11 @@ impl HeadlessServer {
                 | Method::PaneScroll(_)
                 | Method::PaneClear(_)
                 | Method::PaneSplit(_)
+                // fork: stacks
+                | Method::PaneStack(_)
+                | Method::PaneFocusStacked(_)
+                | Method::PaneFocusStackedAt(_)
+                | Method::PaneFocusStackStrip(_)
                 | Method::PaneSwap(_)
                 | Method::PaneZoom(_)
                 | Method::TabClose(_)
@@ -299,6 +304,11 @@ impl HeadlessServer {
                 | Method::PaneFocusDirection(_)
                 | Method::PaneResize(_)
                 | Method::PaneSplit(_)
+                // fork: stacks
+                | Method::PaneStack(_)
+                | Method::PaneFocusStacked(_)
+                | Method::PaneFocusStackedAt(_)
+                | Method::PaneFocusStackStrip(_)
                 | Method::PaneSwap(_)
                 | Method::PaneZoom(_)
                 | Method::TabClose(_)
