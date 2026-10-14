@@ -1,6 +1,7 @@
 // Fails the build when a page links to another page of the site that does not
 // exist, to a heading that page does not have, or to a path on the domain
-// outside the herdsman site. External links are not checked.
+// outside the herdsman site, and when it loads an image or script that is not
+// there. External links are not checked.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { base as siteBase } from './site.mjs';
@@ -26,7 +27,7 @@ function target(url) {
 walk('dist');
 const broken = [];
 for (const [page, html] of pages) {
-  for (const [, url] of html.matchAll(/href="([^"]+)"/g)) {
+  for (const [, url] of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
     if (url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/herdsman/')) {
       broken.push(`${page}: ${url} (outside the herdsman site)`);
       continue;
@@ -34,7 +35,7 @@ for (const [page, html] of pages) {
     if (!url.startsWith(base)) continue;
     const { file, hash } = target(url);
     if (!existsSync(file)) {
-      broken.push(`${page}: ${url} (no page)`);
+      broken.push(`${page}: ${url} (no such page or file)`);
     } else if (hash && file.endsWith('.html') && !(pages.get(file) ?? '').includes(`id="${hash}"`)) {
       broken.push(`${page}: ${url} (no heading #${hash})`);
     }

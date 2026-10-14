@@ -466,12 +466,18 @@ npm run build    # the site in dist/; fails on any broken internal link
 HERDSMAN_DOCS_CHANNEL=preview npm run build    # the preview build, for /herdsman/docs/preview/
 ```
 
-The pages link to each other as `/docs/<page>/`, as herdr's site did; `scripts/rebase-links.mjs`
-rewrites them to the site's base (`scripts/site.mjs`) after the build, and `scripts/check-links.mjs`
-then fails the build on a missing page, heading or a path outside the site. A new page needs an
-entry in the sidebar in `astro.config.mjs`. Everything in `docs/next/website` except
-`src/content/docs` and `src/data` is herdsman's own; herdr keeps its website in a separate, private
-repository.
+The pages link to each other as `/docs/<page>/`, as herdr's site did, and load files from `public/`
+as `/assets/<file>`; `scripts/rebase-links.mjs` rewrites both to the site's base (`scripts/site.mjs`)
+after the build, and `scripts/check-links.mjs` then fails the build on a missing page, heading or
+file, or a path outside the site. A new page needs an entry in the sidebar in `astro.config.mjs`.
+Everything in `docs/next/website` except `src/content/docs` and `src/data` is herdsman's own; herdr
+keeps its website in a separate, private repository.
+
+`src/styles/custom.css` holds the styles herdr's pages expect from herdr's site, such as the
+`.mobile-doc-shots` block of phone pictures in `how-to-work.mdx`. Its two pictures,
+`public/assets/mobile-*.jpeg`, are placeholders: herdr's would show herdr, and taking the block out
+of herdr's page would conflict at merges. Replace them with phone screenshots of herdsman under the
+same names.
 
 `package.json` overrides `postcss-selector-parser` to 7.1.6 inside `postcss-nested`, for
 GHSA-rj75-hqrm-r3gf: Starlight's code blocks still pull in `postcss-nested` 6, which wants the

@@ -1,7 +1,8 @@
 // The pages link to each other as /docs/<page>/, the path the base project's
-// own site used. The herdsman site lives at /herdsman/docs/ (the preview's at
-// /herdsman/docs/preview/), so after the build this rewrites every such link in
-// the generated HTML to start with the site's base.
+// own site used, and load files from public/ as /assets/<file>. The herdsman site
+// lives at /herdsman/docs/ (the preview's at /herdsman/docs/preview/), so after
+// the build this rewrites every such link in the generated HTML to start with the
+// site's base.
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { base } from './site.mjs';
@@ -19,9 +20,9 @@ function walk(dir) {
 
 function rebase(path) {
   const html = readFileSync(path, 'utf8');
-  const rebased = html.replace(/(href|src)="\/docs\//g, (_, attribute) => {
+  const rebased = html.replace(/(href|src)="\/(docs|assets)\//g, (_, attribute, root) => {
     links += 1;
-    return `${attribute}="${base}/`;
+    return `${attribute}="${base}/${root === 'assets' ? 'assets/' : ''}`;
   });
   if (rebased !== html) {
     writeFileSync(path, rebased);
