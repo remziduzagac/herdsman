@@ -179,6 +179,7 @@ def rename_text(text, path):
     # example plugins (an unlicensed repository herdsman cannot copy) and the
     # mise install path. herdsman's equivalents live under its own owner.
     text = text.replace("ogulcancelik", OWNER)
+    text = text.replace("OGULCANCELIK", OWNER.upper())
     text = text.replace("herdrdev/herdr", REPO)
     text = text.replace("herdrdev", OWNER)
     text = re.sub(rf"(github\.com/{re.escape(REPO)}/(?:blob|tree)/)master/", r"\1main/", text)

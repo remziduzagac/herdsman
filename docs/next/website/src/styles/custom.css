@@ -1,4 +1,4 @@
-/* Phone screenshots side by side, as herdr's pages lay them out in a .mobile-doc-shots block. */
+/* Phone screenshots side by side, in the imported pages' .mobile-doc-shots blocks. */
 .mobile-doc-shots {
   display: flex;
   flex-wrap: wrap;

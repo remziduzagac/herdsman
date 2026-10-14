@@ -157,6 +157,9 @@ Failures that come from the rename rather than from real bugs:
   herdsman's methods, a shared parameter type changed; update its pinned digest in
   `src/server/client_commands/fork_methods.rs`. If it fails on a herdr method whose enum carries the
   name, re-pin it in the fixture. Other shape changes are herdr's own.
+- **Test data the rename changed only in part**, such as an owner name in upper case where
+  `upstream/rename` maps only the lower case: teach `upstream/rename` the case and re-pin the test
+  by hand until the next import brings the renamed text.
 
 ### 6. Changelog, promote
 
@@ -227,7 +230,7 @@ herdsman's side.
 | `src/api/server.rs` | test socket prefix shortened to `hs-`; the longer name overflowed macOS's 104-byte socket path limit |
 | `src/ui/text.rs` | the truncation test's width widened for the longer name |
 | `tests/fixtures/endpoint-method-shapes-v1.json` | `pane.split` and `pane.input.set` re-pinned |
-| `src/cli/plugin.rs` | a test's upper-case owner re-pinned: `upstream/rename` maps it only in lower case |
+| `src/cli/plugin.rs` | a test's upper-case owner re-pinned; `upstream/rename` maps it now, so drop at next import |
 | `Cargo.lock` | `rand` 0.8.6 for GHSA-cq8v-f236-94qc; take herdr's version once it is 0.8.6 or later |
 | `skills/herdsman/SKILL.md` | stacks, worktree sections and equal pane sizes sections |
 

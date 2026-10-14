@@ -92,6 +92,11 @@ Method name tables, `CLIENT_SHELL_METHODS`, keybinding tables and defaults: add 
 list's own order (some lists must stay sorted), and pin anything herdsman-specific, such as method
 shape digests, in the herdsman block of the test that checks them.
 
+A method that changes the layout or which pane shows also belongs in both lists in
+`server/headless/client_views.rs`, `shell_endpoint_claims_geometry` and
+`public_request_may_change_geometry`. The server runs its layout pass only after the methods listed
+there, so a missing entry leaves panes at their old size until something else redraws.
+
 ### Call sites
 
 When herdr code must do something new, call one herdsman function and keep the decision inside it.

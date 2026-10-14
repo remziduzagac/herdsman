@@ -54,6 +54,10 @@ Run `just check`. Sort each failure: one caused by the rename, as "5. Check" des
 hash, width or method-shape digest), is re-pinned; anything else is a real failure, to fix or to
 report.
 
+Then try the merged build in a throwaway session: add a pane to a stack, equalize a tab, and check
+that each pane fills its slot. A herdsman method missing from the layout-pass lists in
+`server/headless/client_views.rs` (see FORK-CODE.md, "Lists both sides extend") shows only here.
+
 Done when `just check` passes, or the person has the list of failures that remain, and every re-pin
 is reported with its reason.
 
