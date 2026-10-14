@@ -202,7 +202,8 @@ and merge instead.
   tracker has no such issues. "Upstream" is avoided there, because the vendored libraries' notes
   already use it for their own projects;
 - renames every `HERDR`, `Herdr` and `herdr`, in contents and in paths, and points `herdr.dev` and
-  `herdrdev` at herdsman's placeholders;
+  `herdrdev` at herdsman's placeholders. A plugin manifest's `min_herdr_version = ...` keeps herdr's
+  key, because its value is a herdr release;
 - sets the package version to `0.0.0` and runs `cargo fmt`.
 
 ## herdsman's edits to herdr files

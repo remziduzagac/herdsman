@@ -25,7 +25,9 @@ In order, it:
    herdr become HERDSMAN,
    Herdsman and herdsman. herdr's default branch is master and herdsman's is
    main, so links into the repository and workflow branch filters follow, and
-   the Homebrew version check reads a file on SITE instead of Homebrew's API;
+   the Homebrew version check reads a file on SITE instead of Homebrew's API.
+   A plugin manifest's `min_herdr_version = ...` keeps herdr's key, because its
+   value is a herdr release;
 4. renames files and directories the same way, and rewrites symlink targets;
 5. sets the package version to 0.0.0, so herdr's version bumps never conflict
    with herdsman's own; upstream/import records herdr's version instead;
@@ -131,6 +133,15 @@ LABEL = re.compile(r"\b(?P<who>[Hh]erdr) (?P<label>issues?|PRs?|pull requests?)\
 KINDS = {"issues": "issue", "pull": "PR", "discussions": "discussion"}
 NAME = re.compile("herdr", re.IGNORECASE)
 
+# herdr names that stay, in any file. A plugin manifest's min_herdr_version
+# names a herdr release, and herdsman checks it against the herdr release it is
+# built on, so manifests, the docs' examples and test fixtures keep herdr's key.
+# Only the key is kept: the Rust code that reads it, the plugin API's
+# min_herdsman_version field and its error codes are renamed like the rest.
+MANIFEST_KEY = re.compile(r"(?<!let )min_herdr_version(?=\s*=(?!=))")
+KEPT_NAMES = re.compile(r"min_herdr_version")
+KEPT_PLACEHOLDER = "\x00kept-name-{}\x00"
+
 
 def rename_name(name):
     return name.replace("HERDR", "HERDSMAN").replace("Herdr", "Herdsman").replace("herdr", "herdsman")
@@ -169,6 +180,20 @@ def rename_links(text, path):
 
 
 def rename_text(text, path):
+    kept = []
+
+    def keep(match):
+        kept.append(match.group(0))
+        return KEPT_PLACEHOLDER.format(len(kept) - 1)
+
+    text = MANIFEST_KEY.sub(keep, text)
+    text = rename_others(text, path)
+    for index, name in enumerate(kept):
+        text = text.replace(KEPT_PLACEHOLDER.format(index), name)
+    return text
+
+
+def rename_others(text, path):
     text = rename_links(text, path)
     text = re.sub(r"@herdr\.dev\b", "@herdsman.invalid", text)
     # Homebrew's central API only knows herdr's core formula. herdsman ships
@@ -305,7 +330,7 @@ def check(root):
         if text is None:
             continue
         for number, line in enumerate(text.splitlines(), 1):
-            if NAME.search(line):
+            if NAME.search(KEPT_NAMES.sub("", line)):
                 print(f"{rel}:{number}: {line.strip()[:160]}")
                 found += 1
     if found:
