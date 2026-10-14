@@ -371,6 +371,29 @@ The herdr files below carry hooks marked `// fork: skill install`.
 | Refresh and status | `cli/integration.rs` |
 | Docs | `agent-skill.mdx`, `integrations.mdx`, `cli-reference.mdx` |
 
+### Plugin minimum versions
+
+A plugin manifest may name the herdr release it needs, `min_herdr_version`, the herdsman release it
+needs, `min_herdsman_version`, or both. `upstream/rename` keeps herdr's manifest key, so herdr's
+plugins and the manifests in herdr's tests and docs carry herdr's numbers under herdr's name.
+
+- `build_info/base.rs`: `HERDR_VERSION`, the herdr release herdsman is built on, and the
+  `based on herdr X.Y.Z` line `herdsman --version` prints below the version. Each herdr merge
+  updates it; its test compares it with `CHANGELOG.md`'s newest "Based on herdr" line.
+- `app/api/plugins/manifest/plugin_versions.rs`: the check, with its tests. Errors reuse the codes of
+  herdr's `min_herdsman_version` check.
+
+Both files name herdr, so `upstream/rename` keeps them (KEEP). The herdr files below carry hooks
+marked `// fork: plugin versions`.
+
+| Area | Files |
+| --- | --- |
+| Manifest and check | `app/api/plugins/manifest.rs`, `build_info.rs` |
+| Plugin info field | `api/schema/plugins.rs` |
+| Plugin info in tests | `api/schema/tests.rs`, `app/api/worktrees.rs`, `cli/plugin.rs`, `persist/plugin_registry.rs` |
+| `--version` | `main.rs` |
+| Docs | `plugins.mdx`, `socket-api.mdx` |
+
 ## Releasing
 
 A release is a `vX.Y.Z` tag on `main`. Pushing it starts `.github/workflows/release.yml`, which

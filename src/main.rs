@@ -731,6 +731,7 @@ fn main() -> io::Result<()> {
     if args.iter().any(|a| a == "--version" || a == "-V") {
         platform::begin_cli_output();
         println!("herdsman {}", crate::build_info::version());
+        println!("{}", crate::build_info::base::based_on()); // fork: plugin versions
         return Ok(());
     }
 

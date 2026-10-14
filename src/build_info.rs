@@ -1,6 +1,7 @@
 //! Build identity helpers.
 
 pub const BASE_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub mod base; // fork: plugin versions
 
 pub fn channel() -> &'static str {
     non_empty(option_env!("HERDSMAN_BUILD_CHANNEL")).unwrap_or("stable")

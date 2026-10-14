@@ -181,6 +181,7 @@ mod tests {
             name: "Test Plugin".to_string(),
             version: "0.1.0".to_string(),
             min_herdsman_version: crate::build_info::BASE_VERSION.to_string(),
+            min_herdr_version: None, // fork: plugin versions
             description: None,
             manifest_path: format!("/tmp/{id}/herdsman-plugin.toml"),
             plugin_root: format!("/tmp/{id}"),
@@ -268,6 +269,7 @@ mod tests {
                 name: "Fresh Name".to_string(),
                 version: "0.2.0".to_string(),
                 min_herdsman_version: crate::build_info::BASE_VERSION.to_string(),
+                min_herdr_version: None, // fork: plugin versions
                 description: Some("refreshed".to_string()),
                 manifest_path: "/tmp/example.reload/herdsman-plugin.toml".to_string(),
                 plugin_root: "/tmp/example.reload".to_string(),

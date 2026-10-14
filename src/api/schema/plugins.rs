@@ -40,6 +40,11 @@ pub struct InstalledPluginInfo {
     pub version: String,
     #[serde(default)]
     pub min_herdsman_version: String,
+    // fork: plugin versions
+    /// `min_herdr_version` from the manifest, when it names one: the base
+    /// project's release the plugin needs, as `herdsman --version` names it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub min_herdr_version: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub manifest_path: String,

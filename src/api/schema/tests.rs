@@ -991,6 +991,7 @@ fn plugin_link_list_unlink_round_trip() {
         name: "Worktree Bootstrap".into(),
         version: "0.1.0".into(),
         min_herdsman_version: crate::build_info::BASE_VERSION.into(),
+        min_herdr_version: None, // fork: plugin versions
         description: Some("Prepare new worktrees".into()),
         manifest_path: "/plugins/worktree-bootstrap/herdsman-plugin.toml".into(),
         plugin_root: "/plugins/worktree-bootstrap".into(),

@@ -117,6 +117,8 @@ KEEP = [
     "distribution/latest.json",
     "docs/next/website/src/content/docs/about.mdx",
     "scripts/release",
+    "src/app/api/plugins/manifest/plugin_versions.rs",
+    "src/build_info/base.rs",
     "upstream",
 ]
 

@@ -17,6 +17,10 @@ Based on herdr 0.9.4 (`7e26bad9`).
 - `herdsman integration install claude`, `codex` and `opencode` also install herdsman's agent skill
   for that agent, and `herdsman update` keeps those copies matched to the new binary. A skill
   herdsman did not write, such as a link into a dotfiles checkout, is left alone.
+- A plugin manifest may give `min_herdr_version`, the herdr release the plugin needs, instead of
+  `min_herdsman_version` or beside it. herdsman checks it against the herdr release it is built on,
+  which `herdsman --version` now prints on a second line, so plugins written for herdr name the
+  version they mean.
 
 ### Changed
 

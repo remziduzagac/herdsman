@@ -576,6 +576,8 @@ action = "bootstrap"
 `min_herdsman_version` is required. The server refuses to link a plugin when the
 field is missing, invalid, or newer than the running Herdsman binary.
 
+herdsman also accepts `min_herdr_version` instead of `min_herdsman_version`, or beside it, as [Plugins](/docs/plugins/#manifest) describes. Plugin info then reports it as `min_herdr_version`, and `min_herdsman_version` is empty when the manifest gives only `min_herdr_version`.
+
 Declare `platforms` at the top level with the OS identifiers (`linux`, `macos`,
 `windows`) your plugin supports. Omitting `platforms` is allowed for local
 development. `plugin.link` succeeds, but the response includes a warning.

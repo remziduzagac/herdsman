@@ -7922,6 +7922,13 @@
             "manifest_path": {
               "type": "string"
             },
+            "min_herdr_version": {
+              "description": "`min_herdr_version` from the manifest, when it names one: the base\nproject's release the plugin needs, as `herdsman --version` names it.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "min_herdsman_version": {
               "default": "",
               "type": "string"

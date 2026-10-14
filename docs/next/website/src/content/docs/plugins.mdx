@@ -105,6 +105,8 @@ or install a plugin when its minimum version is newer than the current binary.
 `description` is optional. Plugin ids may use ASCII letters, digits, dot,
 colon, underscore, and hyphen.
 
+Instead of `min_herdsman_version`, or beside it, a manifest may give `min_herdr_version`: the release of herdsman's [base project](/docs/about/) the plugin needs, which `herdsman --version` names on its second line. Plugins written for that project use it, as do the examples on this page. herdsman refuses a plugin when either minimum is newer than herdsman itself or than the release it is built on.
+
 Action ids, pane ids, and link handler ids are local ids inside the plugin.
 They may use ASCII letters, digits, colon, underscore, and hyphen, but not
 dots. Each id type must be unique inside a plugin. Herdsman qualifies action ids

@@ -5,6 +5,8 @@ use crate::api::schema::{
 };
 use crate::popup_size::PopupSize;
 
+mod plugin_versions; // fork: plugin versions
+
 const PLUGIN_ID_MAX_CHARS: usize = 120;
 const PLUGIN_ACTION_ID_MAX_CHARS: usize = 120;
 
@@ -15,6 +17,9 @@ struct RawPluginManifest {
     version: String,
     #[serde(default)]
     min_herdsman_version: Option<String>,
+    // fork: plugin versions
+    #[serde(default)]
+    min_herdr_version: Option<String>,
     #[serde(default)]
     description: Option<String>,
     #[serde(default)]
@@ -147,7 +152,11 @@ pub(crate) fn load_plugin_manifest(
         "invalid_plugin_version",
         "plugin version is required",
     )?;
-    let min_herdsman_version = validate_min_herdsman_version(raw.min_herdsman_version.as_deref())?;
+    // fork: plugin versions
+    let (min_herdsman_version, min_herdr_version) = plugin_versions::validate(
+        raw.min_herdsman_version.as_deref(),
+        raw.min_herdr_version.as_deref(),
+    )?;
     let description = raw
         .description
         .map(|description| description.trim().to_string())
@@ -208,6 +217,7 @@ pub(crate) fn load_plugin_manifest(
         name,
         version,
         min_herdsman_version,
+        min_herdr_version, // fork: plugin versions
         description,
         manifest_path: manifest_path.display().to_string(),
         plugin_root: plugin_root.display().to_string(),
