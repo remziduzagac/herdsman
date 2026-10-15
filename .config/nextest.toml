@@ -4,6 +4,13 @@
 # The integration tests in tests/ start real servers and clients and depend on
 # timing, which busy CI machines occasionally miss. A failure is retried once;
 # nextest still reports a test that passed on retry as FLAKY. Unit tests are
-# never retried.
+# not retried, apart from the one below.
 filter = "kind(test)"
+retries = 1
+
+[[profile.default.overrides]]
+# herdr's Windows cwd test gives a 32-bit cmd.exe five seconds to report a
+# changed folder, which GitHub's Windows machines sometimes miss. Retried once;
+# a pass on retry still shows as FLAKY.
+filter = "test(=platform::windows::tests::windows_process_cwd_reads_normalized_child_launch_directory)"
 retries = 1
