@@ -7,6 +7,8 @@ use super::common::{AgentStatus, PaneAgentState, ReadFormat, ReadSource, SplitDi
 
 mod equalize; // fork: equalize
 pub use equalize::*; // fork: equalize
+mod presets; // fork: presets
+pub use presets::*; // fork: presets
 mod stack; // fork: stacks
 pub use stack::*; // fork: stacks
 

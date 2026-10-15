@@ -346,6 +346,25 @@ The herdr files below carry hooks marked `// fork: equalize`.
 `server/client_commands/fork_methods.rs`. No bincode struct, frozen codec or `PROTOCOL_VERSION`
 changed. A client attached to a server without the method shows "Action unavailable" for the keys.
 
+### Tab presets
+
+A tab's layout saved under a name in `~/.config/herdsman/presets/<name>.toml` and opened again as a new
+tab. The logic lives in herdsman's own files:
+
+- `app/api/layouts/presets.rs`: the `preset.*` methods, saving from `layout.export`'s tree and loading
+  through `layout.apply`, then typing each pane's command into its shell;
+- `app/api/layouts/presets/file.rs` and `presets/store.rs`: the TOML file and the folder of them;
+- `api/schema/panes/presets.rs`: the methods' types.
+
+The herdr files below carry hooks marked `// fork: presets`.
+
+| Area | Files |
+| --- | --- |
+| Method | `api/schema.rs`, `api/schema/panes.rs`, `api/schema/response.rs`, `api/mod.rs` |
+| Handler | `api/server.rs`, `app/api.rs`, `app/api/layouts.rs` |
+| Geometry | `server/headless/client_views.rs` |
+| Generated | `docs/next/api/herdsman-api.schema.json` |
+
 ### Layout items in the pane menu
 
 A pane's right-click menu offers Stack here, Equal widths and Equal heights after Split down. The

@@ -251,6 +251,7 @@ impl HeadlessServer {
                 | Method::CommandInvoke(_)
                 | Method::LayoutSetSplitRatio(_)
                 | Method::LayoutEqualize(_) // fork: equalize
+                | Method::PresetLoad(_) // fork: presets
                 | Method::PaneClose(_)
                 | Method::PaneCopyMotion(_)
                 | Method::PaneCopySearch(_)
@@ -298,6 +299,7 @@ impl HeadlessServer {
                 | Method::CommandInvoke(_)
                 | Method::LayoutSetSplitRatio(_)
                 | Method::LayoutEqualize(_) // fork: equalize
+                | Method::PresetLoad(_) // fork: presets
                 | Method::PaneClose(_)
                 | Method::PaneEditScrollback(_)
                 | Method::PaneFocus(_)

@@ -4083,6 +4083,78 @@
             }
           ]
         },
+        "PresetLoadParams": {
+          "description": "Open a preset as a new tab in `workspace_id`, or in the active workspace.",
+          "properties": {
+            "focus": {
+              "default": true,
+              "description": "Focus the new tab. Defaults to true.",
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string"
+            },
+            "workspace_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "type": "object"
+        },
+        "PresetNameParams": {
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "type": "object"
+        },
+        "PresetRenameParams": {
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "new_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "new_name"
+          ],
+          "type": "object"
+        },
+        "PresetSaveParams": {
+          "description": "Save a tab as a preset. `tab_id` picks the tab; without it, the active tab.",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "overwrite": {
+              "default": false,
+              "description": "Replace a preset that already has this name.",
+              "type": "boolean"
+            },
+            "tab_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "type": "object"
+        },
         "ProductAnnouncementDismissParams": {
           "properties": {
             "id": {
@@ -5968,6 +6040,102 @@
             },
             "params": {
               "$ref": "#/schemas/request/$defs/LayoutEqualizeParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "preset.list",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/EmptyParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "preset.get",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/PresetNameParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "preset.save",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/PresetSaveParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "preset.load",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/PresetLoadParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "preset.rename",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/PresetRenameParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "preset.delete",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/PresetNameParams"
             }
           },
           "required": [
@@ -9646,6 +9814,192 @@
             }
           ]
         },
+        "PresetDescription": {
+          "properties": {
+            "label": {
+              "description": "The new tab's name.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "name": {
+              "type": "string"
+            },
+            "path": {
+              "description": "The preset's file on the server's machine.",
+              "type": "string"
+            },
+            "root": {
+              "$ref": "#/schemas/success_response/$defs/PresetNode"
+            }
+          },
+          "required": [
+            "name",
+            "path",
+            "root"
+          ],
+          "type": "object"
+        },
+        "PresetNode": {
+          "description": "A preset's layout: `split` and `stack` nodes as in `layout.export`, with\npanes that hold what to start rather than what runs.",
+          "oneOf": [
+            {
+              "properties": {
+                "command": {
+                  "description": "A command line typed into the pane's shell once it starts.",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "cwd": {
+                  "description": "A folder relative to the workspace's folder, or an absolute one.\nWithout it, the pane starts in the workspace's folder.",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "env": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "type": {
+                  "const": "pane",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "direction": {
+                  "$ref": "#/schemas/success_response/$defs/SplitDirection"
+                },
+                "first": {
+                  "$ref": "#/schemas/success_response/$defs/PresetNode"
+                },
+                "ratio": {
+                  "format": "float",
+                  "type": "number"
+                },
+                "second": {
+                  "$ref": "#/schemas/success_response/$defs/PresetNode"
+                },
+                "type": {
+                  "const": "split",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "direction",
+                "ratio",
+                "first",
+                "second"
+              ],
+              "type": "object"
+            },
+            {
+              "description": "Panes sharing one slot, with `panes[active]` visible.",
+              "properties": {
+                "active": {
+                  "default": 0,
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "panes": {
+                  "items": {
+                    "$ref": "#/schemas/success_response/$defs/PresetPane"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "const": "stack",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "panes"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "PresetPane": {
+          "properties": {
+            "command": {
+              "description": "A command line typed into the pane's shell once it starts.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "cwd": {
+              "description": "A folder relative to the workspace's folder, or an absolute one.\nWithout it, the pane starts in the workspace's folder.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "env": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "label": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "type": "object"
+        },
+        "PresetSummary": {
+          "description": "One preset in `preset.list`. A file that does not parse is listed with its\n`error`, so it can be fixed or deleted.",
+          "properties": {
+            "error": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "label": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "name": {
+              "type": "string"
+            },
+            "panes": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "name",
+            "panes"
+          ],
+          "type": "object"
+        },
         "ReadFormat": {
           "enum": [
             "text",
@@ -10247,6 +10601,57 @@
               "required": [
                 "type",
                 "layout"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "presets": {
+                  "items": {
+                    "$ref": "#/schemas/success_response/$defs/PresetSummary"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "const": "preset_list",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "presets"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "preset": {
+                  "$ref": "#/schemas/success_response/$defs/PresetDescription"
+                },
+                "type": {
+                  "const": "preset_info",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "preset"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "preset_deleted",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "name"
               ],
               "type": "object"
             },

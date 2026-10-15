@@ -16,6 +16,7 @@ const MAX_LAYOUT_PANES: usize = 24;
 const MAX_LAYOUT_DEPTH: usize = 16;
 
 mod equalize; // fork: equalize
+mod presets; // fork: presets
 mod stack; // fork: stacks
 
 impl App {
