@@ -47,6 +47,7 @@ pub(crate) fn request_changes_ui(request: &Request) -> bool {
             | Method::LayoutApply(_)
             | Method::LayoutSetSplitRatio(_)
             | Method::LayoutEqualize(_) // fork: equalize
+            | Method::PresetLoad(_) // fork: presets
             | Method::AgentRename(_)
             | Method::AgentViewSet(_)
             | Method::AgentViewClear(_)

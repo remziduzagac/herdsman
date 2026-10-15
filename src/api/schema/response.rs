@@ -11,6 +11,7 @@ use super::panes::{
     PaneMoveResult, PaneNeighborResult, PaneProcessInfo, PaneReadResult, PaneResizeResult,
     PaneSwapResult, PaneTextPoint, PaneTextRange, PaneZoomResult,
 };
+use super::panes::{PresetDescription, PresetSummary}; // fork: presets
 use super::plugins::{
     InstalledPluginInfo, PluginActionInfo, PluginCommandLogInfo, PluginInvocationContext,
     PluginPaneInfo,
@@ -154,6 +155,16 @@ pub enum ResponseResult {
     // fork: equalize
     LayoutEqualized {
         layout: LayoutDescription,
+    },
+    // fork: presets
+    PresetList {
+        presets: Vec<PresetSummary>,
+    },
+    PresetInfo {
+        preset: PresetDescription,
+    },
+    PresetDeleted {
+        name: String,
     },
     PaneNeighbor {
         neighbor: PaneNeighborResult,

@@ -667,6 +667,13 @@ pub(crate) fn api_method_name(method: &Method) -> &'static str {
         Method::LayoutApply(_) => "layout.apply",
         Method::LayoutSetSplitRatio(_) => "layout.set_split_ratio",
         Method::LayoutEqualize(_) => "layout.equalize", // fork: equalize
+        // fork: presets
+        Method::PresetList(_) => "preset.list",
+        Method::PresetGet(_) => "preset.get",
+        Method::PresetSave(_) => "preset.save",
+        Method::PresetLoad(_) => "preset.load",
+        Method::PresetRename(_) => "preset.rename",
+        Method::PresetDelete(_) => "preset.delete",
         Method::PaneNeighbor(_) => "pane.neighbor",
         Method::PaneEdges(_) => "pane.edges",
         Method::PaneFocusDirection(_) => "pane.focus_direction",

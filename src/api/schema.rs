@@ -173,6 +173,19 @@ pub enum Method {
     LayoutSetSplitRatio(LayoutSetSplitRatioParams),
     #[serde(rename = "layout.equalize")] // fork: equalize
     LayoutEqualize(LayoutEqualizeParams),
+    // fork: presets
+    #[serde(rename = "preset.list")]
+    PresetList(EmptyParams),
+    #[serde(rename = "preset.get")]
+    PresetGet(PresetNameParams),
+    #[serde(rename = "preset.save")]
+    PresetSave(PresetSaveParams),
+    #[serde(rename = "preset.load")]
+    PresetLoad(PresetLoadParams),
+    #[serde(rename = "preset.rename")]
+    PresetRename(PresetRenameParams),
+    #[serde(rename = "preset.delete")]
+    PresetDelete(PresetNameParams),
     #[serde(rename = "pane.neighbor")]
     PaneNeighbor(PaneNeighborParams),
     #[serde(rename = "pane.edges")]
