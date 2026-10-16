@@ -593,7 +593,8 @@ mod tests {
         let LayoutNode::Pane { pane: second } = *second else {
             panic!("expected a pane");
         };
-        assert!(second.cwd.unwrap().ends_with("docs"));
+        // Compared as a path: Windows reports a live folder with a trailing separator.
+        assert!(Path::new(&second.cwd.unwrap()).ends_with("docs"));
         super::super::super::test_support::shutdown_test_runtimes(&mut app);
     }
 
