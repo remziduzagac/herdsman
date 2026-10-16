@@ -30,6 +30,7 @@ mod machine;
 mod notification;
 mod pane;
 mod plugin;
+mod presets; // fork: presets
 mod protocol_guard;
 mod runtime;
 mod server;
@@ -123,6 +124,7 @@ pub fn maybe_run(args: &[String]) -> std::io::Result<CommandOutcome> {
         "workspace" => workspace::run_workspace_command(&args[2..])?,
         "worktree" => worktree::run_worktree_command(&args[2..])?,
         "tab" => tab::run_tab_command(&args[2..])?,
+        "preset" => presets::run_preset_command(&args[2..])?, // fork: presets
         "notification" => notification::run_notification_command(&args[2..])?,
         "agent" => agent::run_agent_command(&args[2..])?,
         "terminal" => run_terminal_command(&args[2..])?,

@@ -48,7 +48,8 @@ fn describe(store: &PresetStore, name: &str, preset: PresetFile) -> PresetDescri
 
 impl App {
     pub(in crate::app::api) fn handle_preset_list(&mut self, id: String) -> String {
-        let presets = match preset_store().list() {
+        let store = preset_store();
+        let presets = match store.list() {
             Ok(presets) => presets,
             Err(err) => return store_error(id, err),
         };
@@ -56,12 +57,14 @@ impl App {
             .into_iter()
             .map(|(name, preset)| match preset {
                 Ok(preset) => PresetSummary {
+                    path: store.path(&name).display().to_string(),
                     name,
                     panes: preset.root.pane_count(),
                     label: preset.label,
                     error: None,
                 },
                 Err(error) => PresetSummary {
+                    path: store.path(&name).display().to_string(),
                     name,
                     label: None,
                     panes: 0,
@@ -92,14 +95,10 @@ impl App {
         id: String,
         params: PresetSaveParams,
     ) -> String {
-        let target = match params.tab_id.as_deref() {
-            Some(tab_id) => self.parse_tab_id(tab_id),
-            None => self
-                .state
-                .active
-                .and_then(|ws_idx| Some((ws_idx, self.state.workspaces.get(ws_idx)?.active_tab))),
-        };
-        let Some((ws_idx, tab_idx)) = target else {
+        let Some((ws_idx, tab_idx)) = self.resolve_layout_export_target(&LayoutExportParams {
+            tab_id: params.tab_id,
+            pane_id: params.pane_id,
+        }) else {
             return encode_error(id, "tab_not_found", "tab not found");
         };
         let Some(layout) = self.layout_description(ws_idx, tab_idx) else {
@@ -131,8 +130,15 @@ impl App {
             Ok(preset) => preset,
             Err(err) => return store_error(id, err),
         };
-        let ws_idx = match params.workspace_id.as_deref() {
-            Some(workspace_id) => match self.parse_workspace_id(workspace_id) {
+        let ws_idx = match (params.workspace_id.as_deref(), params.pane_id.as_deref()) {
+            (Some(_), Some(_)) => {
+                return encode_error(
+                    id,
+                    "invalid_target",
+                    "use either workspace_id or pane_id, not both",
+                )
+            }
+            (Some(workspace_id), None) => match self.parse_workspace_id(workspace_id) {
                 Some(ws_idx) => ws_idx,
                 None => {
                     return encode_error(
@@ -142,7 +148,13 @@ impl App {
                     )
                 }
             },
-            None => match self.state.active {
+            (None, Some(pane_id)) => match self.parse_pane_id(pane_id) {
+                Some((ws_idx, _)) => ws_idx,
+                None => {
+                    return encode_error(id, "pane_not_found", format!("pane {pane_id} not found"))
+                }
+            },
+            (None, None) => match self.state.active {
                 Some(ws_idx) => ws_idx,
                 None => return encode_error(id, "workspace_not_found", "no active workspace"),
             },
@@ -451,6 +463,7 @@ mod tests {
             Method::PresetSave(PresetSaveParams {
                 name: name.into(),
                 tab_id: None,
+                pane_id: None,
                 overwrite: false,
             }),
         )
@@ -565,6 +578,7 @@ mod tests {
             Method::PresetLoad(PresetLoadParams {
                 name: "dev".into(),
                 workspace_id: None,
+                pane_id: None,
                 focus: true,
             }),
         );
@@ -608,6 +622,7 @@ mod tests {
                 Method::PresetLoad(PresetLoadParams {
                     name: name.into(),
                     workspace_id: None,
+                    pane_id: None,
                     focus: true,
                 }),
             )

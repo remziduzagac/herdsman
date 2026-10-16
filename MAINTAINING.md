@@ -354,7 +354,9 @@ tab. The logic lives in herdsman's own files:
 - `app/api/layouts/presets.rs`: the `preset.*` methods, saving from `layout.export`'s tree and loading
   through `layout.apply`, then typing each pane's command into its shell;
 - `app/api/layouts/presets/file.rs` and `presets/store.rs`: the TOML file and the folder of them;
-- `api/schema/panes/presets.rs`: the methods' types.
+- `api/schema/panes/presets.rs`: the methods' types;
+- `cli/presets.rs` and `cli/spec/presets.rs`: `herdsman preset`, whose `edit` opens the file in `$VISUAL` or
+  `$EDITOR` and then asks the server to read it again.
 
 The herdr files below carry hooks marked `// fork: presets`.
 
@@ -363,6 +365,7 @@ The herdr files below carry hooks marked `// fork: presets`.
 | Method | `api/schema.rs`, `api/schema/panes.rs`, `api/schema/response.rs`, `api/mod.rs` |
 | Handler | `api/server.rs`, `app/api.rs`, `app/api/layouts.rs` |
 | Geometry | `server/headless/client_views.rs` |
+| CLI | `cli.rs`, `cli/spec.rs`, `cli/target.rs` (forwarding with `--machine`, all but `edit`) |
 | Generated | `docs/next/api/herdsman-api.schema.json` |
 
 ### Layout items in the pane menu
