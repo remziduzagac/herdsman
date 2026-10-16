@@ -289,6 +289,7 @@ fn validate_machine_command(args: &[String]) -> Result<(), String> {
     let subcommand = args.get(2).map(String::as_str).unwrap_or_default();
     let supported = match command {
         "workspace" | "worktree" | "tab" | "pane" | "notification" => true,
+        "preset" => subcommand != "edit", // fork: presets
         "agent" => {
             subcommand != "attach"
                 && !(subcommand == "explain"

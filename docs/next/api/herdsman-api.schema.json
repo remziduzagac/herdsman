@@ -4084,7 +4084,7 @@
           ]
         },
         "PresetLoadParams": {
-          "description": "Open a preset as a new tab in `workspace_id`, or in the active workspace.",
+          "description": "Open a preset as a new tab in `workspace_id`, or in the workspace holding\n`pane_id`; without either, in the active workspace.",
           "properties": {
             "focus": {
               "default": true,
@@ -4093,6 +4093,12 @@
             },
             "name": {
               "type": "string"
+            },
+            "pane_id": {
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "workspace_id": {
               "type": [
@@ -4133,7 +4139,7 @@
           "type": "object"
         },
         "PresetSaveParams": {
-          "description": "Save a tab as a preset. `tab_id` picks the tab; without it, the active tab.",
+          "description": "Save a tab as a preset. `tab_id`, or `pane_id` for the tab holding that\npane, picks the tab; without either, the active tab.",
           "properties": {
             "name": {
               "type": "string"
@@ -4142,6 +4148,12 @@
               "default": false,
               "description": "Replace a preset that already has this name.",
               "type": "boolean"
+            },
+            "pane_id": {
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "tab_id": {
               "type": [
@@ -9992,10 +10004,15 @@
               "format": "uint",
               "minimum": 0,
               "type": "integer"
+            },
+            "path": {
+              "description": "The preset's file on the server's machine.",
+              "type": "string"
             }
           },
           "required": [
             "name",
+            "path",
             "panes"
           ],
           "type": "object"

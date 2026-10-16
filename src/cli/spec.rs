@@ -40,6 +40,7 @@ pub(super) fn command() -> Command {
         .subcommand(workspace_command())
         .subcommand(worktree_command())
         .subcommand(tab_command())
+        .subcommand(presets::preset_command()) // fork: presets
         .subcommand(notification_command())
         .subcommand(agent_command())
         .subcommand(pane_command())
@@ -51,6 +52,7 @@ pub(super) fn command() -> Command {
 }
 
 mod equalize; // fork: equalize
+mod presets; // fork: presets
 mod stack; // fork: stacks
 mod worktree_groups; // fork: worktree groups
 

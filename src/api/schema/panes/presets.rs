@@ -6,23 +6,29 @@
 
 use super::*;
 
-/// Save a tab as a preset. `tab_id` picks the tab; without it, the active tab.
+/// Save a tab as a preset. `tab_id`, or `pane_id` for the tab holding that
+/// pane, picks the tab; without either, the active tab.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct PresetSaveParams {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tab_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pane_id: Option<String>,
     /// Replace a preset that already has this name.
     #[serde(default)]
     pub overwrite: bool,
 }
 
-/// Open a preset as a new tab in `workspace_id`, or in the active workspace.
+/// Open a preset as a new tab in `workspace_id`, or in the workspace holding
+/// `pane_id`; without either, in the active workspace.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct PresetLoadParams {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub workspace_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pane_id: Option<String>,
     /// Focus the new tab. Defaults to true.
     #[serde(default = "focus_by_default")]
     pub focus: bool,
@@ -48,6 +54,8 @@ pub struct PresetRenameParams {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct PresetSummary {
     pub name: String,
+    /// The preset's file on the server's machine.
+    pub path: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     pub panes: usize,
