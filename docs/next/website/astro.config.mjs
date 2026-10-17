@@ -26,7 +26,7 @@ export default defineConfig({
         { label: 'Start', items: ['install', 'quick-start', 'concepts', 'keyboard', 'how-to-work'] },
         {
           label: 'Agents',
-          items: ['agents', 'stacks', 'agent-automation', 'agent-skill', 'integrations', 'add-herdsman-support'],
+          items: ['agents', 'stacks', 'presets', 'agent-automation', 'agent-skill', 'integrations', 'add-herdsman-support'],
         },
         { label: 'Sessions and machines', items: ['session-state', 'persistence-remote', 'connecting-machines'] },
         { label: 'Configure and extend', items: ['configuration', 'config-reference', 'plugins'] },

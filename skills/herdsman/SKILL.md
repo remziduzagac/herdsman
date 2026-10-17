@@ -272,6 +272,22 @@ herdsman tab equalize height --current
 Each leaves the other dimension alone. A pane above or below split columns spans them, so the
 narrowest columns end up equal. The user's keys are `prefix+|` and `prefix+_`.
 
+## Save and open tab presets
+
+A preset is a tab's layout saved under a name. Opening one makes a new tab whose panes start shells in the
+workspace's folder and type each pane's saved command, such as `claude`, into them:
+
+```bash
+herdsman preset list
+herdsman preset show <name>
+herdsman preset save <name> --current
+herdsman preset load <name> --current --no-focus
+```
+
+`--current` means the caller's own tab for `save` and its workspace for `load`. `preset load` answers like
+`layout.apply`: read the new panes' IDs from `.result.layout`. Save over an existing name only with
+`--overwrite` when the user asked for it. `preset edit` opens an editor and is for the user, not for agents.
+
 ## Safety and coordination rules
 
 - Use `--no-focus` for background work unless the user asked to switch context.

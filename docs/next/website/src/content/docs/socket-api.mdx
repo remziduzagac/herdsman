@@ -109,6 +109,7 @@ Raw socket method names use dot notation:
 | Popup | `popup.close` |
 | Layout | `layout.export`, `layout.apply`, `layout.set_split_ratio` |
 | Equal pane sizes | `layout.equalize` |
+| Tab presets | `preset.list`, `preset.get`, `preset.save`, `preset.load`, `preset.edit`, `preset.rename`, `preset.delete` |
 | Agent | `agent.list`, `agent.get`, `agent.read`, `agent.explain`, `agent.send_keys`, `agent.prompt`, `agent.wait`, `agent.rename`, `agent.focus`, `agent.start`, `agent.view.set`, `agent.view.clear` |
 | Events | `events.subscribe`, `events.wait` |
 | Integrations | `integration.install`, `integration.uninstall` |
@@ -421,6 +422,33 @@ A [stack](/docs/stacks/) is a layout slot holding several panes, one visible at 
 
 Focusing a hidden member by any method, `pane.focus` included, shows it.
 `pane.list` includes hidden members; `pane.layout` lists only visible panes.
+
+### Tab presets
+
+A [preset](/docs/presets/) is a tab's layout saved under a name, as a TOML file in the server's config folder.
+
+```json
+{"id":"req_save","method":"preset.save","params":{"name":"dev","pane_id":"w1:p2"}}
+{"id":"req_load","method":"preset.load","params":{"name":"dev","workspace_id":"w2","focus":false}}
+```
+
+- `preset.save` saves a tab as `name`: the tab `tab_id`, the tab holding `pane_id`, or the active tab.
+  It refuses a name already taken (`preset_exists`) unless `overwrite` is true. The response, like
+  `preset.get`'s and `preset.rename`'s, is `type: "preset_info"` with `preset`: `name`, `label` (the tab's
+  name), `path` (the file on the server's machine) and `root`.
+- `root` is a tree like `layout.export`'s: `split` nodes with `direction`, `ratio`, `first` and `second`,
+  `stack` nodes with `panes` and `active`, and `pane` nodes. A pane holds `label`, `cwd` (relative to the
+  workspace's folder unless absolute), `command` (a command line typed into the pane's shell) and `env`.
+- `preset.load` opens a preset as a new tab in `workspace_id`, the workspace holding `pane_id`, or the active
+  workspace, and focuses it unless `focus` is false. It answers as `layout.apply` does, with
+  `type: "layout_apply"`, and then types each pane's command into its shell.
+- `preset.list` answers `type: "preset_list"` with `presets[]`: `name`, `path`, `label`, `panes` (the pane
+  count) and, for a file that does not parse, `error`.
+- `preset.get` reads one preset; `preset.rename` takes `name` and `new_name`; `preset.delete` answers
+  `type: "preset_deleted"` with `name`; `preset.edit` opens the file in the server's `$VISUAL` or `$EDITOR`
+  in a popup pane and answers `type: "ok"`.
+- Names use lowercase letters, digits, `-` and `_`. Errors: `invalid_preset_name`, `preset_not_found`,
+  `preset_exists`, `invalid_preset` (with the file's line), `preset_io_failed` and `preset_edit_failed`.
 
 ## Agent view queries
 

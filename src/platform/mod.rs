@@ -3,6 +3,7 @@
 //! Centralizes OS-dependent behavior behind a clean boundary so core
 //! modules don't scatter `#[cfg]` branches through product logic.
 
+pub(crate) mod editor; // fork: presets
 #[cfg(unix)]
 pub(crate) mod ssh_agent;
 
