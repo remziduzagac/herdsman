@@ -1,0 +1,122 @@
+---
+title: Tab presets
+description: Save a tab's layout under a name and open it again as a new tab, in any workspace.
+---
+
+A preset is one tab's layout saved under a name: where its panes sit, how big they are, what they are called
+and what runs in them. Opening a preset makes a new tab in the workspace you choose. Every pane starts a shell
+in the workspace's folder, and Herdsman types the pane's command into it, so an agent or a test watcher is
+running as soon as the tab is up, and the shell stays when it exits.
+
+Build the tab you like with splits, stacks and labels, save it, and open it in any repository.
+
+## Save a tab
+
+Right-click a tab and choose **Save tab as preset...**. The prompt suggests the tab's name. A name that is
+already taken asks again, and Enter then replaces that preset. Names use lowercase letters, digits, `-` and
+`_`, and start with a letter or digit.
+
+From the CLI:
+
+```bash
+herdsman preset save dev --current        # the tab this pane is in
+herdsman preset save dev w1:t2            # a tab by ID
+herdsman preset save dev --overwrite      # the active tab, replacing a preset named dev
+```
+
+A preset records:
+
+- the layout: splits and their ratios, and stacks with the member that shows;
+- each pane's label, if you gave it one;
+- what to start in each pane: a detected agent's command, such as `claude`, or the command the pane was
+  launched with. A plain shell gets no command;
+- the tab's name, if you renamed it.
+
+Folders are not recorded. Every pane opens in the workspace's folder, so the same preset works in any
+repository; give a pane a `cwd` in the file to start it somewhere else.
+
+## Open a preset
+
+`prefix+t` opens the presets list, and so does **New tab from preset...** in a tab's right-click menu. Pick a
+preset and press Enter: it opens as a new tab in the current workspace, or, from the tab menu, in that tab's
+workspace.
+
+| Key | Action |
+| --- | --- |
+| `/` | Filter the list |
+| Up, Down, `j`, `k`, Ctrl+n, Ctrl+p | Move |
+| Enter | Open the preset as a new tab |
+| `e` | Edit the preset's file |
+| `r` | Rename |
+| `d` | Delete, after a confirmation: `y` deletes, any other key keeps it |
+| Esc | Close the list |
+
+A click selects a row, and a second click or the open button opens it. The key is `keys.presets` in the
+[configuration](/docs/configuration/).
+
+From the CLI:
+
+```bash
+herdsman preset list                      # names, tab labels and pane counts
+herdsman preset load dev --current        # in the workspace of this pane
+herdsman preset load dev --workspace w2 --no-focus
+```
+
+## Edit a preset
+
+A preset is a TOML file you can change by hand. Press `e` in the list, or run `herdsman preset edit <name>`.
+The list opens it in a popup pane, the CLI in your terminal, each with `$VISUAL`, else `$EDITOR`, else `vi`
+(Notepad on Windows). Herdsman reads the file again afterwards: the CLI prints any mistake with its line
+when the editor closes, and the list shows a broken preset with its error the next time it opens, ready for
+another `e`.
+
+## The file
+
+Presets live in `~/.config/herdsman/presets/<name>.toml` on the machine whose server runs the tab. Each node
+of the layout is a table: `[root]` is the whole tab, and a split's halves are its `first` and `second`.
+
+```toml
+label = "dev"                       # the new tab's name
+
+[root]
+split = "right"                     # side by side; "down" stacks them top and bottom
+ratio = 0.6                         # the first half's share; 0.5 if left out
+
+[root.first]
+label = "agent"
+command = "claude"                  # typed into the pane's shell once it starts
+
+[root.second]
+split = "down"
+
+[root.second.first]
+label = "tests"
+command = "just test"
+env = { RUST_LOG = "info" }
+
+[root.second.second]
+active = 1                          # the stack shows its second member
+
+[[root.second.second.stack]]
+label = "docs"
+cwd = "docs"                        # relative to the workspace's folder
+
+[[root.second.second.stack]]
+label = "shell"
+```
+
+A node with `split` is a split, a node with `stack` is a stack, and any other node is a pane. A pane takes
+`label`, `cwd`, `command` and `env`; a stack's panes, in `[[...stack]]` tables, take the same. `cwd` can also
+be absolute or start with `~`. A folder that does not exist falls back to the workspace's, and the server's
+log says so. A preset holds at most 24 panes and 16 levels of splits, as for `layout.apply`.
+
+## Presets on other machines
+
+Each server keeps its own presets, in its own machine's config folder. A tab on a saved SSH machine is saved
+there and opened from there, and `herdsman --machine <name> preset ...` works too, except `edit`, which opens
+a file on the machine you run it on.
+
+The JSON methods behind these commands are listed under [Tab presets](/docs/socket-api/#tab-presets) in the
+socket API.
+
+Thanks to the [herdr-grid](https://github.com/thuanlm215/herdr-grid) plugin for the nudge toward presets.

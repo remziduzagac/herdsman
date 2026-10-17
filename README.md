@@ -45,6 +45,10 @@ Signed apt, dnf and pacman repositories, Windows, Nix and manual downloads are c
 - **Worktree sections.** A repository's worktrees can be sorted into named sections, each under
   its own collapsible header in the sidebar, from a worktree's right-click menu or
   `herdsman workspace section`.
+- **Tab presets.** Save a tab's layout under a name from its right-click menu, and open it again as
+  a new tab in any workspace from the `prefix+t` list, each pane starting its saved command, such as
+  an agent. [The presets page](https://remziduzagac.github.io/herdsman/docs/presets/) has the file
+  format and the CLI.
 - **The agent skill comes with the integrations.** `herdsman integration install claude`, `codex`
   or `opencode` also installs herdsman's
   [agent skill](https://remziduzagac.github.io/herdsman/docs/agent-skill/), and `herdsman update`

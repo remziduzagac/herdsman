@@ -175,39 +175,12 @@ fn edit(name: &str) -> std::io::Result<i32> {
     Ok(0)
 }
 
-/// `$VISUAL`, then `$EDITOR`, split on whitespace so values such as
-/// `code --wait` work; `vi`, or Notepad on Windows, when neither is set.
+/// The user's editor on `path`, in this terminal.
 fn editor_command(path: &Path) -> std::process::Command {
-    let editor = editor_words(
-        std::env::var("VISUAL").ok().as_deref(),
-        std::env::var("EDITOR").ok().as_deref(),
-    );
-    let mut command = std::process::Command::new(&editor[0]);
-    command.args(&editor[1..]).arg(path);
+    let argv = crate::platform::editor::editor_argv(path);
+    let mut command = std::process::Command::new(&argv[0]);
+    command.args(&argv[1..]);
     command
-}
-
-/// The editor command as words: the first non-empty of `visual` and `editor`
-/// split on whitespace, else `vi`, or Notepad on Windows. The server's
-/// `preset.edit` uses it too, with the server's environment.
-pub(crate) fn editor_words(visual: Option<&str>, editor: Option<&str>) -> Vec<String> {
-    let fallback = if cfg!(windows) { "notepad" } else { "vi" };
-    let words: Vec<String> = [visual, editor]
-        .into_iter()
-        .flatten()
-        .map(|value| {
-            value
-                .split_whitespace()
-                .map(str::to_string)
-                .collect::<Vec<_>>()
-        })
-        .find(|words| !words.is_empty())
-        .unwrap_or_default();
-    if words.is_empty() {
-        vec![fallback.to_string()]
-    } else {
-        words
-    }
 }
 
 #[cfg(test)]
@@ -314,17 +287,5 @@ mod tests {
         assert!(parse_args("nope", &[], None)
             .unwrap_err()
             .contains("unknown preset command"));
-    }
-
-    #[test]
-    fn the_editor_comes_from_visual_then_editor() {
-        assert_eq!(
-            editor_words(Some("code --wait"), Some("vim")),
-            ["code", "--wait"]
-        );
-        assert_eq!(editor_words(None, Some("nvim")), ["nvim"]);
-        assert_eq!(editor_words(Some("  "), Some("nvim")), ["nvim"]);
-        let fallback = if cfg!(windows) { "notepad" } else { "vi" };
-        assert_eq!(editor_words(None, None), [fallback]);
     }
 }

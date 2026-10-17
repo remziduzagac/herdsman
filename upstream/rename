@@ -107,7 +107,8 @@ DROP = [
 # credit herdr or handle its code by name. README.md, CONTRIBUTING.md,
 # CHANGELOG.md and latest.json, which carries the changelog's notes, are
 # herdsman's own once DROP has removed herdr's; the docs' about page is
-# herdsman's own outright.
+# herdsman's own outright, and so is the presets page, which credits the
+# herdr-grid plugin.
 KEEP = [
     ".agents/skills/herdsman-maintain",
     "CHANGELOG.md",
@@ -118,6 +119,7 @@ KEEP = [
     "README.md",
     "distribution/latest.json",
     "docs/next/website/src/content/docs/about.mdx",
+    "docs/next/website/src/content/docs/presets.mdx",
     "scripts/release",
     "src/app/api/plugins/manifest/plugin_versions.rs",
     "src/build_info/base.rs",

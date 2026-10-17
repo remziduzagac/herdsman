@@ -349,14 +349,16 @@ impl App {
 /// server's environment. Tests run a command that exits at once instead.
 fn editor_argv(path: &std::path::Path) -> Vec<String> {
     #[cfg(test)]
-    let mut argv = vec![super::super::test_support::exiting_test_command().to_string()];
+    {
+        vec![
+            super::super::test_support::exiting_test_command().to_string(),
+            path.display().to_string(),
+        ]
+    }
     #[cfg(not(test))]
-    let mut argv = crate::cli::presets::editor_words(
-        std::env::var("VISUAL").ok().as_deref(),
-        std::env::var("EDITOR").ok().as_deref(),
-    );
-    argv.push(path.display().to_string());
-    argv
+    {
+        crate::platform::editor::editor_argv(path)
+    }
 }
 
 /// The tree `layout.apply` gets: every pane a shell, started in `folder` or

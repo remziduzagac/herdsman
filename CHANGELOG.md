@@ -9,6 +9,18 @@ Each herdsman release names the herdr release it is built on. Versions are herds
 
 Based on herdr 0.9.5 (`2ecf19a9`).
 
+### Added
+
+- Tab presets: save a tab's layout under a name with Save tab as preset... in its right-click menu or
+  `herdsman preset save`, and open it again as a new tab in any workspace from the `prefix+t` list or
+  `herdsman preset load`. Each pane starts in the workspace's folder and runs its saved command, such as
+  an agent. A preset is a TOML file in `~/.config/herdsman/presets/`, editable from the list with `e` or
+  with `herdsman preset edit`.
+
+## [0.2.0] - 2026-10-15
+
+Based on herdr 0.9.5 (`2ecf19a9`).
+
 ### From herdr 0.9.5
 
 A hotfix release for herdr 0.9.4, which herdsman 0.1.0 is already based on.
