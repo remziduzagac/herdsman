@@ -46,6 +46,11 @@ impl ClientShellState {
                     self.begin_worktree_action(action, outcome);
                     return;
                 }
+                // fork: presets
+                if action == crate::input::KeybindAction::OpenPresets {
+                    self.open_presets_list(None, outcome);
+                    return;
+                }
                 if action == crate::input::KeybindAction::OpenNavigator {
                     self.open_navigator_overlay();
                     self.request_navigator_stacks(outcome); // fork: stacks
@@ -375,6 +380,7 @@ impl ClientShellState {
             crate::api::schema::Method::TabCreate(params) => params.focus,
             crate::api::schema::Method::PaneSplit(params) => params.focus,
             crate::api::schema::Method::PaneStack(params) => params.focus, // fork: stacks
+            crate::api::schema::Method::PresetLoad(params) => params.focus, // fork: presets
             _ => false,
         };
         if changes_focus {
@@ -532,6 +538,12 @@ impl ClientShellState {
                 Vec::new(),
             );
         }
+        // fork: presets
+        if let PendingEndpointKind::Presets(request) = pending.kind {
+            let mut outcome = ClientShellInput::default();
+            let repaint = self.receive_presets_result(request, result, &mut outcome);
+            return (repaint || outcome.repaint, outcome.actions);
+        }
         if result.is_ok() {
             let timeout_key = ClientEndpointNoticeKey {
                 boot_id: boot_id.to_owned(),
@@ -586,6 +598,7 @@ impl ClientShellState {
             PendingEndpointKind::Generic => {}
             PendingEndpointKind::PaneLinkResolve { .. } => unreachable!("handled above"),
             PendingEndpointKind::NavigatorStacks { .. } => unreachable!("handled above"), // fork: stacks
+            PendingEndpointKind::Presets(_) => unreachable!("handled above"), // fork: presets
             PendingEndpointKind::ProductAnnouncementDismiss { version, id } => {
                 return match result {
                     Ok(_) => (false, Vec::new()),

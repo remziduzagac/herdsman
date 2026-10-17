@@ -555,6 +555,10 @@ impl ClientShellState {
         {
             return false;
         }
+        // fork: presets
+        if self.presets_accept_paste() {
+            return true;
+        }
         if self.mode == ClientShellMode::Copy
             && self.overlay.is_none()
             && self

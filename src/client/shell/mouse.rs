@@ -1444,6 +1444,10 @@ impl ClientShellState {
             }
             return;
         }
+        // fork: presets
+        if self.handle_presets_mouse(&mouse, point, outcome) {
+            return;
+        }
         if matches!(
             self.overlay,
             Some(

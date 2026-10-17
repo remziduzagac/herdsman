@@ -1180,6 +1180,7 @@ impl App {
             Method::PresetLoad(params) => return self.handle_preset_load(request.id, params),
             Method::PresetRename(params) => return self.handle_preset_rename(request.id, params),
             Method::PresetDelete(params) => return self.handle_preset_delete(request.id, params),
+            Method::PresetEdit(params) => return self.handle_preset_edit(request.id, params),
             Method::PaneNeighbor(params) => return self.handle_pane_neighbor(request.id, params),
             Method::PaneEdges(params) => return self.handle_pane_edges(request.id, params),
             Method::PaneFocusDirection(params) => {

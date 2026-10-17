@@ -30,7 +30,7 @@ mod machine;
 mod notification;
 mod pane;
 mod plugin;
-mod presets; // fork: presets
+pub(crate) mod presets; // fork: presets
 mod protocol_guard;
 mod runtime;
 mod server;

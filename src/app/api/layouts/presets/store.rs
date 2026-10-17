@@ -154,6 +154,18 @@ impl PresetStore {
         Ok(())
     }
 
+    /// The file of a preset that exists, whether or not it parses, so a
+    /// broken one can be opened and fixed.
+    pub(super) fn existing_path(&self, name: &str) -> Result<PathBuf, StoreError> {
+        validate_name(name)?;
+        let path = self.path(name);
+        if path.is_file() {
+            Ok(path)
+        } else {
+            Err(StoreError::NotFound(name.to_string()))
+        }
+    }
+
     pub(super) fn delete(&self, name: &str) -> Result<(), StoreError> {
         validate_name(name)?;
         match fs::remove_file(self.path(name)) {
@@ -310,6 +322,22 @@ mod tests {
 
         store.delete("new").unwrap();
         assert_eq!(store.delete("new").unwrap_err().code(), "preset_not_found");
+    }
+
+    #[test]
+    fn existing_path_finds_broken_files_too() {
+        let (_dir, store) = store();
+        assert_eq!(
+            store.existing_path("dev").unwrap_err().code(),
+            "preset_not_found"
+        );
+        fs::create_dir_all(&store.dir).unwrap();
+        fs::write(store.path("dev"), "[root]\nsplit = \"left\"\n").unwrap();
+        assert_eq!(store.existing_path("dev").unwrap(), store.path("dev"));
+        assert_eq!(
+            store.existing_path("Dev").unwrap_err().code(),
+            "invalid_preset_name"
+        );
     }
 
     #[test]

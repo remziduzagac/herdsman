@@ -41,6 +41,13 @@ const CLIENT_SHELL_METHODS: &[&str] = &[
     "pane.stacks", // fork: stacks
     "pane.swap",
     "pane.zoom",
+    "preset.delete", // fork: presets
+    "preset.edit",   // fork: presets
+    "preset.get",    // fork: presets
+    "preset.list",   // fork: presets
+    "preset.load",   // fork: presets
+    "preset.rename", // fork: presets
+    "preset.save",   // fork: presets
     "product_announcement.dismiss",
     "release_notes.dismiss",
     "server.reload_config",
@@ -190,7 +197,7 @@ pub(crate) fn spawn_response_waiter(
 }
 
 #[cfg(test)]
-mod fork_methods; // fork: stacks, worktree groups, equalize
+mod fork_methods; // fork: stacks, worktree groups, equalize, presets
 
 #[cfg(test)]
 mod tests {
@@ -307,7 +314,7 @@ mod tests {
             actual.remove("pane.link.resolve").as_deref(),
             Some("f5e4a3e01453ae7b188f127ce951c12c20e0bebcc17cc364eeb6d1a01fd5bf81")
         );
-        fork_methods::remove_pinned(&mut actual); // fork: stacks, worktree groups, equalize
+        fork_methods::remove_pinned(&mut actual); // fork: stacks, worktree groups, equalize, presets
 
         assert_eq!(
             actual, expected,

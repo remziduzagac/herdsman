@@ -82,11 +82,24 @@ struct PaneToml {
 use super::super::MAX_LAYOUT_DEPTH as MAX_DEPTH;
 
 pub(super) fn parse(text: &str) -> Result<PresetFile, String> {
-    let file: FileToml = toml::from_str(text).map_err(|err| err.to_string())?;
+    let file: FileToml = toml::from_str(text).map_err(|err| toml_error(text, &err))?;
     Ok(PresetFile {
         label: file.label,
         root: node_from_toml(file.root, "root", 0)?,
     })
+}
+
+/// A TOML error on one line, `line L, column C: message`, which fits a list
+/// row and a CLI message, rather than TOML's own drawing of the line.
+fn toml_error(text: &str, err: &toml::de::Error) -> String {
+    let message = err.message().trim();
+    let Some(span) = err.span() else {
+        return message.to_string();
+    };
+    let before = &text[..span.start.min(text.len())];
+    let line = before.matches('\n').count() + 1;
+    let column = before.len() - before.rfind('\n').map_or(0, |newline| newline + 1) + 1;
+    format!("line {line}, column {column}: {message}")
 }
 
 pub(super) fn render(preset: &PresetFile) -> Result<String, String> {
@@ -353,6 +366,14 @@ cwd = "docs"
 
         let err = parse("[root]\nsplit = \"left\"\n").unwrap_err();
         assert!(err.contains("left"), "{err}");
+    }
+
+    #[test]
+    fn toml_errors_fit_on_one_line() {
+        let err = parse("[root]\nsplit = \"up\"\n").unwrap_err();
+        assert!(!err.contains('\n'), "{err}");
+        assert!(err.starts_with("line 2, column 9: "), "{err}");
+        assert!(err.contains("up"), "{err}");
     }
 
     #[test]

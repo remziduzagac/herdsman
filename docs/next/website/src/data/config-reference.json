@@ -878,6 +878,12 @@
           "description": "Give every row in the focused tab the same height. Widths stay as they are."
         },
         {
+          "key": "keys.presets",
+          "type": "keybinding",
+          "default": "\"prefix+t\"",
+          "description": "Open the tab presets list: saved tab layouts to open as new tabs, edit, rename or delete."
+        },
+        {
           "key": "keys.toggle_sidebar",
           "type": "keybinding",
           "default": "\"prefix+b\"",

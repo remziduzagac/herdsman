@@ -352,11 +352,19 @@ A tab's layout saved under a name in `~/.config/herdsman/presets/<name>.toml` an
 tab. The logic lives in herdsman's own files:
 
 - `app/api/layouts/presets.rs`: the `preset.*` methods, saving from `layout.export`'s tree and loading
-  through `layout.apply`, then typing each pane's command into its shell;
+  through `layout.apply`, then typing each pane's command into its shell; `preset.edit` opens the file in
+  the server's `$VISUAL` or `$EDITOR` in a popup pane;
 - `app/api/layouts/presets/file.rs` and `presets/store.rs`: the TOML file and the folder of them;
 - `api/schema/panes/presets.rs`: the methods' types;
 - `cli/presets.rs` and `cli/spec/presets.rs`: `herdsman preset`, whose `edit` opens the file in `$VISUAL` or
-  `$EDITOR` and then asks the server to read it again.
+  `$EDITOR` and then asks the server to read it again;
+- `client/shell/presets.rs`, `client/shell/presets_overlay.rs` and `client/shell/tests/presets.rs`: the
+  presets list on `prefix+t` (`keys.presets`), the tab menu's "Save tab as preset..." and "New tab from
+  preset...", and the save, replace and rename prompts, which reuse the rename overlay. The list's rows and
+  search box reuse the worktree picker's click targets, which only one list fills at a time.
+
+The `preset.*` methods are advertised to client shells, their shapes pinned in
+`server/client_commands/fork_methods.rs`. No bincode struct, frozen codec or `PROTOCOL_VERSION` changed.
 
 The herdr files below carry hooks marked `// fork: presets`.
 
@@ -364,9 +372,16 @@ The herdr files below carry hooks marked `// fork: presets`.
 | --- | --- |
 | Method | `api/schema.rs`, `api/schema/panes.rs`, `api/schema/response.rs`, `api/mod.rs` |
 | Handler | `api/server.rs`, `app/api.rs`, `app/api/layouts.rs` |
-| Geometry | `server/headless/client_views.rs` |
+| Advertising and geometry | `server/client_commands.rs`, `server/headless/client_views.rs` |
 | CLI | `cli.rs`, `cli/spec.rs`, `cli/target.rs` (forwarding with `--machine`, all but `edit`) |
+| Config and keys | `config/model.rs`, `config/keybinds.rs`, `input/keybindings.rs`, `input/keybind_help.rs` |
+| Client state | `client/shell.rs`, `client/shell/state.rs`, `client/shell/actions.rs` |
+| Client input | `client/shell/overlay_input.rs`, `client/shell/input.rs`, `client/shell/mouse.rs` |
+| Menu and drawing | `client/shell/context_menu.rs`, `client/shell/overlays.rs`, `client/shell/worktrees.rs` |
+| Test wiring | `client/shell/tests/mod.rs` |
 | Generated | `docs/next/api/herdsman-api.schema.json` |
+| Docs data | `docs/next/website/src/data/config-reference.json` |
+| Docs | `keyboard.mdx`, `configuration.mdx` (its popup example moved from `prefix+t` to `prefix+u`) |
 
 ### Layout items in the pane menu
 
