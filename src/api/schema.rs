@@ -186,6 +186,8 @@ pub enum Method {
     PresetRename(PresetRenameParams),
     #[serde(rename = "preset.delete")]
     PresetDelete(PresetNameParams),
+    #[serde(rename = "preset.edit")]
+    PresetEdit(PresetNameParams),
     #[serde(rename = "pane.neighbor")]
     PaneNeighbor(PaneNeighborParams),
     #[serde(rename = "pane.edges")]

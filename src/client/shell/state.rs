@@ -289,6 +289,7 @@ pub(super) enum ClientShellOverlayKind {
     WorktreeCreate,
     WorktreeOpen,
     WorktreeRemove,
+    Presets, // fork: presets
     ContextMenu,
     GlobalMenu,
     Settings,
@@ -308,6 +309,7 @@ pub(super) enum ClientRenameTarget {
     WorktreeGroup {
         workspace_id: String,
     },
+    Preset(super::presets::PresetPrompt), // fork: presets
     NewTab {
         workspace_id: String,
         default_name: String,
@@ -524,6 +526,9 @@ pub(super) enum ClientContextMenuAction {
     WorktreeGroup, // fork: worktree groups
     ToggleGroup,
     NewTab,
+    // fork: presets
+    SavePreset,
+    NewTabFromPreset,
     RenamePane,
     ClearPaneName,
     SwapWithFocusedPane,
@@ -603,6 +608,7 @@ pub(super) enum ClientShellOverlay {
     WorktreeCreate(ClientWorktreeCreateOverlay),
     WorktreeOpen(ClientWorktreeOpenOverlay),
     WorktreeRemove(ClientWorktreeRemoveOverlay),
+    Presets(super::presets::PresetsOverlay), // fork: presets
     ContextMenu(ClientContextMenuOverlay),
     GlobalMenu(ClientGlobalMenuOverlay),
     Settings(ClientSettingsOverlay),
@@ -621,6 +627,7 @@ impl ClientShellOverlay {
             Self::WorktreeCreate(_) => ClientShellOverlayKind::WorktreeCreate,
             Self::WorktreeOpen(_) => ClientShellOverlayKind::WorktreeOpen,
             Self::WorktreeRemove(_) => ClientShellOverlayKind::WorktreeRemove,
+            Self::Presets(_) => ClientShellOverlayKind::Presets, // fork: presets
             Self::ContextMenu(_) => ClientShellOverlayKind::ContextMenu,
             Self::GlobalMenu(_) => ClientShellOverlayKind::GlobalMenu,
             Self::Settings(_) => ClientShellOverlayKind::Settings,
@@ -671,6 +678,7 @@ pub(super) enum PendingEndpointKind {
     NavigatorStacks {
         endpoint_id: ClientEndpointId,
     },
+    Presets(super::presets::PresetsRequest), // fork: presets
     PaneLinkActivate {
         pane_id: String,
         inner_rect: Rect,

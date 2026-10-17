@@ -187,7 +187,10 @@ fn editor_command(path: &Path) -> std::process::Command {
     command
 }
 
-fn editor_words(visual: Option<&str>, editor: Option<&str>) -> Vec<String> {
+/// The editor command as words: the first non-empty of `visual` and `editor`
+/// split on whitespace, else `vi`, or Notepad on Windows. The server's
+/// `preset.edit` uses it too, with the server's environment.
+pub(crate) fn editor_words(visual: Option<&str>, editor: Option<&str>) -> Vec<String> {
     let fallback = if cfg!(windows) { "notepad" } else { "vi" };
     let words: Vec<String> = [visual, editor]
         .into_iter()

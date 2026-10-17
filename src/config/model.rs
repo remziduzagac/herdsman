@@ -471,6 +471,9 @@ pub struct KeysConfig {
     pub equalize_widths: BindingConfig,
     /// Give the focused tab's rows equal heights. Default: "prefix+_"
     pub equalize_heights: BindingConfig,
+    // fork: presets
+    /// Open the presets list: saved tab layouts to open as new tabs. Default: "prefix+t"
+    pub presets: BindingConfig,
     /// Toggle sidebar collapse. Default: "prefix+b"
     pub toggle_sidebar: BindingConfig,
     /// Optional indexed shortcuts expanded over number keys 1-9.
@@ -625,6 +628,8 @@ pub(crate) struct KeysConfigOverlay {
     #[serde(skip_serializing_if = "Option::is_none")]
     equalize_heights: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    presets: Option<BindingConfig>, // fork: presets
+    #[serde(skip_serializing_if = "Option::is_none")]
     toggle_sidebar: Option<BindingConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     indexed: Option<IndexedKeysConfig>,
@@ -747,6 +752,7 @@ impl<'de> Deserialize<'de> for KeysConfig {
         // fork: equalize
         apply_field!(equalize_widths);
         apply_field!(equalize_heights);
+        apply_field!(presets); // fork: presets
         apply_field!(toggle_sidebar);
         apply_field!(indexed);
         apply_field!(command);
@@ -862,6 +868,7 @@ impl KeysConfig {
         // fork: equalize
         copy_effective_action_field!(equalize_widths, keybinds.equalize_widths);
         copy_effective_action_field!(equalize_heights, keybinds.equalize_heights);
+        copy_effective_action_field!(presets, keybinds.presets); // fork: presets
         copy_effective_action_field!(toggle_sidebar, keybinds.toggle_sidebar);
         copy_user_field!(indexed);
 
@@ -1249,6 +1256,7 @@ impl Default for KeysConfig {
             // fork: equalize
             equalize_widths: BindingConfig::one("prefix+|"),
             equalize_heights: BindingConfig::one("prefix+_"),
+            presets: BindingConfig::one("prefix+t"), // fork: presets
             toggle_sidebar: BindingConfig::one("prefix+b"),
             indexed: IndexedKeysConfig::default(),
             command: Vec::new(),

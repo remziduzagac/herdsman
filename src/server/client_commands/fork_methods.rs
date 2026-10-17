@@ -2,7 +2,7 @@
 //! frozen generation-1 fixture.
 //!
 //! herdsman's own module. `client_commands.rs` reaches it through hooks marked
-//! `// fork: stacks, worktree groups, equalize`.
+//! `// fork: stacks, worktree groups, equalize, presets`.
 
 use std::collections::BTreeMap;
 
@@ -33,6 +33,34 @@ pub(super) fn remove_pinned(actual: &mut BTreeMap<String, String>) {
     assert_eq!(
         actual.remove("layout.equalize").as_deref(),
         Some("94f7408bcd95f009d28c60cdf46adfb116d8ee0b37bab302a8871ab6dfb10674")
+    );
+    assert_eq!(
+        actual.remove("preset.delete").as_deref(),
+        Some("425ec70376e6e7dacd55d0fa43dd36d529d1df227d1c80991df68b3e78007935")
+    );
+    assert_eq!(
+        actual.remove("preset.edit").as_deref(),
+        Some("432a6e8885dfa1868fd2fd6f098fd9c9b15213fbb91b81f6805603f46ce45f10")
+    );
+    assert_eq!(
+        actual.remove("preset.get").as_deref(),
+        Some("cf62a75e37f160d5b3b11d4b95bd6b7a7bfb73247df6fc422d7a4785db5f3905")
+    );
+    assert_eq!(
+        actual.remove("preset.list").as_deref(),
+        Some("e77d8c6471454e99c8b463d01cc07b877232aca292c0b779a151c4bbc98d91a4")
+    );
+    assert_eq!(
+        actual.remove("preset.load").as_deref(),
+        Some("0c26747502f8fef2f04ab72f300af13cb949318ceb65da4b351d3190dfecd9cb")
+    );
+    assert_eq!(
+        actual.remove("preset.rename").as_deref(),
+        Some("4d72b4f8d3d2041e52aa94e3016c0018a04e354b79a7a3671d6dd9aa3f46b6b7")
+    );
+    assert_eq!(
+        actual.remove("preset.save").as_deref(),
+        Some("1ef7397d832adbbf8c68b921936c449376fd790ae0c1440240e1222fe22d5876")
     );
     assert_eq!(
         actual.remove("workspace.set_worktree_group").as_deref(),

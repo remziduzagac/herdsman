@@ -412,6 +412,7 @@ pub struct Keybinds {
     // fork: equalize
     pub equalize_widths: ActionKeybinds,
     pub equalize_heights: ActionKeybinds,
+    pub presets: ActionKeybinds, // fork: presets
     pub toggle_sidebar: ActionKeybinds,
     pub custom_commands: Vec<CustomCommandKeybind>,
 }
@@ -605,6 +606,7 @@ impl Config {
             // fork: equalize
             equalize_widths: empty_action!(),
             equalize_heights: empty_action!(),
+            presets: empty_action!(), // fork: presets
             toggle_sidebar: empty_action!(),
             custom_commands: Vec::new(),
         };
@@ -763,6 +765,7 @@ impl Config {
             // fork: equalize
             apply_action!(keybinds.equalize_widths, equalize_widths, source);
             apply_action!(keybinds.equalize_heights, equalize_heights, source);
+            apply_action!(keybinds.presets, presets, source); // fork: presets
             apply_action!(keybinds.toggle_sidebar, toggle_sidebar, source);
 
             if source == field_source!(indexed) {

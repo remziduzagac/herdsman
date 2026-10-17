@@ -212,6 +212,31 @@ impl App {
         }
     }
 
+    /// Opens the preset's file in the user's editor, `$VISUAL` or `$EDITOR`,
+    /// in a popup pane on the server's machine. A file that does not parse
+    /// opens too, so it can be fixed; the list shows its error until it is.
+    pub(in crate::app::api) fn handle_preset_edit(
+        &mut self,
+        id: String,
+        params: PresetNameParams,
+    ) -> String {
+        let path = match preset_store().existing_path(&params.name) {
+            Ok(path) => path,
+            Err(err) => return store_error(id, err),
+        };
+        let argv = editor_argv(&path);
+        let (env, _) = self.custom_command_env();
+        let geometry = crate::app::popup::PopupGeometry {
+            width: Some(crate::popup_size::PopupSize::Percent(80)),
+            height: Some(crate::popup_size::PopupSize::Percent(80)),
+        };
+        match self.spawn_popup_argv_command(&argv, path.parent().map(PathBuf::from), env, geometry)
+        {
+            Ok(()) => encode_success(id, ResponseResult::Ok {}),
+            Err(err) => encode_error(id, "preset_edit_failed", err.to_string()),
+        }
+    }
+
     fn preset_node(&self, node: &LayoutNode) -> PresetNode {
         match node {
             LayoutNode::Pane { pane } => PresetNode::Pane {
@@ -318,6 +343,20 @@ impl App {
             tracing::warn!(%err, "could not type a preset command into its pane");
         }
     }
+}
+
+/// The user's editor on `path`: `$VISUAL`, then `$EDITOR`, read from the
+/// server's environment. Tests run a command that exits at once instead.
+fn editor_argv(path: &std::path::Path) -> Vec<String> {
+    #[cfg(test)]
+    let mut argv = vec![super::super::test_support::exiting_test_command().to_string()];
+    #[cfg(not(test))]
+    let mut argv = crate::cli::presets::editor_words(
+        std::env::var("VISUAL").ok().as_deref(),
+        std::env::var("EDITOR").ok().as_deref(),
+    );
+    argv.push(path.display().to_string());
+    argv
 }
 
 /// The tree `layout.apply` gets: every pane a shell, started in `folder` or
@@ -632,6 +671,41 @@ mod tests {
         std::fs::write(preset_dir().join("bad.toml"), "[root]\nsplit = \"up\"\n").unwrap();
         assert_eq!(error_code(&load(&mut app, "bad")), "invalid_preset");
         assert_eq!(app.state.workspaces[0].tabs.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn edit_opens_the_file_in_a_popup_even_when_it_is_broken() {
+        let _clean = CleanUp;
+        let mut app = app_with_workspace();
+        std::fs::create_dir_all(preset_dir()).unwrap();
+        std::fs::write(preset_dir().join("dev.toml"), "[root]\nsplit = \"up\"\n").unwrap();
+
+        let response = call(
+            &mut app,
+            Method::PresetEdit(PresetNameParams { name: "dev".into() }),
+        );
+        assert!(matches!(success(&response), ResponseResult::Ok {}));
+        assert!(app.state.popup_pane.is_some());
+        app.close_popup_pane();
+        super::super::super::test_support::shutdown_test_runtimes(&mut app);
+    }
+
+    #[test]
+    fn edit_reports_a_missing_preset_and_opens_nothing() {
+        let _clean = CleanUp;
+        let mut app = app_with_workspace();
+        let edit = |app: &mut App, name: &str| {
+            call(
+                app,
+                Method::PresetEdit(PresetNameParams { name: name.into() }),
+            )
+        };
+        assert_eq!(error_code(&edit(&mut app, "nope")), "preset_not_found");
+        assert_eq!(
+            error_code(&edit(&mut app, "Not A Name")),
+            "invalid_preset_name"
+        );
+        assert!(app.state.popup_pane.is_none());
     }
 
     #[test]

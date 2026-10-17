@@ -50,6 +50,9 @@ impl ClientContextMenuOverlay {
                 item("New tab", Action::NewTab),
                 item("Rename", Action::Rename),
                 item("Close", Action::Close),
+                // fork: presets
+                item("Save tab as preset...", Action::SavePreset),
+                item("New tab from preset...", Action::NewTabFromPreset),
             ],
             ClientContextMenuTarget::Pane {
                 source_pane_id,
@@ -355,6 +358,11 @@ impl ClientShellState {
             }
             ClientContextMenuAction::Close => {
                 self.request_tab_close(tab_id, outcome);
+            }
+            // fork: presets
+            ClientContextMenuAction::SavePreset => self.open_save_preset_prompt(tab_id),
+            ClientContextMenuAction::NewTabFromPreset => {
+                self.open_presets_list(Some(workspace_id), outcome)
             }
             _ => {}
         }

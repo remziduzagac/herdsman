@@ -262,6 +262,7 @@ mod mobile;
 mod mouse_selection;
 mod pane_menu; // fork: pane menu
 mod popup_focus_projection;
+mod presets; // fork: presets
 mod stacks; // fork: stacks
 mod startup_overlays;
 mod worktree_groups; // fork: worktree groups

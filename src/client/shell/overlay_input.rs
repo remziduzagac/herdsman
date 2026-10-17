@@ -449,6 +449,10 @@ impl ClientShellState {
         if self.insert_worktree_overlay_text(text) {
             return true;
         }
+        // fork: presets
+        if self.insert_presets_text(text) {
+            return true;
+        }
         match self.overlay.as_mut() {
             Some(ClientShellOverlay::Rename(rename)) => {
                 rename.input.insert(text);
@@ -627,6 +631,10 @@ impl ClientShellState {
         }
 
         if self.route_worktree_overlay_key(key, outcome) {
+            return;
+        }
+        // fork: presets
+        if self.route_presets_key(key, outcome) {
             return;
         }
         if matches!(self.overlay, Some(ClientShellOverlay::Navigator(_))) {
@@ -963,6 +971,10 @@ impl ClientShellState {
             ClientRenameTarget::WorktreeGroup { workspace_id } => Some(
                 super::sidebar::worktree_groups::set_group_method(workspace_id, trimmed),
             ),
+            // fork: presets
+            ClientRenameTarget::Preset(prompt) => {
+                return self.submit_preset_prompt(prompt, trimmed, outcome);
+            }
             ClientRenameTarget::NewTab {
                 workspace_id,
                 default_name,

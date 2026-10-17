@@ -68,6 +68,7 @@ pub(crate) enum KeybindAction {
     // fork: equalize
     EqualizeWidths,
     EqualizeHeights,
+    OpenPresets, // fork: presets
     ToggleSidebar,
     CyclePaneNext,
     CyclePanePrevious,
@@ -162,6 +163,7 @@ pub(crate) fn resolve_non_indexed_action(
         // fork: equalize
         (&keybinds.equalize_widths, KeybindAction::EqualizeWidths),
         (&keybinds.equalize_heights, KeybindAction::EqualizeHeights),
+        (&keybinds.presets, KeybindAction::OpenPresets), // fork: presets
         (&keybinds.toggle_sidebar, KeybindAction::ToggleSidebar),
         (&keybinds.reload_config, KeybindAction::ReloadConfig),
         (

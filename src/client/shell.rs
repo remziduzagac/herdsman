@@ -30,6 +30,7 @@ mod notifications;
 mod overlay_input;
 mod pane_menu; // fork: pane menu
 mod preferences;
+mod presets; // fork: presets
 mod render;
 mod scroll;
 mod settings;

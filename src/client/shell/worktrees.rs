@@ -541,6 +541,7 @@ impl ClientShellState {
                 | PendingEndpointKind::PaneLinkActivate { .. }
                 | PendingEndpointKind::PaneLinkResolve { .. }
                 | PendingEndpointKind::NavigatorStacks { .. } // fork: stacks
+                | PendingEndpointKind::Presets(_) // fork: presets
                 | PendingEndpointKind::CopyMotion { .. }
                 | PendingEndpointKind::CopySearch { .. },
                 Err(_),
