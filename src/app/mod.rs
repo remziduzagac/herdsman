@@ -242,6 +242,16 @@ fn sibling_theme_names(name: &str) -> (String, String) {
         "tokyo-night" | "tokyonight" | "tokyo-night-day" | "tokyo-day" | "tokyonight-day" => {
             ("tokyo-night".to_string(), "tokyo-night-day".to_string())
         }
+        // fork: themes
+        "tokyo-night-storm" | "tokyonight-storm" | "tokyo-storm" => (
+            "tokyo-night-storm".to_string(),
+            "tokyo-night-day".to_string(),
+        ),
+        // fork: themes
+        "tokyo-night-moon" | "tokyonight-moon" | "tokyo-moon" => (
+            "tokyo-night-moon".to_string(),
+            "tokyo-night-day".to_string(),
+        ),
         "gruvbox" | "gruvbox-dark" | "gruvbox-light" => {
             ("gruvbox".to_string(), "gruvbox-light".to_string())
         }

@@ -6,6 +6,8 @@ pub const THEME_NAMES: &[&str] = &[
     "catppuccin-latte",
     "terminal",
     "tokyo-night",
+    "tokyo-night-storm", // fork: themes
+    "tokyo-night-moon",  // fork: themes
     "tokyo-night-day",
     "dracula",
     "nord",
@@ -28,6 +30,10 @@ pub(crate) fn canonical_theme_name(name: &str) -> Option<&'static str> {
         "catppuccin-latte" | "latte" | "light" => Some("catppuccin-latte"),
         "terminal" => Some("terminal"),
         "tokyo-night" | "tokyonight" => Some("tokyo-night"),
+        // fork: themes
+        "tokyo-night-storm" | "tokyonight-storm" | "tokyo-storm" => Some("tokyo-night-storm"),
+        // fork: themes
+        "tokyo-night-moon" | "tokyonight-moon" | "tokyo-moon" => Some("tokyo-night-moon"),
         "tokyo-night-day" | "tokyo-day" | "tokyonight-day" => Some("tokyo-night-day"),
         "dracula" => Some("dracula"),
         "nord" => Some("nord"),

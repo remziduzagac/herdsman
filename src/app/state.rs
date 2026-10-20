@@ -26,6 +26,7 @@ use crate::terminal_theme::{HostAppearance, TerminalTheme};
 use crate::workspace::Workspace;
 
 pub(crate) mod fork; // fork: state
+mod tokyo_night; // fork: themes
 
 // ---------------------------------------------------------------------------
 // Theme palette — all UI colors in one place, ready for theming
@@ -153,52 +154,12 @@ impl Palette {
 
     /// Tokyo Night — blue-purple aesthetic.
     pub fn tokyo_night() -> Self {
-        Self {
-            accent: Color::Rgb(122, 162, 247), // blue
-            panel_bg: Color::Rgb(26, 27, 38),
-            sidebar_bg: Color::Reset,
-            active_row_bg: Color::Rgb(35, 38, 54),
-            selection_bg: Color::Rgb(45, 54, 80),
-            surface0: Color::Rgb(36, 40, 59),
-            surface1: Color::Rgb(65, 72, 104),
-            surface_dim: Color::Rgb(26, 27, 38),
-            overlay0: Color::Rgb(86, 95, 137),
-            overlay1: Color::Rgb(105, 113, 150),
-            text: Color::Rgb(192, 202, 245),
-            subtext0: Color::Rgb(169, 177, 214),
-            mauve: Color::Rgb(187, 154, 247),
-            green: Color::Rgb(158, 206, 106),
-            yellow: Color::Rgb(224, 175, 104),
-            red: Color::Rgb(247, 118, 142),
-            blue: Color::Rgb(122, 162, 247),
-            teal: Color::Rgb(125, 207, 255),
-            peach: Color::Rgb(255, 158, 100),
-        }
+        tokyo_night::night() // fork: themes
     }
 
     /// Tokyo Night Day — the light Tokyo Night style.
     pub fn tokyo_night_day() -> Self {
-        Self {
-            accent: Color::Rgb(46, 125, 233),
-            panel_bg: Color::Rgb(225, 226, 231),
-            sidebar_bg: Color::Reset,
-            active_row_bg: Color::Rgb(210, 211, 218),
-            selection_bg: Color::Rgb(182, 202, 231),
-            surface0: Color::Rgb(196, 200, 218),
-            surface1: Color::Rgb(168, 174, 203),
-            surface_dim: Color::Rgb(210, 211, 218),
-            overlay0: Color::Rgb(137, 144, 179),
-            overlay1: Color::Rgb(104, 112, 154),
-            text: Color::Rgb(55, 96, 191),
-            subtext0: Color::Rgb(97, 114, 176),
-            mauve: Color::Rgb(120, 71, 189),
-            green: Color::Rgb(88, 117, 57),
-            yellow: Color::Rgb(140, 108, 62),
-            red: Color::Rgb(245, 42, 101),
-            blue: Color::Rgb(46, 125, 233),
-            teal: Color::Rgb(17, 140, 116),
-            peach: Color::Rgb(177, 92, 0),
-        }
+        tokyo_night::day() // fork: themes
     }
 
     /// Dracula — purple/pink/green.
@@ -533,6 +494,8 @@ impl Palette {
             "catppuccin-latte" => Some(Self::catppuccin_latte()),
             "terminal" => Some(Self::terminal()),
             "tokyo-night" => Some(Self::tokyo_night()),
+            "tokyo-night-storm" => Some(Self::tokyo_night_storm()), // fork: themes
+            "tokyo-night-moon" => Some(Self::tokyo_night_moon()),   // fork: themes
             "tokyo-night-day" => Some(Self::tokyo_night_day()),
             "dracula" => Some(Self::dracula()),
             "nord" => Some(Self::nord()),

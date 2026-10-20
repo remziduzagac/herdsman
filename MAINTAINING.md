@@ -444,6 +444,20 @@ marked `// fork: plugin versions`.
 | `--version` | `main.rs` |
 | Docs | `plugins.mdx`, `socket-api.mdx` |
 
+### Tokyo Night styles
+
+`app/state/tokyo_night.rs` holds the official tokyonight.nvim palettes for the night, storm, moon and day
+styles, and maps each onto herdsman's palette the same way. herdr's `tokyo_night()` and
+`tokyo_night_day()` in `app/state.rs` build from it instead of their own colours, so herdr's tests
+still compare against them; keep herdsman's one-line bodies when a merge conflicts there. The herdr
+files below carry hooks marked `// fork: themes`.
+
+| Area | Files |
+| --- | --- |
+| Palettes and names | `app/state.rs`, `config/theme.rs` |
+| Light and dark pairs | `app/mod.rs` |
+| Docs | `configuration.mdx` |
+
 ## Releasing
 
 A release is a `vX.Y.Z` tag on `main`. Pushing it starts `.github/workflows/release.yml`, which
