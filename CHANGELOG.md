@@ -5,10 +5,6 @@ Each herdsman release names the herdr release it is built on. Versions are herds
 
 ## Unreleased
 
-## [0.2.0] - 2026-10-15
-
-Based on herdr 0.9.5 (`2ecf19a9`).
-
 ### Added
 
 - Tab presets: save a tab's layout under a name with Save tab as preset... in its right-click menu or
