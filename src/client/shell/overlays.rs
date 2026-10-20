@@ -655,7 +655,7 @@ fn render_rename_overlay(
         i.x,
         i.y,
         i.width,
-        v.title,
+        &super::presets::prompt_title(v), // fork: presets
         Style::default()
             .fg(p.text)
             .bg(p.panel_bg)

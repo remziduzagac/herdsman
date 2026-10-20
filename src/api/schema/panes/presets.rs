@@ -4,6 +4,8 @@
 //! herdsman's own module. `panes.rs` re-exports it through hooks marked
 //! `// fork: presets`.
 
+use std::collections::BTreeMap;
+
 use super::*;
 
 /// Save a tab as a preset. `tab_id`, or `pane_id` for the tab holding that
@@ -32,6 +34,10 @@ pub struct PresetLoadParams {
     /// Focus the new tab. Defaults to true.
     #[serde(default = "focus_by_default")]
     pub focus: bool,
+    /// Values for the preset's declared parameters, by name. Every pane gets
+    /// each one as an environment variable named in upper case: `pr` as `PR`.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub params: BTreeMap<String, String>,
 }
 
 fn focus_by_default() -> bool {
@@ -59,6 +65,9 @@ pub struct PresetSummary {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     pub panes: usize,
+    /// The parameters it takes when it is opened.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub params: Vec<PresetParam>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
@@ -71,7 +80,26 @@ pub struct PresetDescription {
     pub label: Option<String>,
     /// The preset's file on the server's machine.
     pub path: String,
+    /// The parameters it takes when it is opened.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub params: Vec<PresetParam>,
     pub root: PresetNode,
+}
+
+/// A value a preset takes when it is opened, declared in its file's `[params]`
+/// table. Opening the preset gives every pane the value as an environment
+/// variable, `name` in upper case, so a pane's command reads it as `$NAME`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+pub struct PresetParam {
+    pub name: String,
+    /// Opening the preset without a value fails.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub required: bool,
+    /// The value when none is given.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
 }
 
 /// A preset's layout: `split` and `stack` nodes as in `layout.export`, with

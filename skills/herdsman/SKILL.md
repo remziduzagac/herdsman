@@ -284,6 +284,13 @@ herdsman preset save <name> --current
 herdsman preset load <name> --current --no-focus
 ```
 
+A preset can declare parameters; `preset show <name>` lists them under `params`. Pass values with
+`--param <name>=<value>`; panes read them as `$NAME`:
+
+```bash
+herdsman preset load pr --current --param pr=42
+```
+
 `--current` means the caller's own tab for `save` and its workspace for `load`. `preset load` answers like
 `layout.apply`: read the new panes' IDs from `.result.layout`. Save over an existing name only with
 `--overwrite` when the user asked for it. `preset edit` opens an editor and is for the user, not for agents.

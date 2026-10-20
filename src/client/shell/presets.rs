@@ -1,17 +1,21 @@
 //! Tab presets in the TUI: the presets list (`keys.presets`, `prefix+t`), the
 //! save, replace and rename prompts, and the `preset.*` requests behind them.
 //! The list opens a preset as a new tab, edits its file in a popup
-//! (`preset.edit`), renames it, or deletes it once `y` confirms.
+//! (`preset.edit`), renames it, or deletes it once `y` confirms. A preset with
+//! required parameters asks for each value first, one prompt at a time.
 //!
 //! herdsman's own module. `shell.rs`, `state.rs`, `actions.rs`,
 //! `context_menu.rs`, `overlay_input.rs`, `input.rs`, `mouse.rs`,
 //! `worktrees.rs` and `overlays.rs` reach it through hooks marked
 //! `// fork: presets`.
 
+use std::borrow::Cow;
+use std::collections::BTreeMap;
+
 use super::*;
 use crate::api::schema::{
-    EmptyParams, Method, PresetLoadParams, PresetNameParams, PresetRenameParams, PresetSaveParams,
-    PresetSummary, ResponseResult,
+    EmptyParams, Method, PresetLoadParams, PresetNameParams, PresetParam, PresetRenameParams,
+    PresetSaveParams, PresetSummary, ResponseResult,
 };
 
 const MAX_NAME_LEN: usize = 64;
@@ -138,6 +142,43 @@ pub(super) enum PresetPrompt {
         name: String,
         workspace_id: Option<String>,
     },
+    /// A value for `pending[0]`, a required parameter of `preset`; the rest
+    /// of `pending` are asked next, then the preset opens with `given`.
+    Value {
+        preset: String,
+        workspace_id: Option<String>,
+        pending: Vec<PresetParam>,
+        given: BTreeMap<String, String>,
+    },
+}
+
+/// A prompt's title: a value prompt names the parameter and what it is for,
+/// which a fixed title cannot.
+pub(super) fn prompt_title(overlay: &ClientRenameOverlay) -> Cow<'static, str> {
+    match &overlay.target {
+        ClientRenameTarget::Preset(PresetPrompt::Value {
+            preset, pending, ..
+        }) => match pending.first() {
+            Some(PresetParam {
+                name,
+                description: Some(description),
+                ..
+            }) => Cow::Owned(format!("{preset} · {name}: {description}")),
+            Some(param) => Cow::Owned(format!("{preset} · {}", param.name)),
+            None => Cow::Borrowed(overlay.title),
+        },
+        _ => Cow::Borrowed(overlay.title),
+    }
+}
+
+/// The parameters a preset cannot open without: required, with no default.
+fn values_to_ask(entry: &PresetSummary) -> Vec<PresetParam> {
+    entry
+        .params
+        .iter()
+        .filter(|param| param.required && param.default.is_none())
+        .cloned()
+        .collect()
 }
 
 /// A tab's name as a preset name: lowercase, with anything but letters,
@@ -248,6 +289,16 @@ impl ClientShellState {
     ) {
         outcome.repaint = true;
         if name.is_empty() {
+            // A required value cannot be empty: ask again. Esc leaves.
+            if let PresetPrompt::Value {
+                preset,
+                workspace_id,
+                pending,
+                given,
+            } = prompt
+            {
+                self.ask_preset_value(preset, workspace_id, pending, given);
+            }
             return;
         }
         let name = name.to_owned();
@@ -259,6 +310,23 @@ impl ClientShellState {
             } => {
                 let overwrite = name == taken;
                 self.save_preset(tab_id, name, overwrite, outcome);
+            }
+            PresetPrompt::Value {
+                preset,
+                workspace_id,
+                mut pending,
+                mut given,
+            } => {
+                if pending.is_empty() {
+                    return;
+                }
+                let param = pending.remove(0);
+                given.insert(param.name, name);
+                if pending.is_empty() {
+                    self.load_preset(preset, workspace_id, given, outcome);
+                } else {
+                    self.ask_preset_value(preset, workspace_id, pending, given);
+                }
             }
             PresetPrompt::Rename {
                 name: old,
@@ -440,14 +508,55 @@ impl ClientShellState {
             list.error = Some(format!("{} has a mistake; press e to fix it", entry.name));
             return;
         }
+        let (name, workspace_id) = (entry.name.clone(), list.workspace_id.clone());
+        let pending = values_to_ask(entry);
+        if pending.is_empty() {
+            self.load_preset(name, workspace_id, BTreeMap::new(), outcome);
+        } else {
+            outcome.repaint = true;
+            self.ask_preset_value(name, workspace_id, pending, BTreeMap::new());
+        }
+    }
+
+    /// The prompt for `pending[0]`, in place of the list.
+    fn ask_preset_value(
+        &mut self,
+        preset: String,
+        workspace_id: Option<String>,
+        pending: Vec<PresetParam>,
+        given: BTreeMap<String, String>,
+    ) {
+        self.open_preset_prompt(
+            "preset value",
+            "",
+            false,
+            PresetPrompt::Value {
+                preset,
+                workspace_id,
+                pending,
+                given,
+            },
+        );
+    }
+
+    fn load_preset(
+        &mut self,
+        name: String,
+        workspace_id: Option<String>,
+        given: BTreeMap<String, String>,
+        outcome: &mut ClientShellInput,
+    ) {
         let params = PresetLoadParams {
-            name: entry.name.clone(),
-            workspace_id: list.workspace_id.clone(),
+            name,
+            workspace_id,
             pane_id: None,
             focus: true,
+            params: given,
         };
-        list.busy = true;
-        list.error = None;
+        if let Some(ClientShellOverlay::Presets(list)) = self.overlay.as_mut() {
+            list.busy = true;
+            list.error = None;
+        }
         if !self.push_endpoint_method_with_kind(
             Method::PresetLoad(params),
             PendingEndpointKind::Presets(PresetsRequest::Load),

@@ -110,6 +110,42 @@ A node with `split` is a split, a node with `stack` is a stack, and any other no
 be absolute or start with `~`. A folder that does not exist falls back to the workspace's, and the server's
 log says so. A preset holds at most 24 panes and 16 levels of splits, as for `layout.apply`.
 
+## Parameters
+
+A preset can take values when it opens, so one preset serves every pull request, ticket or branch. Declare
+them in a `[params]` table:
+
+```toml
+[params]
+pr = { required = true, description = "pull request number" }
+base = { default = "dev" }
+
+[root]
+split = "right"
+
+[root.first]
+command = "claude"
+
+[root.second]
+command = "gh pr diff $PR | diffnav"
+```
+
+Every pane gets each value as an environment variable named in upper case, `pr` as `PR`, and its command
+reads it as `$PR`. The shell expands the variable, so a value is never pasted into the command line: a
+branch named `x;rm -rf ~` stays a plain string. A parameter with a `default` takes it when no value is given;
+a `required` one cannot be left out. Names are a lowercase letter, then lowercase letters, digits and `_`,
+and may not stand for a variable the shell or Herdsman uses, such as `path` or `home`.
+
+Give the values when you open the preset:
+
+```bash
+herdsman preset load pr --param pr=42 --param base=test
+```
+
+Opening a preset with a value it does not declare, or without a required one, fails before any tab opens.
+In the presets list, Enter on a preset with required parameters asks for each value first. Saving a tab over
+an existing preset keeps its `[params]`.
+
 ## Presets on other machines
 
 Each server keeps its own presets, in its own machine's config folder. A tab on a saved SSH machine is saved

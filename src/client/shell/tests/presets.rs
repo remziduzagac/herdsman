@@ -38,6 +38,7 @@ fn summary(name: &str, label: Option<&str>, panes: usize, error: Option<&str>) -
         path: format!("/home/user/.config/herdsman/presets/{name}.toml"),
         label: label.map(str::to_string),
         panes,
+        params: Vec::new(),
         error: error.map(str::to_string),
     }
 }
@@ -133,6 +134,7 @@ fn enter_opens_the_selected_preset_in_the_focused_workspace() {
             workspace_id: Some("ws_1".into()),
             pane_id: None,
             focus: true,
+            params: Default::default(),
         }
     );
     state.handle_endpoint_result(
@@ -300,4 +302,61 @@ fn tab_names_become_preset_names() {
     assert_eq!(preset_name_from("api_2"), "api_2");
     assert_eq!(preset_name_from("  -notes"), "notes");
     assert_eq!(preset_name_from(&"x".repeat(80)).len(), 64);
+}
+
+#[test]
+fn a_preset_with_required_params_asks_for_each_value_then_opens() {
+    use crate::api::schema::PresetParam;
+
+    let mut state = shell();
+    let outcome = state.handle_input_bytes(b"\x02t");
+    let request_id = requests(&outcome)[0].0.clone();
+    let param = |name: &str, required: bool, default: Option<&str>, description: Option<&str>| {
+        PresetParam {
+            name: name.into(),
+            required,
+            default: default.map(str::to_string),
+            description: description.map(str::to_string),
+        }
+    };
+    let mut pr = summary("pr", None, 2, None);
+    pr.params = vec![
+        param("base", false, Some("dev"), None),
+        param("pr", true, None, Some("pull request number")),
+        param("ticket", true, None, None),
+    ];
+    state.handle_endpoint_result(
+        "boot-1",
+        &request_id,
+        Ok(ResponseResult::PresetList { presets: vec![pr] }),
+    );
+
+    // Enter asks for the first required value instead of loading.
+    let outcome = state.handle_input_bytes(b"\r");
+    assert!(requests(&outcome).is_empty(), "{:?}", requests(&outcome));
+    let drawn = screen(&mut state);
+    assert!(drawn.contains("pr · pr: pull request number"), "{drawn}");
+
+    // An empty value is not accepted; the prompt stays.
+    let outcome = state.handle_input_bytes(b"\r");
+    assert!(requests(&outcome).is_empty());
+
+    state.handle_input_bytes(b"42\r");
+    let drawn = screen(&mut state);
+    assert!(drawn.contains("pr · ticket"), "{drawn}");
+
+    let outcome = state.handle_input_bytes(b"HS-7\r");
+    let (_, Method::PresetLoad(params)) = one(&outcome) else {
+        panic!("the last value should load: {:?}", requests(&outcome));
+    };
+    assert_eq!(params.name, "pr");
+    assert_eq!(params.workspace_id.as_deref(), Some("ws_1"));
+    // The default is the server's to fill in.
+    assert_eq!(
+        params.params,
+        std::collections::BTreeMap::from([
+            ("pr".to_string(), "42".to_string()),
+            ("ticket".to_string(), "HS-7".to_string()),
+        ])
+    );
 }
