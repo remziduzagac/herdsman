@@ -215,6 +215,7 @@ herdsman preset list
 herdsman preset show <name>
 herdsman preset save <name> [<tab_id>|--current] [--overwrite]
 herdsman preset load <name> [--workspace <workspace_id>|--current] [--no-focus]
+                     [--param <name>=<value>]...
 herdsman preset edit <name>
 herdsman preset rename <name> <new_name>
 herdsman preset delete <name>
@@ -224,7 +225,9 @@ A [preset](/docs/presets/) is a tab's layout saved under a name. `preset save` r
 by ID, or with `--current` the caller's own tab; it refuses a name already taken unless `--overwrite` is
 given. `preset load` opens the preset as a new tab in the active workspace, a workspace by ID, or with
 `--current` the caller's own workspace, and focuses it unless `--no-focus` is given. Its panes start in the
-workspace's folder, and each pane's command is typed into its shell. `preset list` includes presets whose
+workspace's folder, and each pane's command is typed into its shell. `--param` gives a value for one of the
+preset's [parameters](/docs/presets/#parameters); every pane gets it as an environment variable, `PR` for
+`pr`. `preset list` includes presets whose
 file does not parse, with their `error`; `preset show` prints one preset's tree and file path. `preset edit`
 opens the file in `$VISUAL` or `$EDITOR` and checks it when the editor closes. Every command but `edit` also
 works with `--machine`.

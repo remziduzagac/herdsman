@@ -210,6 +210,7 @@ mod tests {
 
     fn preset(command: &str) -> PresetFile {
         PresetFile {
+            params: Vec::new(),
             label: None,
             root: PresetNode::Pane {
                 pane: PresetPane {

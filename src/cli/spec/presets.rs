@@ -28,7 +28,11 @@ pub(super) fn preset_command() -> Command {
                 .arg(required("name", "NAME"))
                 .arg(option("workspace", "WORKSPACE_ID"))
                 .arg(flag("current"))
-                .arg(flag("no-focus")),
+                .arg(flag("no-focus"))
+                .arg(
+                    repeatable_option("param", "NAME=VALUE")
+                        .help("A value for one of the preset's parameters; repeat for more"),
+                ),
         )
         .subcommand(
             Command::new("edit")

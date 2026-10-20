@@ -430,20 +430,26 @@ A [preset](/docs/presets/) is a tab's layout saved under a name, as a TOML file 
 ```json
 {"id":"req_save","method":"preset.save","params":{"name":"dev","pane_id":"w1:p2"}}
 {"id":"req_load","method":"preset.load","params":{"name":"dev","workspace_id":"w2","focus":false}}
+{"id":"req_pr","method":"preset.load","params":{"name":"pr","params":{"pr":"42"}}}
 ```
 
 - `preset.save` saves a tab as `name`: the tab `tab_id`, the tab holding `pane_id`, or the active tab.
   It refuses a name already taken (`preset_exists`) unless `overwrite` is true. The response, like
   `preset.get`'s and `preset.rename`'s, is `type: "preset_info"` with `preset`: `name`, `label` (the tab's
-  name), `path` (the file on the server's machine) and `root`.
+  name), `path` (the file on the server's machine), `params` and `root`.
 - `root` is a tree like `layout.export`'s: `split` nodes with `direction`, `ratio`, `first` and `second`,
   `stack` nodes with `panes` and `active`, and `pane` nodes. A pane holds `label`, `cwd` (relative to the
   workspace's folder unless absolute), `command` (a command line typed into the pane's shell) and `env`.
 - `preset.load` opens a preset as a new tab in `workspace_id`, the workspace holding `pane_id`, or the active
   workspace, and focuses it unless `focus` is false. It answers as `layout.apply` does, with
-  `type: "layout_apply"`, and then types each pane's command into its shell.
+  `type: "layout_apply"`, and then types each pane's command into its shell. `params` gives values for the
+  preset's parameters by name; every pane gets each as an environment variable, the name in upper case. A
+  name the preset does not declare fails with `unknown_preset_param`, a required one left out with
+  `missing_preset_param`, and a value holding NUL with `invalid_preset_param`; no tab opens.
+- `params`, in `preset.get`'s and `preset.list`'s answers, lists the parameters a preset declares: `name`,
+  `required` when it must be given, `default` and `description`.
 - `preset.list` answers `type: "preset_list"` with `presets[]`: `name`, `path`, `label`, `panes` (the pane
-  count) and, for a file that does not parse, `error`.
+  count), `params` and, for a file that does not parse, `error`.
 - `preset.get` reads one preset; `preset.rename` takes `name` and `new_name`; `preset.delete` answers
   `type: "preset_deleted"` with `name`; `preset.edit` opens the file in the server's `$VISUAL` or `$EDITOR`
   in a popup pane and answers `type: "ok"`.

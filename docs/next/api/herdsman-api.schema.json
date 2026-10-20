@@ -4100,6 +4100,13 @@
                 "null"
               ]
             },
+            "params": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Values for the preset's declared parameters, by name. Every pane gets\neach one as an environment variable named in upper case: `pr` as `PR`.",
+              "type": "object"
+            },
             "workspace_id": {
               "type": [
                 "string",
@@ -9854,6 +9861,13 @@
             "name": {
               "type": "string"
             },
+            "params": {
+              "description": "The parameters it takes when it is opened.",
+              "items": {
+                "$ref": "#/schemas/success_response/$defs/PresetParam"
+              },
+              "type": "array"
+            },
             "path": {
               "description": "The preset's file on the server's machine.",
               "type": "string"
@@ -9998,6 +10012,35 @@
           },
           "type": "object"
         },
+        "PresetParam": {
+          "description": "A value a preset takes when it is opened, declared in its file's `[params]`\ntable. Opening the preset gives every pane the value as an environment\nvariable, `name` in upper case, so a pane's command reads it as `$NAME`.",
+          "properties": {
+            "default": {
+              "description": "The value when none is given.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "name": {
+              "type": "string"
+            },
+            "required": {
+              "description": "Opening the preset without a value fails.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "type": "object"
+        },
         "PresetSummary": {
           "description": "One preset in `preset.list`. A file that does not parse is listed with its\n`error`, so it can be fixed or deleted.",
           "properties": {
@@ -10020,6 +10063,13 @@
               "format": "uint",
               "minimum": 0,
               "type": "integer"
+            },
+            "params": {
+              "description": "The parameters it takes when it is opened.",
+              "items": {
+                "$ref": "#/schemas/success_response/$defs/PresetParam"
+              },
+              "type": "array"
             },
             "path": {
               "description": "The preset's file on the server's machine.",

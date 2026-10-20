@@ -16,16 +16,26 @@
 //! label = "docs"
 //! cwd = "docs"
 //! ```
+//!
+//! A `[params]` table declares the values the preset takes when it is opened:
+//!
+//! ```toml
+//! [params]
+//! pr = { required = true, description = "pull request number" }
+//! base = { default = "dev" }
+//! ```
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use serde::{Deserialize, Serialize};
 
-use crate::api::schema::{PresetNode, PresetPane, SplitDirection};
+use crate::api::schema::{PresetNode, PresetPane, PresetParam, SplitDirection};
 
 #[derive(Debug, Clone, PartialEq)]
 pub(super) struct PresetFile {
     pub label: Option<String>,
+    /// In name order.
+    pub params: Vec<PresetParam>,
     pub root: PresetNode,
 }
 
@@ -34,7 +44,20 @@ pub(super) struct PresetFile {
 struct FileToml {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     label: Option<String>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    params: BTreeMap<String, ParamToml>,
     root: NodeToml,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ParamToml {
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    required: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    default: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    description: Option<String>,
 }
 
 /// Every field a node may carry; which ones it has decides its kind. Plain
@@ -85,8 +108,29 @@ pub(super) fn parse(text: &str) -> Result<PresetFile, String> {
     let file: FileToml = toml::from_str(text).map_err(|err| toml_error(text, &err))?;
     Ok(PresetFile {
         label: file.label,
+        params: params_from_toml(file.params)?,
         root: node_from_toml(file.root, "root", 0)?,
     })
+}
+
+fn params_from_toml(params: BTreeMap<String, ParamToml>) -> Result<Vec<PresetParam>, String> {
+    params
+        .into_iter()
+        .map(|(name, param)| {
+            super::params::check_name(&name).map_err(|err| format!("params: {err}"))?;
+            if param.required && param.default.is_some() {
+                return Err(format!(
+                    "params: parameter `{name}` has a default, so it cannot be required"
+                ));
+            }
+            Ok(PresetParam {
+                name,
+                required: param.required,
+                default: param.default,
+                description: param.description,
+            })
+        })
+        .collect()
 }
 
 /// A TOML error on one line, `line L, column C: message`, which fits a list
@@ -105,6 +149,18 @@ fn toml_error(text: &str, err: &toml::de::Error) -> String {
 pub(super) fn render(preset: &PresetFile) -> Result<String, String> {
     let file = FileToml {
         label: preset.label.clone(),
+        params: preset
+            .params
+            .iter()
+            .map(|param| {
+                let toml = ParamToml {
+                    required: param.required,
+                    default: param.default.clone(),
+                    description: param.description.clone(),
+                };
+                (param.name.clone(), toml)
+            })
+            .collect(),
         root: node_to_toml(&preset.root),
     };
     toml::to_string(&file).map_err(|err| err.to_string())
@@ -386,6 +442,7 @@ cwd = "docs"
     fn render_writes_one_table_per_node_and_reads_back() {
         let preset = PresetFile {
             label: Some("dev".into()),
+            params: Vec::new(),
             root: PresetNode::Split {
                 direction: SplitDirection::Right,
                 ratio: 0.6,
@@ -425,6 +482,7 @@ cwd = "docs"
     fn ratios_are_written_to_four_decimals() {
         let preset = PresetFile {
             label: None,
+            params: Vec::new(),
             root: PresetNode::Split {
                 direction: SplitDirection::Down,
                 ratio: 1.0 / 3.0,
@@ -438,6 +496,53 @@ cwd = "docs"
         };
         let text = render(&preset).unwrap();
         assert!(text.contains("ratio = 0.3333\n"), "{text}");
+    }
+
+    #[test]
+    fn reads_params_in_name_order_and_writes_them_back() {
+        let preset = parse(
+            "[params]\npr = { required = true, description = \"pull request\" }\n\
+             base = { default = \"dev\" }\n[root]\ncommand = \"gh pr diff $PR\"\n",
+        )
+        .unwrap();
+        let names = preset
+            .params
+            .iter()
+            .map(|param| param.name.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(names, ["base", "pr"]);
+        assert!(preset.params[1].required);
+        assert_eq!(preset.params[0].default.as_deref(), Some("dev"));
+        assert_eq!(
+            preset.params[1].description.as_deref(),
+            Some("pull request")
+        );
+
+        let text = render(&preset).unwrap();
+        assert_eq!(parse(&text).unwrap(), preset);
+    }
+
+    #[test]
+    fn bad_params_are_refused() {
+        let cases = [
+            (
+                "[params]\nPR = {}\n[root]\n",
+                "a name is a lowercase letter",
+            ),
+            (
+                "[params]\npath = {}\n[root]\n",
+                "the shell or herdsman uses",
+            ),
+            (
+                "[params]\npr = { required = true, default = \"1\" }\n[root]\n",
+                "cannot be required",
+            ),
+            ("[params]\npr = { requird = true }\n[root]\n", "requird"),
+        ];
+        for (text, expected) in cases {
+            let err = parse(text).unwrap_err();
+            assert!(err.contains(expected), "{text:?}: {err}");
+        }
     }
 
     #[test]

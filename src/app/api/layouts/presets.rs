@@ -5,11 +5,14 @@
 //! agent's command, or the command the pane was launched with. Folders are not
 //! recorded; loading starts every pane in the workspace's folder, or in the
 //! folder a pane's `cwd` names, then types each pane's command into its shell.
+//! A load's parameter values reach every pane as environment variables
+//! (`params.rs`).
 //!
 //! herdsman's own module. `layouts.rs` and `app/api.rs` reach it through hooks
 //! marked `// fork: presets`.
 
 mod file;
+mod params;
 mod store;
 
 use bytes::Bytes;
@@ -42,6 +45,7 @@ fn describe(store: &PresetStore, name: &str, preset: PresetFile) -> PresetDescri
         name: name.to_string(),
         label: preset.label,
         path: store.path(name).display().to_string(),
+        params: preset.params,
         root: preset.root,
     }
 }
@@ -61,6 +65,7 @@ impl App {
                     name,
                     panes: preset.root.pane_count(),
                     label: preset.label,
+                    params: preset.params,
                     error: None,
                 },
                 Err(error) => PresetSummary {
@@ -68,6 +73,7 @@ impl App {
                     name,
                     label: None,
                     panes: 0,
+                    params: Vec::new(),
                     error: Some(error),
                 },
             })
@@ -104,14 +110,24 @@ impl App {
         let Some(layout) = self.layout_description(ws_idx, tab_idx) else {
             return encode_error(id, "layout_not_found", "layout unavailable");
         };
+        let store = preset_store();
+        // Replacing a preset keeps the parameters its file declares: a tab has
+        // none to save.
+        let declared = match params.overwrite {
+            true => store
+                .read(&params.name)
+                .map(|old| old.params)
+                .unwrap_or_default(),
+            false => Vec::new(),
+        };
         let preset = PresetFile {
             label: self.state.workspaces[ws_idx].tabs[tab_idx]
                 .custom_name
                 .clone(),
+            params: declared,
             root: self.preset_node(&layout.root),
         };
 
-        let store = preset_store();
         if let Err(err) = store.write(&params.name, &preset, params.overwrite) {
             return store_error(id, err);
         }
@@ -129,6 +145,10 @@ impl App {
         let preset = match preset_store().read(&params.name) {
             Ok(preset) => preset,
             Err(err) => return store_error(id, err),
+        };
+        let env = match params::load_env(&preset.params, &params.params) {
+            Ok(env) => env,
+            Err(err) => return encode_error(id, err.code, err.message),
         };
         let ws_idx = match (params.workspace_id.as_deref(), params.pane_id.as_deref()) {
             (Some(_), Some(_)) => {
@@ -170,7 +190,7 @@ impl App {
                 tab_id: None,
                 tab_label: preset.label.clone(),
                 focus: params.focus,
-                root: layout_node(&preset.root, &folder),
+                root: layout_node(&preset.root, &folder, &env),
             },
         );
         if let Ok(SuccessResponse {
@@ -362,11 +382,16 @@ fn editor_argv(path: &std::path::Path) -> Vec<String> {
 }
 
 /// The tree `layout.apply` gets: every pane a shell, started in `folder` or
-/// in the folder its `cwd` names. Commands are typed in afterwards.
-fn layout_node(node: &PresetNode, folder: &std::path::Path) -> LayoutNode {
+/// in the folder its `cwd` names, with the load's variables in `env` on top of
+/// its own. Commands are typed in afterwards.
+fn layout_node(
+    node: &PresetNode,
+    folder: &std::path::Path,
+    env: &[(String, String)],
+) -> LayoutNode {
     match node {
         PresetNode::Pane { pane } => LayoutNode::Pane {
-            pane: layout_pane(pane, folder),
+            pane: layout_pane(pane, folder, env),
         },
         PresetNode::Split {
             direction,
@@ -376,17 +401,26 @@ fn layout_node(node: &PresetNode, folder: &std::path::Path) -> LayoutNode {
         } => LayoutNode::Split {
             direction: direction.clone(),
             ratio: *ratio,
-            first: Box::new(layout_node(first, folder)),
-            second: Box::new(layout_node(second, folder)),
+            first: Box::new(layout_node(first, folder, env)),
+            second: Box::new(layout_node(second, folder, env)),
         },
         PresetNode::Stack { panes, active } => LayoutNode::Stack {
-            panes: panes.iter().map(|pane| layout_pane(pane, folder)).collect(),
+            panes: panes
+                .iter()
+                .map(|pane| layout_pane(pane, folder, env))
+                .collect(),
             active: *active,
         },
     }
 }
 
-fn layout_pane(pane: &PresetPane, folder: &std::path::Path) -> LayoutPane {
+fn layout_pane(
+    pane: &PresetPane,
+    folder: &std::path::Path,
+    env: &[(String, String)],
+) -> LayoutPane {
+    let mut pane_env = pane.env.clone();
+    pane_env.extend(env.iter().cloned());
     LayoutPane {
         pane_id: None,
         label: pane.label.clone(),
@@ -396,7 +430,7 @@ fn layout_pane(pane: &PresetPane, folder: &std::path::Path) -> LayoutPane {
                 .to_string(),
         ),
         command: None,
-        env: pane.env.clone(),
+        env: pane_env,
     }
 }
 
@@ -621,6 +655,7 @@ mod tests {
                 workspace_id: None,
                 pane_id: None,
                 focus: true,
+                params: Default::default(),
             }),
         );
         let ResponseResult::LayoutApply { layout } = success(&response) else {
@@ -665,6 +700,7 @@ mod tests {
                     workspace_id: None,
                     pane_id: None,
                     focus: true,
+                    params: Default::default(),
                 }),
             )
         };
@@ -673,6 +709,113 @@ mod tests {
         std::fs::write(preset_dir().join("bad.toml"), "[root]\nsplit = \"up\"\n").unwrap();
         assert_eq!(error_code(&load(&mut app, "bad")), "invalid_preset");
         assert_eq!(app.state.workspaces[0].tabs.len(), 1);
+    }
+
+    #[test]
+    fn load_refuses_values_the_preset_does_not_take_and_opens_nothing() {
+        let _clean = CleanUp;
+        let mut app = app_with_workspace();
+        std::fs::create_dir_all(preset_dir()).unwrap();
+        std::fs::write(
+            preset_dir().join("pr.toml"),
+            "[params]\npr = { required = true }\n[root]\ncommand = \"gh pr view $PR\"\n",
+        )
+        .unwrap();
+        let load = |app: &mut App, params: &[(&str, &str)]| {
+            call(
+                app,
+                Method::PresetLoad(PresetLoadParams {
+                    name: "pr".into(),
+                    workspace_id: None,
+                    pane_id: None,
+                    focus: true,
+                    params: params
+                        .iter()
+                        .map(|(name, value)| (name.to_string(), value.to_string()))
+                        .collect(),
+                }),
+            )
+        };
+        assert_eq!(error_code(&load(&mut app, &[])), "missing_preset_param");
+        assert_eq!(
+            error_code(&load(&mut app, &[("pr", "42"), ("base", "dev")])),
+            "unknown_preset_param"
+        );
+        assert_eq!(app.state.workspaces[0].tabs.len(), 1);
+    }
+
+    #[test]
+    fn get_and_list_show_the_params_and_overwriting_keeps_them() {
+        let _clean = CleanUp;
+        let mut app = app_with_workspace();
+        std::fs::create_dir_all(preset_dir()).unwrap();
+        std::fs::write(
+            preset_dir().join("pr.toml"),
+            "[params]\npr = { required = true }\n[root]\n",
+        )
+        .unwrap();
+        let ResponseResult::PresetList { presets } =
+            success(&call(&mut app, Method::PresetList(Default::default())))
+        else {
+            panic!("expected a list");
+        };
+        assert_eq!(presets[0].params[0].name, "pr");
+
+        let saved = call(
+            &mut app,
+            Method::PresetSave(PresetSaveParams {
+                name: "pr".into(),
+                tab_id: None,
+                pane_id: None,
+                overwrite: true,
+            }),
+        );
+        let ResponseResult::PresetInfo { preset } = success(&saved) else {
+            panic!("expected preset info");
+        };
+        assert!(preset.params[0].required);
+        let text = std::fs::read_to_string(preset_dir().join("pr.toml")).unwrap();
+        assert!(text.contains("[params.pr]"), "{text}");
+    }
+
+    #[test]
+    fn every_pane_gets_the_loads_variables_over_its_own() {
+        let pane = |env: &[(&str, &str)]| PresetPane {
+            env: env
+                .iter()
+                .map(|(key, value)| (key.to_string(), value.to_string()))
+                .collect(),
+            ..PresetPane::default()
+        };
+        let preset = PresetNode::Split {
+            direction: crate::api::schema::SplitDirection::Right,
+            ratio: 0.5,
+            first: Box::new(PresetNode::Pane {
+                pane: pane(&[("PR", "stale"), ("KEEP", "yes")]),
+            }),
+            second: Box::new(PresetNode::Stack {
+                panes: vec![pane(&[])],
+                active: 0,
+            }),
+        };
+        let env = [
+            ("PR".to_string(), "42".to_string()),
+            ("BASE".to_string(), "dev".to_string()),
+        ];
+        let LayoutNode::Split { first, second, .. } =
+            layout_node(&preset, Path::new("/repo"), &env)
+        else {
+            panic!("expected a split");
+        };
+        let LayoutNode::Pane { pane: first } = *first else {
+            panic!("expected a pane");
+        };
+        assert_eq!(first.env.get("PR").map(String::as_str), Some("42"));
+        assert_eq!(first.env.get("KEEP").map(String::as_str), Some("yes"));
+        let LayoutNode::Stack { panes, .. } = *second else {
+            panic!("expected a stack");
+        };
+        assert_eq!(panes[0].env.get("BASE").map(String::as_str), Some("dev"));
     }
 
     #[tokio::test]

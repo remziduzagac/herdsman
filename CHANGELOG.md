@@ -12,6 +12,9 @@ Each herdsman release names the herdr release it is built on. Versions are herds
   `herdsman preset load`. Each pane starts in the workspace's folder and runs its saved command, such as
   an agent. A preset is a TOML file in `~/.config/herdsman/presets/`, editable from the list with `e` or
   with `herdsman preset edit`.
+- Preset parameters: a preset's `[params]` table declares values it takes when it opens, given with
+  `herdsman preset load <name> --param <name>=<value>` or asked for by the presets list. Every pane gets them
+  as environment variables, such as `$PR`, for its command to use.
 - Tokyo Night Storm and Moon themes, `tokyo-night-storm` and `tokyo-night-moon`, which switch to Tokyo
   Night Day in light mode. All four Tokyo Night themes now take their colours from the official
   tokyonight.nvim palettes.

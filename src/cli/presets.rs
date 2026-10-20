@@ -17,6 +17,7 @@ herdsman preset commands:
   herdsman preset show <name>
   herdsman preset save <name> [<tab_id>|--current] [--overwrite]
   herdsman preset load <name> [--workspace <workspace_id>|--current] [--no-focus]
+                       [--param <name>=<value>]...
   herdsman preset edit <name>
   herdsman preset rename <name> <new_name>
   herdsman preset delete <name>";
@@ -59,6 +60,7 @@ pub(super) fn run_preset_command(args: &[String]) -> std::io::Result<i32> {
 fn parse(subcommand: &str, args: &[String], env_pane_id: Option<&str>) -> Result<Method, String> {
     let mut flags = Vec::new();
     let mut workspace = None;
+    let mut values = std::collections::BTreeMap::new();
     let mut positionals = Vec::new();
     let mut index = 0;
     while index < args.len() {
@@ -68,6 +70,17 @@ fn parse(subcommand: &str, args: &[String], env_pane_id: Option<&str>) -> Result
                 index += 1;
                 let value = args.get(index).ok_or("missing value for --workspace")?;
                 workspace = Some(super::normalize_workspace_id(value));
+            }
+            "--param" if subcommand == "load" => {
+                index += 1;
+                let value = args.get(index).ok_or("missing value for --param")?;
+                let (name, value) = value
+                    .split_once('=')
+                    .filter(|(name, _)| !name.is_empty())
+                    .ok_or_else(|| format!("--param takes <name>=<value>, not {value}"))?;
+                if values.insert(name.to_string(), value.to_string()).is_some() {
+                    return Err(format!("--param {name} is given twice"));
+                }
             }
             "--current" if matches!(subcommand, "save" | "load") => flags.push(arg),
             "--overwrite" if subcommand == "save" => flags.push(arg),
@@ -119,6 +132,7 @@ fn parse(subcommand: &str, args: &[String], env_pane_id: Option<&str>) -> Result
                 workspace_id: workspace,
                 pane_id: if current { Some(caller_pane()?) } else { None },
                 focus: !flags.contains(&"--no-focus"),
+                params: values,
             })
         }
         ("list" | "show" | "delete" | "rename" | "save" | "load", _) => return Err(USAGE.into()),
@@ -277,6 +291,37 @@ mod tests {
         )
         .is_err());
         assert!(parse_args("load", &["dev", "--workspace"], None).is_err());
+    }
+
+    #[test]
+    fn load_takes_parameter_values() {
+        let Ok(Method::PresetLoad(params)) = parse_args(
+            "load",
+            &[
+                "pr",
+                "--param",
+                "pr=42",
+                "--param",
+                "note=a=b",
+                "--no-focus",
+            ],
+            None,
+        ) else {
+            panic!("expected load");
+        };
+        assert_eq!(params.params.get("pr").map(String::as_str), Some("42"));
+        assert_eq!(params.params.get("note").map(String::as_str), Some("a=b"));
+        assert!(!params.focus);
+
+        for bad in [
+            &["pr", "--param"][..],
+            &["pr", "--param", "pr"],
+            &["pr", "--param", "=42"],
+            &["pr", "--param", "pr=1", "--param", "pr=2"],
+        ] {
+            assert!(parse_args("load", bad, None).is_err(), "{bad:?}");
+        }
+        assert!(parse_args("save", &["pr", "--param", "pr=1"], None).is_err());
     }
 
     #[test]
