@@ -1,23 +1,42 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "protocol": 22,
   "endpoint_generation": 1,
-  "notes": "Based on herdr 0.9.5 (`2ecf19a9`).\n\n### From herdr 0.9.5\n\nA hotfix release for herdr 0.9.4, which herdsman 0.1.0 is already based on.\n\n#### Fixed\n\n- Prefix shortcuts work again when the terminal sends the next key as plain text. This affected\n  Tern, Chinese, Japanese and Korean input methods on macOS, and Ghostty `text:` keybinds that send\n  the prefix and a key together. Workspace navigation had the same problem.\n  ([herdr#5255](https://github.com/herdrdev/herdr/issues/5255))\n- Codex sessions no longer start with a \"clamping Interrupt hook timeout\" warning. Herdsman no\n  longer installs Codex turn hooks, and Codex status comes from screen detection again. Run\n  `herdsman integration install codex` to update.\n  ([herdr#5246](https://github.com/herdrdev/herdr/issues/5246),\n  [herdr#5278](https://github.com/herdrdev/herdr/issues/5278))\n- Claude Code questions show as blocked in named sessions.\n  ([herdr#4573](https://github.com/herdrdev/herdr/issues/4573),\n  [herdr#5192](https://github.com/herdrdev/herdr/issues/5192))\n- On Windows, plugin panes start even when a folder on `PATH` has the same name as the plugin's\n  program. ([herdr#5267](https://github.com/herdrdev/herdr/issues/5267),\n  [herdr#5269](https://github.com/herdrdev/herdr/issues/5269), thanks\n  [@JJLiebig](https://github.com/JJLiebig))\n- On Windows, Claude Code session tracking works when the user folder name contains non-ASCII\n  characters, such as Korean. ([herdr#5253](https://github.com/herdrdev/herdr/issues/5253),\n  [herdr#5270](https://github.com/herdrdev/herdr/issues/5270), thanks\n  [@JJLiebig](https://github.com/JJLiebig))\n- Adding a Windows machine no longer prints raw PowerShell progress output.\n  ([herdr#4639](https://github.com/herdrdev/herdr/issues/4639),\n  [herdr#5282](https://github.com/herdrdev/herdr/issues/5282), thanks\n  [@JJLiebig](https://github.com/JJLiebig))",
+  "notes": "Based on herdr 0.9.5 (`2ecf19a9`), as 0.2.0 is.\n\n### Added\n\n- Tab presets: save a tab's layout under a name with Save tab as preset... in its right-click menu or\n  `herdsman preset save`, and open it again as a new tab in any workspace from the `prefix+t` list or\n  `herdsman preset load`. Each pane starts in the workspace's folder and runs its saved command, such as\n  an agent. A preset is a TOML file in `~/.config/herdsman/presets/`, editable from the list with `e` or\n  with `herdsman preset edit`.\n- Preset parameters: a preset's `[params]` table declares values it takes when it opens, given with\n  `herdsman preset load <name> --param <name>=<value>` or asked for by the presets list. Every pane gets them\n  as environment variables, such as `$PR`, for its command to use.\n- Tokyo Night Storm and Moon themes, `tokyo-night-storm` and `tokyo-night-moon`, which switch to Tokyo\n  Night Day in light mode. All four Tokyo Night themes now take their colours from the official\n  tokyonight.nvim palettes.\n- The agents panel collapses to its header, so the spaces list gets the sidebar's height: click its title or\n  press `prefix+a` (`keys.toggle_agent_panel`) to collapse or open it, and set\n  `[ui] agent_panel_start_collapsed = true` to start collapsed.",
   "assets": {
-    "linux-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.2.0/herdsman-linux-x86_64",
-    "linux-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.2.0/herdsman-linux-aarch64",
-    "macos-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.2.0/herdsman-macos-x86_64",
-    "macos-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.2.0/herdsman-macos-aarch64",
-    "windows-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.2.0/herdsman-windows-x86_64.zip"
+    "linux-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-linux-x86_64",
+    "linux-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-linux-aarch64",
+    "macos-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-macos-x86_64",
+    "macos-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-macos-aarch64",
+    "windows-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-windows-x86_64.zip"
   },
   "sha256": {
-    "linux-x86_64": "3ba039ff5cada6eba4b70ccec49ed38e41cc82219ae2da69e97225f928526d31",
-    "linux-aarch64": "75badfde956c0f9112f5e8cd8dedf9221dee5a83189c3babaa7a82db1477f229",
-    "macos-x86_64": "f2fc1912a791ce6ae600b824431cec4b2dbae7d426a8d8d0dfb2f02fc69cb489",
-    "macos-aarch64": "3fab4fd9208ba75d2df267b11123f7d57d982df85913b26c96f3e917a5f786af",
-    "windows-x86_64": "7880bd05c7e02c6918b824bc3dcba76bb18c1a42c0b90bddbc533771b1fe5e28"
+    "linux-x86_64": "891c7ec2fb10bf183206313fce9164552b20f5c6a5fe36eec6ef7bf649cfc5a3",
+    "linux-aarch64": "88b8a3bc20a044c5dc05f7c661568473c6bf5cd13e0973ab550c1334501f2a4b",
+    "macos-x86_64": "65e5f503a252dc980d026e62da60fc54fab89d3e9b2e5e958e3242330d869055",
+    "macos-aarch64": "c04a9efcc46489a61ba03985f48bb83d658a41a9be1addb0d361e40946b6c7a9",
+    "windows-x86_64": "7ffc37e03ec9acf6863f3243a253831d0c49fb1b87cf85bedb15794f7843f51a"
   },
   "releases": {
+    "0.3.0": {
+      "notes": "Based on herdr 0.9.5 (`2ecf19a9`), as 0.2.0 is.\n\n### Added\n\n- Tab presets: save a tab's layout under a name with Save tab as preset... in its right-click menu or\n  `herdsman preset save`, and open it again as a new tab in any workspace from the `prefix+t` list or\n  `herdsman preset load`. Each pane starts in the workspace's folder and runs its saved command, such as\n  an agent. A preset is a TOML file in `~/.config/herdsman/presets/`, editable from the list with `e` or\n  with `herdsman preset edit`.\n- Preset parameters: a preset's `[params]` table declares values it takes when it opens, given with\n  `herdsman preset load <name> --param <name>=<value>` or asked for by the presets list. Every pane gets them\n  as environment variables, such as `$PR`, for its command to use.\n- Tokyo Night Storm and Moon themes, `tokyo-night-storm` and `tokyo-night-moon`, which switch to Tokyo\n  Night Day in light mode. All four Tokyo Night themes now take their colours from the official\n  tokyonight.nvim palettes.\n- The agents panel collapses to its header, so the spaces list gets the sidebar's height: click its title or\n  press `prefix+a` (`keys.toggle_agent_panel`) to collapse or open it, and set\n  `[ui] agent_panel_start_collapsed = true` to start collapsed.",
+      "protocol": 22,
+      "endpoint_generation": 1,
+      "assets": {
+        "linux-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-linux-x86_64",
+        "linux-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-linux-aarch64",
+        "macos-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-macos-x86_64",
+        "macos-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-macos-aarch64",
+        "windows-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-windows-x86_64.zip"
+      },
+      "sha256": {
+        "linux-x86_64": "891c7ec2fb10bf183206313fce9164552b20f5c6a5fe36eec6ef7bf649cfc5a3",
+        "linux-aarch64": "88b8a3bc20a044c5dc05f7c661568473c6bf5cd13e0973ab550c1334501f2a4b",
+        "macos-x86_64": "65e5f503a252dc980d026e62da60fc54fab89d3e9b2e5e958e3242330d869055",
+        "macos-aarch64": "c04a9efcc46489a61ba03985f48bb83d658a41a9be1addb0d361e40946b6c7a9",
+        "windows-x86_64": "7ffc37e03ec9acf6863f3243a253831d0c49fb1b87cf85bedb15794f7843f51a"
+      }
+    },
     "0.2.0": {
       "notes": "Based on herdr 0.9.5 (`2ecf19a9`).\n\n### From herdr 0.9.5\n\nA hotfix release for herdr 0.9.4, which herdsman 0.1.0 is already based on.\n\n#### Fixed\n\n- Prefix shortcuts work again when the terminal sends the next key as plain text. This affected\n  Tern, Chinese, Japanese and Korean input methods on macOS, and Ghostty `text:` keybinds that send\n  the prefix and a key together. Workspace navigation had the same problem.\n  ([herdr#5255](https://github.com/herdrdev/herdr/issues/5255))\n- Codex sessions no longer start with a \"clamping Interrupt hook timeout\" warning. Herdsman no\n  longer installs Codex turn hooks, and Codex status comes from screen detection again. Run\n  `herdsman integration install codex` to update.\n  ([herdr#5246](https://github.com/herdrdev/herdr/issues/5246),\n  [herdr#5278](https://github.com/herdrdev/herdr/issues/5278))\n- Claude Code questions show as blocked in named sessions.\n  ([herdr#4573](https://github.com/herdrdev/herdr/issues/4573),\n  [herdr#5192](https://github.com/herdrdev/herdr/issues/5192))\n- On Windows, plugin panes start even when a folder on `PATH` has the same name as the plugin's\n  program. ([herdr#5267](https://github.com/herdrdev/herdr/issues/5267),\n  [herdr#5269](https://github.com/herdrdev/herdr/issues/5269), thanks\n  [@JJLiebig](https://github.com/JJLiebig))\n- On Windows, Claude Code session tracking works when the user folder name contains non-ASCII\n  characters, such as Korean. ([herdr#5253](https://github.com/herdrdev/herdr/issues/5253),\n  [herdr#5270](https://github.com/herdrdev/herdr/issues/5270), thanks\n  [@JJLiebig](https://github.com/JJLiebig))\n- Adding a Windows machine no longer prints raw PowerShell progress output.\n  ([herdr#4639](https://github.com/herdrdev/herdr/issues/4639),\n  [herdr#5282](https://github.com/herdrdev/herdr/issues/5282), thanks\n  [@JJLiebig](https://github.com/JJLiebig))",
       "protocol": 22,
