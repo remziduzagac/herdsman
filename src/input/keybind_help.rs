@@ -205,6 +205,10 @@ pub(crate) fn keybind_help_groups(
                 ),
                 entry(binding_label(&keybinds.presets), "tab presets"), // fork: presets
                 entry(binding_label(&keybinds.toggle_sidebar), "toggle sidebar"),
+                entry(
+                    binding_label(&keybinds.toggle_agent_panel),
+                    "toggle agents panel",
+                ), // fork: agents collapse
                 entry(binding_label(&keybinds.focus_pane_left), "focus pane left"),
                 entry(binding_label(&keybinds.focus_pane_down), "focus pane down"),
                 entry(binding_label(&keybinds.focus_pane_up), "focus pane up"),

@@ -18,6 +18,9 @@ Each herdsman release names the herdr release it is built on. Versions are herds
 - Tokyo Night Storm and Moon themes, `tokyo-night-storm` and `tokyo-night-moon`, which switch to Tokyo
   Night Day in light mode. All four Tokyo Night themes now take their colours from the official
   tokyonight.nvim palettes.
+- The agents panel collapses to its header, so the spaces list gets the sidebar's height: click its title or
+  press `prefix+a` (`keys.toggle_agent_panel`) to collapse or open it, and set
+  `[ui] agent_panel_start_collapsed = true` to start collapsed.
 
 ## [0.2.0] - 2026-10-15
 

@@ -444,6 +444,28 @@ marked `// fork: plugin versions`.
 | `--version` | `main.rs` |
 | Docs | `plugins.mdx`, `socket-api.mdx` |
 
+### Agents panel collapse
+
+The agents panel collapses to its header, from a click on its title or `keys.toggle_agent_panel`
+(`prefix+a`), and `[ui] agent_panel_start_collapsed` sets how a client starts. The state is the client's,
+in `client/shell/fork.rs` (`ForkState`), not persisted. `client/shell/sidebar/agents_collapse.rs` gives the
+spaces list the rows the panel gives up, draws the `▾`/`▸` mark after herdr's title and toggles; the tests
+are there and in `client/shell/tests/agents_collapse.rs`. The herdr files below carry hooks marked
+`// fork: agents collapse`.
+
+| Area | Files |
+| --- | --- |
+| Config | `config/model.rs`, `config/keybinds.rs`, `main.rs` (the commented template) |
+| Input | `input/keybindings.rs`, `input/keybind_help.rs`, `client/shell/actions.rs`, `client/shell/mouse.rs` |
+| Client state | `client/shell/state.rs`, `config.rs`, `render.rs`, `composition.rs` |
+| Sidebars | `client/shell/sidebar.rs`, `client/shell/endpoint_sidebar.rs` |
+| Tests | `client/shell/tests/mod.rs` |
+| Docs data | `docs/next/website/src/data/config-reference.json` |
+| Docs | `configuration.mdx`, `keyboard.mdx` |
+
+Nothing goes over the wire: no method, codec or `PROTOCOL_VERSION` changed. The mark is left out when
+the title row has no free cell for it, as on a narrow sidebar.
+
 ### Tokyo Night styles
 
 `app/state/tokyo_night.rs` holds the official tokyonight.nvim palettes for the night, storm, moon and day

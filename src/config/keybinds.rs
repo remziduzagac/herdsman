@@ -414,6 +414,7 @@ pub struct Keybinds {
     pub equalize_heights: ActionKeybinds,
     pub presets: ActionKeybinds, // fork: presets
     pub toggle_sidebar: ActionKeybinds,
+    pub toggle_agent_panel: ActionKeybinds, // fork: agents collapse
     pub custom_commands: Vec<CustomCommandKeybind>,
 }
 
@@ -608,6 +609,7 @@ impl Config {
             equalize_heights: empty_action!(),
             presets: empty_action!(), // fork: presets
             toggle_sidebar: empty_action!(),
+            toggle_agent_panel: empty_action!(), // fork: agents collapse
             custom_commands: Vec::new(),
         };
 
@@ -767,6 +769,7 @@ impl Config {
             apply_action!(keybinds.equalize_heights, equalize_heights, source);
             apply_action!(keybinds.presets, presets, source); // fork: presets
             apply_action!(keybinds.toggle_sidebar, toggle_sidebar, source);
+            apply_action!(keybinds.toggle_agent_panel, toggle_agent_panel, source); // fork: agents collapse
 
             if source == field_source!(indexed) {
                 append_legacy_indexed_bindings(

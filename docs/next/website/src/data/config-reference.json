@@ -890,6 +890,12 @@
           "description": "Toggle sidebar collapse."
         },
         {
+          "key": "keys.toggle_agent_panel",
+          "type": "keybinding",
+          "default": "\"prefix+a\"",
+          "description": "Collapse the agents panel to its header, or open it again. Clicking the panel's title does the same."
+        },
+        {
           "key": "keys.indexed.tabs",
           "type": "string",
           "default": "unset",
@@ -1113,6 +1119,12 @@
             "spaces",
             "priority"
           ]
+        },
+        {
+          "key": "ui.agent_panel_start_collapsed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Start each client with the agents panel collapsed to its header, so the spaces list takes the sidebar's height. Click the title or press keys.toggle_agent_panel to open it."
         },
         {
           "key": "ui.status_indicators",

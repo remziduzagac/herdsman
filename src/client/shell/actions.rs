@@ -22,6 +22,10 @@ impl ClientShellState {
                 outcome.resize = true;
                 self.persist_chrome_preferences(outcome);
             }
+            // fork: agents collapse
+            crate::input::KeybindMatch::Action(crate::input::KeybindAction::ToggleAgentPanel) => {
+                self.toggle_agent_panel(outcome);
+            }
             crate::input::KeybindMatch::Action(action) => {
                 if self.workspace_preview_action_blocked()
                     && matches!(
