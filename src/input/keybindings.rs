@@ -70,6 +70,7 @@ pub(crate) enum KeybindAction {
     EqualizeHeights,
     OpenPresets, // fork: presets
     ToggleSidebar,
+    ToggleAgentPanel, // fork: agents collapse
     CyclePaneNext,
     CyclePanePrevious,
     LastPane,
@@ -165,6 +166,10 @@ pub(crate) fn resolve_non_indexed_action(
         (&keybinds.equalize_heights, KeybindAction::EqualizeHeights),
         (&keybinds.presets, KeybindAction::OpenPresets), // fork: presets
         (&keybinds.toggle_sidebar, KeybindAction::ToggleSidebar),
+        (
+            &keybinds.toggle_agent_panel,
+            KeybindAction::ToggleAgentPanel,
+        ), // fork: agents collapse
         (&keybinds.reload_config, KeybindAction::ReloadConfig),
         (
             &keybinds.open_notification_target,

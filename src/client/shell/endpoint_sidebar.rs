@@ -253,6 +253,13 @@ pub(super) fn render_expanded(
         crate::ui::expanded_sidebar_sections(area, state.sidebar_section_split);
     hits.sidebar_section_divider =
         crate::ui::sidebar_section_divider_rect(area, state.sidebar_section_split);
+    // fork: agents collapse
+    let (workspace_area, detail_area) = super::sidebar::agents_collapse::sections(
+        workspace_area,
+        detail_area,
+        state.agents_collapsed,
+        hits,
+    );
     put_text(
         buffer,
         workspace_area.x,
@@ -636,6 +643,14 @@ pub(super) fn render_expanded(
         state.active_endpoint_id,
         config,
         state.agent_scroll,
+        hits,
+    );
+    // fork: agents collapse
+    super::sidebar::agents_collapse::render_toggle(
+        buffer,
+        detail_area,
+        state.agents_collapsed,
+        config,
         hits,
     );
     hits.sidebar_toggle = Rect::new(

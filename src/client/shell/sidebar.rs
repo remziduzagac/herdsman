@@ -4,6 +4,9 @@ use ratatui::{
     widgets::{Paragraph, Widget},
 };
 
+// fork: agents collapse
+#[path = "sidebar/agents_collapse.rs"]
+pub(in crate::client::shell) mod agents_collapse;
 // fork: worktree groups; `sidebar.rs` is itself a `#[path]` module of `render.rs`.
 #[path = "sidebar/worktree_groups.rs"]
 pub(in crate::client::shell) mod worktree_groups;
@@ -219,6 +222,9 @@ pub(crate) fn render_sidebar(
         crate::ui::expanded_sidebar_sections(area, state.sidebar_section_split);
     hits.sidebar_section_divider =
         crate::ui::sidebar_section_divider_rect(area, state.sidebar_section_split);
+    // fork: agents collapse
+    let (workspace_area, detail_area) =
+        agents_collapse::sections(workspace_area, detail_area, state.agents_collapsed, hits);
     put_text(
         buffer,
         workspace_area.x,
@@ -481,6 +487,7 @@ pub(crate) fn render_sidebar(
         state.agent_scroll,
         hits,
     );
+    agents_collapse::render_toggle(buffer, detail_area, state.agents_collapsed, config, hits); // fork: agents collapse
 
     hits.sidebar_toggle = Rect::new(
         area.right().saturating_sub(2),
