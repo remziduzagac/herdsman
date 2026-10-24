@@ -23,7 +23,7 @@ export default defineConfig({
       },
       routeMiddleware: preview ? ['./src/preview-banner.ts'] : [],
       sidebar: [
-        { label: 'Start', items: ['install', 'quick-start', 'concepts', 'keyboard', 'how-to-work'] },
+        { label: 'Start', items: ['install', 'quick-start', 'concepts', 'what-herdsman-adds', 'keyboard', 'how-to-work'] },
         {
           label: 'Agents',
           items: ['agents', 'stacks', 'presets', 'agent-automation', 'agent-skill', 'integrations', 'add-herdsman-support'],
