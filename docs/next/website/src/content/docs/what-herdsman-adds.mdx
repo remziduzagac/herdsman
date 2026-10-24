@@ -1,0 +1,58 @@
+---
+title: What herdsman adds
+description: The features herdsman has on top of herdr, each with the release it arrived in, and what differs for someone coming from herdr.
+---
+
+herdsman is built on [herdr](https://github.com/herdrdev/herdr) and keeps taking in its releases, so what herdr does, herdsman does too. This page lists what herdsman adds on top, each with the herdsman release it arrived in and the page that covers it in full. Anything not listed here works as it does in herdr; a problem with it is best reported to herdr, and a fix there reaches herdsman with the next merge. [About herdsman](/docs/about/) says how the two relate.
+
+## Coming from herdr
+
+- **It is a separate app.** The `herdsman` binary, `~/.config/herdsman`, its socket, its `HERDSMAN_*` environment variables and its agent hooks all carry herdsman's name. herdsman and herdr run side by side on the same machine and share nothing: herdsman reads its own config, and its sessions are its own. *0.1.0*
+- **Agent integrations are installed again for herdsman.** `herdsman integration install claude` (or another agent) sets up the hooks that report to herdsman; herdr's own integrations keep reporting to herdr. See [Integrations](/docs/integrations/). *0.1.0*
+- **Plugins written for herdr work.** A plugin manifest may give `min_herdr_version` instead of `min_herdsman_version`, and herdsman checks it against the herdr release it is built on, which `herdsman --version` prints on its second line. See [Plugins](/docs/plugins/). *0.1.0*
+
+## Panes and tabs
+
+### Stacked panes
+
+One layout slot holds several panes and shows one at a time, while the hidden ones keep running with their scrollback, working directory and agent state. `prefix+alt+c`, or Stack here in a pane's right-click menu, adds a pane behind the current one; a strip along the slot names the members and switches between them. `herdsman pane stack` and its sibling commands do the same from scripts and agents. See [Stacks](/docs/stacks/). *0.1.0*
+
+### Equal pane sizes
+
+`prefix+|` gives every column in a tab the same width and `prefix+_` every row the same height, each leaving the other dimension alone. A pane's right-click menu offers the same, and `herdsman tab equalize width|height` does it from the CLI. See [Tabs](/docs/cli-reference/#tabs) in the CLI reference. *0.1.0*
+
+### Tab presets
+
+A tab's layout saved under a name opens again as a new tab in any workspace, from the `prefix+t` list or a tab's right-click menu, with each pane starting its saved command, such as an agent. A preset can declare parameters, such as a PR number, that it asks for when it opens and hands to every pane as environment variables. See [Tab presets](/docs/presets/). *0.3.0*
+
+## Sidebar
+
+### Worktree sections
+
+A repository's worktrees can be sorted into named sections, each under its own header in the sidebar that collapses on a click, with Section... in a worktree's right-click menu or `herdsman workspace section`. A collapsed section still shows a focused worktree, and its header shows the section's most urgent agent state. See [Worktrees](/docs/configuration/#worktrees). *0.1.0*
+
+### Collapsible agents panel
+
+The agents panel collapses to its header, so the spaces list gets the sidebar's height: click its title or press `prefix+a`. `[ui] agent_panel_start_collapsed = true` starts it collapsed. See [Collapse the agents panel](/docs/configuration/#collapse-the-agents-panel). *0.3.0*
+
+## Agents
+
+### The agent skill comes with the integrations
+
+Installing the Claude Code, Codex or OpenCode integration also installs herdsman's [agent skill](/docs/agent-skill/) for that agent, so it knows how to drive herdsman, and `herdsman update` keeps those copies matched to the new binary. A skill herdsman did not write, such as a link into a dotfiles checkout, is left alone. *0.1.0*
+
+## Themes
+
+### More Tokyo Night themes
+
+`tokyo-night-storm` and `tokyo-night-moon` join `tokyo-night` and `tokyo-night-day`, and switch to Tokyo Night Day in light mode. All four take their colours from the official tokyonight.nvim palettes. See [Theme](/docs/configuration/#theme). *0.3.0*
+
+## Installing and updating
+
+### Its own releases and packages
+
+herdsman has its own versions, install script, Homebrew tap, signed apt, dnf and pacman repositories, mise and Nix installs, and a preview channel for upcoming changes. See [Install](/docs/install/). *0.1.0*
+
+### Updates that respect your package manager
+
+`herdsman update` and the in-app update notice point apt, dnf and pacman installs at their package manager instead of replacing a file it owns. See [Update](/docs/install/#update). *0.1.0*

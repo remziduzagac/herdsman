@@ -50,28 +50,12 @@ Signed apt, dnf and pacman repositories, Windows, Nix and manual downloads are c
 
 ## How it differs from herdr
 
-- **Its own app.** The binary, `~/.config/herdsman`, the socket, the `HERDSMAN_*` environment
-  variables and the agent hooks all carry herdsman's name, so herdsman and herdr run side by side
-  without sharing anything.
-- **Stacked panes.** `prefix+alt+c`, or Stack here in a pane's right-click menu, puts a new pane
-  behind the current one, and a strip along the slot switches between them.
-  [The stacks page](https://remziduzagac.github.io/herdsman/docs/stacks/) has the keys, CLI and
-  behaviour.
-- **Equal pane sizes.** `prefix+|` gives every column in the tab the same width and `prefix+_`
-  every row the same height. A pane's right-click menu and `herdsman tab equalize` do the same.
-- **Worktree sections.** A repository's worktrees can be sorted into named sections, each under
-  its own collapsible header in the sidebar, from a worktree's right-click menu or
-  `herdsman workspace section`.
-- **Tab presets.** Save a tab's layout under a name from its right-click menu, and open it again as
-  a new tab in any workspace from the `prefix+t` list, each pane starting its saved command, such as
-  an agent. [The presets page](https://remziduzagac.github.io/herdsman/docs/presets/) has the file
-  format and the CLI.
-- **The agent skill comes with the integrations.** `herdsman integration install claude`, `codex`
-  or `opencode` also installs herdsman's
-  [agent skill](https://remziduzagac.github.io/herdsman/docs/agent-skill/), and `herdsman update`
-  keeps it matched to the new binary.
-- **Updates that respect your package manager.** `herdsman update` points apt, dnf and pacman
-  installs at their package manager instead of replacing a file it owns.
+herdsman is its own app: its binary, `~/.config/herdsman`, socket, `HERDSMAN_*` environment
+variables and agent hooks carry its name, so it runs beside herdr without sharing anything. On top
+of herdr it adds stacked panes, equal pane sizes, tab presets, worktree sections, a collapsible
+agents panel and more.
+[What herdsman adds](https://remziduzagac.github.io/herdsman/docs/what-herdsman-adds/) lists every
+feature with the release it arrived in.
 
 ## Building
 

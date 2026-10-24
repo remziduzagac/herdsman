@@ -130,6 +130,12 @@ adds lines is the hook.
 - A feature's full description belongs on a herdsman page, such as `stacks.mdx`, linked from herdr's
   page. MDX imports work too, but headings in an imported file stay out of the page's table of
   contents.
+- Every feature users can see also gets an entry in `what-herdsman-adds.mdx`, in the section it fits,
+  with the release it arrives in and a link to its full description. That page is the one list of
+  what herdsman adds; the README and `about.mdx` link to it instead of repeating it.
+- Every feature users can see also gets an entry in `what-herdsman-adds.mdx`, in the section it fits,
+  with the release it arrives in and a link to its full description. That page is the one list of
+  what herdsman adds; the README and `about.mdx` link to it instead of repeating it.
 - Names, URLs and branch names that differ everywhere belong in `upstream/rename`, which applies
   them before herdr's code reaches `herdr-import`, so they never conflict.
 - Where herdsman decides differently, such as its install channels, edit herdr's text and list the
