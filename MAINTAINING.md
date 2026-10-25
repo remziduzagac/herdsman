@@ -230,7 +230,7 @@ herdsman's side.
 | `docs/next/website/src/content/docs/add-herdsman-support.mdx` | "Herdr 0.9.2" until the next import |
 | `docs/next/website/src/content/docs/{persistence-remote,session-state}.mdx` | system packages named with the other package managers |
 | `docs/next/website/src/content/docs/plugins.mdx` | example repository not published yet; "Sharing plugins" replaces the marketplace; "Herdr 0.7.3" until the next import |
-| `docs/next/website/src/content/docs/index.mdx` | a Stacked panes card replaces the marketplace card; a screenshot; themed herdsman hero logos |
+| `docs/next/website/src/content/docs/index.mdx` | a Stacked panes card replaces the marketplace card; a What herdsman adds card; a screenshot; themed herdsman hero logos; the title and description |
 | `docs/next/product-announcement.json` | herdsman's own; `null` until a release announces something |
 | `src/update.rs` | fake-update notes read herdsman's `0.1.0` changelog section; `/usr/bin` installs count as system packages |
 | `src/checksum.rs` | the test's SHA-256 re-pinned |
