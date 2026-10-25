@@ -9,7 +9,8 @@ name: Pages
 # /docs/, built from docs/next/website on main, with the newest preview's under
 # /docs/preview/, built from that preview's commit. The Release and Preview
 # workflows start this when they publish; a push to main that touches
-# distribution/ or the docs does too.
+# distribution/ or the docs does too. The site's root sends visitors and search
+# engines on to the documentation.
 
 on:
   push:
@@ -52,9 +53,10 @@ jobs:
           cat > _site/index.html <<'EOF'
           <!doctype html>
           <meta charset="utf-8">
-          <title>herdsman</title>
-          <meta http-equiv="refresh" content="0; url=https://github.com/remziduzagac/herdsman">
-          <p><a href="https://github.com/remziduzagac/herdsman">herdsman</a></p>
+          <title>herdsman: a terminal workspace for coding agents</title>
+          <link rel="canonical" href="https://remziduzagac.github.io/herdsman/docs/">
+          <meta http-equiv="refresh" content="0; url=https://remziduzagac.github.io/herdsman/docs/">
+          <p><a href="https://remziduzagac.github.io/herdsman/docs/">herdsman documentation</a></p>
           EOF
 
       - name: Build the package repositories
