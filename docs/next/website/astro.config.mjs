@@ -14,8 +14,11 @@ export default defineConfig({
     starlight({
       title: 'herdsman',
       description: 'A terminal workspace for running coding agents, with stacked panes.',
-      logo: { src: './public/assets/logo.svg' },
-      favicon: '/assets/logo.svg',
+      logo: {
+        light: '../../../assets/herdsman-logomark-dark.svg',
+        dark: '../../../assets/herdsman-logomark-light.svg',
+      },
+      favicon: '/assets/herdsman-logomark-dark.svg',
       customCss: ['./src/styles/custom.css'],
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/remziduzagac/herdsman' }],
       editLink: {
