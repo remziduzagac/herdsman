@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
-  <rect width="1280" height="640" fill="#1b2130"/>
+  <rect width="1280" height="640" fill="#1a1b26"/>
   <image href="herdsman-logomark-light.svg" x="120" y="185" width="272" height="300"/>
   <image href="herdsman-logotype-light.svg" x="460" y="215" width="640" height="113"/>
-  <text x="464" y="400" font-family="Inter" font-size="38" fill="#a9b1c3">Terminal workspace for coding agents,</text>
-  <text x="464" y="450" font-family="Inter" font-size="38" fill="#a9b1c3">with stacked panes.</text>
-  <text x="464" y="530" font-family="Inter" font-size="30" fill="#ffae2b">github.com/remziduzagac/herdsman</text>
+  <text x="464" y="400" font-family="Inter" font-size="38" fill="#a9b1d6">Terminal workspace for coding agents,</text>
+  <text x="464" y="450" font-family="Inter" font-size="38" fill="#a9b1d6">with stacked panes.</text>
+  <text x="464" y="530" font-family="Inter" font-size="30" fill="#7aa2f7">github.com/remziduzagac/herdsman</text>
 </svg>
