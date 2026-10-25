@@ -18,7 +18,7 @@ export default defineConfig({
         light: '../../../assets/herdsman-logomark-dark.svg',
         dark: '../../../assets/herdsman-logomark-light.svg',
       },
-      favicon: '/assets/herdsman-logomark-dark.svg',
+      favicon: '/assets/herdsman-logomark-small-dark.svg',
       customCss: ['./src/styles/custom.css'],
       // The card shown when a page is shared; the screenshot from the docs home.
       head: [
