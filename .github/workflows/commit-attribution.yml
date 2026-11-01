@@ -1,0 +1,58 @@
+name: Commit attribution
+
+# herdsman's commits carry no AI attribution: no Co-authored-by trailer naming
+# an AI tool, no "Generated with" line naming one, no robot emoji. The agents'
+# own settings and a git hook on each machine strip them; this catches what got
+# past those. herdr's commits, which arrive through herdr-import, are left alone.
+
+on:
+  pull_request:
+  push:
+    branches: [dev, test, main]
+
+permissions:
+  contents: read
+
+jobs:
+  attribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check commit messages
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.event.after }}
+        run: |
+          zero=0000000000000000000000000000000000000000
+          if [ -z "$BASE" ] || [ "$BASE" = "$zero" ]; then
+            range=("$HEAD" -1)
+          else
+            range=("$BASE..$HEAD")
+          fi
+          not=()
+          if git rev-parse --verify --quiet refs/remotes/origin/herdr-import >/dev/null; then
+            not=(--not refs/remotes/origin/herdr-import)
+          fi
+          ai='(claude|anthropic|codex|openai|chatgpt|gpt-?[0-9]|copilot|gemini|cursor|aider)'
+          pattern="^[[:space:]]*co-authored-by:.*$ai|generated (with|by) .*$ai|🤖"
+          found=0
+          for commit in $(git rev-list "${range[@]}" "${not[@]}"); do
+            lines=$(git log -1 --format=%B "$commit" | grep -i -E "$pattern" || true)
+            if [ -n "$lines" ]; then
+              found=1
+              echo "::error::$(git log -1 --format='%h %s' "$commit") has AI attribution:"
+              printf '%s\n' "$lines" | sed 's/^/    /'
+            fi
+          done
+          if [ "$found" = 1 ]; then
+            echo "Remove these lines from the commit messages (git rebase -i, reword)."
+            exit 1
+          fi
+          echo "No AI attribution in $EVENT range ${range[*]}."
