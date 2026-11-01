@@ -14,6 +14,13 @@ and deliberate so later merges stay cheap: base-project files get hooks marked
 the `herdsman-maintain` skill (`.agents/skills/herdsman-maintain/SKILL.md`) for
 any change to herdsman behaviour and for merging a base-project release.
 
+## Blueprint
+
+herdsman's design lives in `.blueprint/`: what it must do, how it works, the
+decisions behind it, and the work in progress. Before planning or changing
+anything, read its README and roadmap. A change that alters what the blueprint
+describes updates it in the same piece of work.
+
 ## Universal Project Rules
 
 ### Principles
