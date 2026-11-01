@@ -222,7 +222,7 @@ herdsman's side.
 
 | File | herdsman's change |
 | --- | --- |
-| `AGENTS.md` | herdr's governance and release-process sections removed; Scope and Docs rewritten |
+| `AGENTS.md` | herdr's governance and release-process sections removed; Scope and Docs rewritten; a Blueprint section |
 | `build.rs` | herdr's contributor-policy warning removed |
 | `justfile` | herdr's release recipes and their tests removed; herdsman's `release` and `screenshots` recipes added |
 | `distribution/latest.json` | herdsman's own manifest, written by herdsman's releases |
