@@ -210,6 +210,9 @@ fn workspace_command() -> Command {
                 .about("Create a workspace")
                 .arg(path_option("cwd", "PATH"))
                 .arg(option("label", "TEXT"))
+                // fork: presets
+                .arg(option("preset", "NAME"))
+                .arg(repeatable_option("param", "NAME=VALUE"))
                 .arg(env_option())
                 .arg(flag("focus"))
                 .arg(flag("no-focus")),
@@ -255,6 +258,9 @@ fn worktree_command() -> Command {
                 .arg(option("base", "REF"))
                 .arg(path_option("path", "PATH"))
                 .arg(option("label", "TEXT"))
+                // fork: presets
+                .arg(option("preset", "NAME"))
+                .arg(repeatable_option("param", "NAME=VALUE"))
                 .arg(flag("focus"))
                 .arg(flag("no-focus"))
                 .arg(flag("trust-repository")),
@@ -267,6 +273,9 @@ fn worktree_command() -> Command {
                 .arg(path_option("path", "PATH"))
                 .arg(option("branch", "NAME"))
                 .arg(option("label", "TEXT"))
+                // fork: presets
+                .arg(option("preset", "NAME"))
+                .arg(repeatable_option("param", "NAME=VALUE"))
                 .arg(flag("focus"))
                 .arg(flag("no-focus"))
                 .arg(flag("trust-repository")),

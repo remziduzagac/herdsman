@@ -35,6 +35,14 @@ pub(super) fn remove_pinned(actual: &mut BTreeMap<String, String>) {
         Some("94f7408bcd95f009d28c60cdf46adfb116d8ee0b37bab302a8871ab6dfb10674")
     );
     assert_eq!(
+        actual.remove("preset.apply").as_deref(),
+        Some("cd4db3562d26d948b9b821d216037dad9b7254d7f8b4c03015ab445c30dcb194")
+    );
+    assert_eq!(
+        actual.remove("preset.default").as_deref(),
+        Some("4197b2cbfbb1befa02a80db2981529966152c867905481c0e8c14ac0f9fbf36a")
+    );
+    assert_eq!(
         actual.remove("preset.delete").as_deref(),
         Some("425ec70376e6e7dacd55d0fa43dd36d529d1df227d1c80991df68b3e78007935")
     );

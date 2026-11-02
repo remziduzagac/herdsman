@@ -4083,6 +4083,71 @@
             }
           ]
         },
+        "PresetApplyParams": {
+          "description": "Open a preset in an existing tab, `tab_id`, replacing the panes it holds.\nA workspace made for a task starts this way with the preset as its only tab.",
+          "properties": {
+            "focus": {
+              "default": true,
+              "description": "Focus the tab. Defaults to true.",
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string"
+            },
+            "params": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Values for the preset's declared parameters, as in `preset.load`.",
+              "type": "object"
+            },
+            "tab_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "tab_id"
+          ],
+          "type": "object"
+        },
+        "PresetDefaultKind": {
+          "description": "What a new workspace is for, when asking for its default preset.",
+          "oneOf": [
+            {
+              "const": "workspace",
+              "description": "A plain workspace, or a repository's main checkout.",
+              "type": "string"
+            },
+            {
+              "const": "worktree",
+              "description": "A linked worktree, new or newly opened.",
+              "type": "string"
+            }
+          ]
+        },
+        "PresetDefaultParams": {
+          "description": "Ask which preset the config names for a new workspace. The folder decides\nthe repository: `cwd`, or the folder of `workspace_id`; without either,\nthe active workspace's.",
+          "properties": {
+            "cwd": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "kind": {
+              "$ref": "#/schemas/request/$defs/PresetDefaultKind",
+              "default": "workspace"
+            },
+            "workspace_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "type": "object"
+        },
         "PresetLoadParams": {
           "description": "Open a preset as a new tab in `workspace_id`, or in the workspace holding\n`pane_id`; without either, in the active workspace.",
           "properties": {
@@ -6171,6 +6236,38 @@
             },
             "params": {
               "$ref": "#/schemas/request/$defs/PresetNameParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "preset.apply",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/PresetApplyParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "preset.default",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/PresetDefaultParams"
             }
           },
           "required": [
@@ -10735,6 +10832,24 @@
               "required": [
                 "type",
                 "name"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "type": {
+                  "const": "preset_default",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
               ],
               "type": "object"
             },

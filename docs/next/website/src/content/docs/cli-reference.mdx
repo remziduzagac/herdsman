@@ -182,6 +182,16 @@ herdsman worktree remove --workspace ID [--force] [--trust-repository]
 
 Worktrees are normal Herdsman workspaces with Git checkout provenance. `worktree create` creates a Git worktree checkout, opens it as a workspace, and groups it with the parent repo workspace. If `--branch` names an existing local branch, Herdsman checks it out; otherwise it creates the branch from `--base` or `HEAD`. Without `--path`, Herdsman creates the checkout under `<worktrees.directory>/<repo>/<branch-slug>`.
 
+`workspace create`, `worktree create` and `worktree open` also take `--preset NAME` and `--param NAME=VALUE`, which start the new workspace from a [tab preset](/docs/presets/#start-a-workspace-from-a-preset) instead of a plain shell:
+
+```bash
+herdsman workspace create [--cwd PATH] [--label TEXT] --preset NAME [--param NAME=VALUE]... [--focus] [--no-focus]
+herdsman worktree create ... --preset NAME [--param NAME=VALUE]...
+herdsman worktree open ... --preset NAME [--param NAME=VALUE]...
+```
+
+The preset and its values are checked before anything is created, and `--env` cannot be combined with `--preset`. A worktree that was already open keeps its layout. The answer describes the workspace and tab once the preset is open, and carries the preset's panes as `preset_layout` in place of `root_pane`.
+
 `workspace section` puts a linked worktree's workspace into a section, a named group within its repository, or takes it out with `--clear`. The sidebar nests each section under its repository; members report the name as their `worktree_group` token. `workspace group`, the command's first name, still works.
 
 `workspace close` closes only Herdsman state. Closing a primary workspace while linked-worktree workspaces are open requires `--group`; without it, the command leaves the group open and returns `workspace_group_close_required`. To delete the checkout, run `worktree remove`. It runs `git worktree remove`, never deletes the branch, and requires `--force` when Git refuses a dirty checkout.

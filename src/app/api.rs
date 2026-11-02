@@ -1181,6 +1181,8 @@ impl App {
             Method::PresetRename(params) => return self.handle_preset_rename(request.id, params),
             Method::PresetDelete(params) => return self.handle_preset_delete(request.id, params),
             Method::PresetEdit(params) => return self.handle_preset_edit(request.id, params),
+            Method::PresetApply(params) => return self.handle_preset_apply(request.id, params),
+            Method::PresetDefault(params) => return self.handle_preset_default(request.id, params),
             Method::PaneNeighbor(params) => return self.handle_pane_neighbor(request.id, params),
             Method::PaneEdges(params) => return self.handle_pane_edges(request.id, params),
             Method::PaneFocusDirection(params) => {

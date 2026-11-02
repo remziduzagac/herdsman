@@ -9,6 +9,7 @@ const KNOWN_TOP_LEVEL_CONFIG_KEYS: &[&str] = &[
     "experimental",
     "keys",
     "onboarding",
+    "presets", // fork: presets
     "remote",
     "server",
     "session",
@@ -358,6 +359,15 @@ fn load_live_config_from_str(content: &str) -> Result<LoadedConfig, Vec<String>>
         &mut diagnostics,
         &mut invalid_sections,
         |section| config.worktrees = section,
+    );
+    // fork: presets
+    load_live_section(
+        table,
+        "presets",
+        "preset config",
+        &mut diagnostics,
+        &mut invalid_sections,
+        |section| config.presets = section,
     );
     load_live_section(
         table,

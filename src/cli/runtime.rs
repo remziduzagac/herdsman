@@ -7,10 +7,11 @@ use crate::api::schema::{
 };
 
 fn print_method_response(id: &'static str, method: Method) -> std::io::Result<i32> {
-    super::print_response(&super::send_request(&Request {
+    let response = super::send_request(&Request {
         id: id.into(),
         method,
-    })?)
+    })?;
+    super::print_response(&super::presets::create::after_create(response)?) // fork: presets
 }
 
 pub(super) fn workspace_list() -> std::io::Result<i32> {

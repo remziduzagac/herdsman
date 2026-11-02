@@ -121,7 +121,8 @@ Steps 3 to 5 run in that worktree. `git merge --abort` returns to the start. Dur
 - **Config reference**, `docs/next/website/src/data/config-reference.json`: take theirs, then re-add
   the seven stack entries: `keys.focus_stacked`, `keys.next_stacked`, `keys.previous_stacked`,
   `keys.stack_pane`, `keys.close_stacked`, `ui.stack_strip_position` and `ui.stack_strip_separator`;
-  and the two equalize entries, `keys.equalize_widths` and `keys.equalize_heights`.
+  the two equalize entries, `keys.equalize_widths` and `keys.equalize_heights`; and the three presets
+  entries, `presets.workspace`, `presets.worktree` and `presets.projects`.
   `just maintenance-test` fails until they are back.
 - **Lists both sides extend**, such as the `Method` enum, method names, `CLIENT_SHELL_METHODS`,
   keybinding tables and defaults: keep both. `CLIENT_SHELL_METHODS` must stay sorted.
@@ -364,6 +365,18 @@ tab. The logic lives in herdsman's own files:
   presets list on `prefix+t` (`keys.presets`), the tab menu's "Save tab as preset..." and "New tab from
   preset...", and the save, replace and rename prompts, which reuse the rename overlay. The list's rows and
   search box reuse the worktree picker's click targets, which only one list fills at a time.
+- `config/presets.rs`: the `[presets]` section, the presets new workspaces start from, and `preset.default`'s
+  lookup: a repository's own setting, then the general one;
+- `cli/presets/create.rs`: `--preset` and `--param` on `workspace create`, `worktree create` and
+  `worktree open`, taken out before herdr's parser runs, checked with `preset.apply` on an empty tab id, and
+  applied with `preset.apply` once the create request answers;
+- `client/shell/presets/creation.rs` and its tests in `client/shell/tests/presets/creation.rs` and
+  `creation/`: the preset choice in the new-workspace, New worktree and Open worktree... flows, which reuses
+  the presets list and applies the choice to the tab the create request answers with.
+
+A new workspace starts from a preset in two steps, because herdr's `workspace.create`, `worktree.create` and
+`worktree.open` are frozen: the client creates the workspace as before, then sends `preset.apply` for the tab
+in the answer. A client attached to a server without `preset.default` and `preset.apply` shows no choice.
 
 The `preset.*` methods are advertised to client shells, their shapes pinned in
 `server/client_commands/fork_methods.rs`. No bincode struct, frozen codec or `PROTOCOL_VERSION` changed.
@@ -377,10 +390,13 @@ The herdr files below carry hooks marked `// fork: presets`.
 | Advertising and geometry | `server/client_commands.rs`, `server/headless/client_views.rs` |
 | Editor | `platform/mod.rs` |
 | CLI | `cli.rs`, `cli/spec.rs`, `cli/target.rs` (forwarding with `--machine`, all but `edit`) |
-| Config and keys | `config/model.rs`, `config/keybinds.rs`, `input/keybindings.rs`, `input/keybind_help.rs` |
+| CLI `--preset` | `cli/runtime.rs` (applying the preset to a create command's answer) |
+| Config | `config.rs`, `config/io.rs`, `config/model.rs` (the `[presets]` section and `keys.presets`) |
+| Keys | `config/keybinds.rs`, `input/keybindings.rs`, `input/keybind_help.rs` |
 | Client state | `client/shell.rs`, `client/shell/state.rs`, `client/shell/actions.rs` |
 | Client input | `client/shell/overlay_input.rs`, `client/shell/input.rs`, `client/shell/mouse.rs` |
 | Menu and drawing | `client/shell/context_menu.rs`, `client/shell/overlays.rs`, `client/shell/worktrees.rs` |
+| Creation choice | `client/shell/composition.rs` (drawing the preset row in the creation forms) |
 | Test wiring | `client/shell/tests/mod.rs` |
 | Generated | `docs/next/api/herdsman-api.schema.json` |
 | Docs data | `docs/next/website/src/data/config-reference.json` |

@@ -62,6 +62,47 @@ herdsman preset load dev --current        # in the workspace of this pane
 herdsman preset load dev --workspace w2 --no-focus
 ```
 
+## Start a workspace from a preset
+
+A new workspace can start from a preset instead of a plain shell: the preset becomes its first tab. When you
+have presets, creating a workspace, **New worktree** and **Open worktree...** show a preset choice, with
+**None** for a plain shell. The default from your config is selected, so Enter keeps it. A preset with a
+required [parameter](#parameters) that has no default is left out of the choice; give its value with the CLI's
+`--param` instead.
+
+Set the defaults in the [configuration](/docs/configuration/), for every workspace, for every worktree, and
+per repository:
+
+```toml
+[presets]
+workspace = "dev"               # new workspaces
+worktree = "worktree"           # new or newly opened worktrees, in any repository
+
+[presets.projects.herdsman]     # a repository, by the name the sidebar shows for it
+workspace = "herdsman"          # new workspaces in its main checkout
+worktree = "herdsman-worktree"  # its worktrees
+```
+
+A repository's own setting wins over the general one. A worktree takes only `worktree` settings, never the
+`workspace` one, so worktrees stay plain unless you name a preset for them. A worktree that is already open
+keeps the layout it has.
+
+From the CLI, `--preset` does the same for one command; without it, the CLI creates a plain workspace as
+before:
+
+```bash
+herdsman workspace create --cwd ~/project --preset dev
+herdsman worktree create --branch fix-login --preset worktree
+herdsman worktree open --branch review --preset worktree
+```
+
+Give a preset's [parameters](#parameters) with `--param name=value`. A missing or broken preset, or a missing
+value, fails before anything is created, and so does `--env`, since the preset's panes replace the shell it
+would reach. The answer describes the workspace and its tab as they are once the preset is open, and carries
+the preset's panes as `preset_layout` in place of the shell's `root_pane`. If the preset still cannot be
+applied, the workspace stays open with its plain shell: the create answer goes to stdout, the error to
+stderr, and the command exits with status 1.
+
 ## Edit a preset
 
 A preset is a TOML file you can change by hand. Press `e` in the list, or run `herdsman preset edit <name>`.

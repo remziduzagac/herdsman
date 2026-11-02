@@ -40,6 +40,46 @@ pub struct PresetLoadParams {
     pub params: BTreeMap<String, String>,
 }
 
+/// Open a preset in an existing tab, `tab_id`, replacing the panes it holds.
+/// A workspace made for a task starts this way with the preset as its only tab.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+pub struct PresetApplyParams {
+    pub name: String,
+    pub tab_id: String,
+    /// Focus the tab. Defaults to true.
+    #[serde(default = "focus_by_default")]
+    pub focus: bool,
+    /// Values for the preset's declared parameters, as in `preset.load`.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub params: BTreeMap<String, String>,
+}
+
+/// What a new workspace is for, when asking for its default preset.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema, Default,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum PresetDefaultKind {
+    /// A plain workspace, or a repository's main checkout.
+    #[default]
+    Workspace,
+    /// A linked worktree, new or newly opened.
+    Worktree,
+}
+
+/// Ask which preset the config names for a new workspace. The folder decides
+/// the repository: `cwd`, or the folder of `workspace_id`; without either,
+/// the active workspace's.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema, Default)]
+pub struct PresetDefaultParams {
+    #[serde(default)]
+    pub kind: PresetDefaultKind,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workspace_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cwd: Option<String>,
+}
+
 fn focus_by_default() -> bool {
     true
 }

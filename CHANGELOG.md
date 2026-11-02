@@ -5,6 +5,14 @@ Each herdsman release names the herdr release it is built on. Versions are herds
 
 ## Unreleased
 
+### Added
+
+- Workspaces from a preset: creating a workspace, New worktree and Open worktree... offer a tab preset as
+  the new workspace's first tab, with the default from the new `[presets]` config section selected. Defaults
+  are set for every workspace, every worktree, and per repository in `[presets.projects.<repo>]`.
+  `herdsman workspace create`, `worktree create` and `worktree open` take `--preset <name>` and the
+  preset's values with `--param`.
+
 ## [0.3.0] - 2026-10-21
 
 Based on herdr 0.9.5 (`2ecf19a9`), as 0.2.0 is.

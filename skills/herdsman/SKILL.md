@@ -295,6 +295,18 @@ herdsman preset load pr --current --param pr=42
 `layout.apply`: read the new panes' IDs from `.result.layout`. Save over an existing name only with
 `--overwrite` when the user asked for it. `preset edit` opens an editor and is for the user, not for agents.
 
+To start a new workspace or worktree from a preset instead of a plain shell, add `--preset <name>`:
+
+```bash
+herdsman worktree create --branch fix-login --preset worktree --no-focus
+```
+
+Pass the preset's values with `--param <name>=<value>`; `--env` cannot be combined with `--preset`. The preset
+and its values are checked before anything is created. `.result.workspace` and `.result.tab` describe the
+workspace once the preset is open; read its panes from `.result.preset_layout`. `root_pane` is left out because
+the preset replaced it. A worktree that was already open keeps its layout. If the preset fails after the
+workspace was created, stdout still carries the create answer and the command exits 1.
+
 ## Safety and coordination rules
 
 - Use `--no-focus` for background work unless the user asked to switch context.

@@ -4,6 +4,8 @@
 //! herdsman's own module. `cli.rs`, `cli/spec.rs` and `cli/target.rs` reach it
 //! through hooks marked `// fork: presets`.
 
+pub(super) mod create;
+
 use std::path::Path;
 
 use crate::api::schema::{

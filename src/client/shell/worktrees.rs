@@ -400,6 +400,7 @@ impl ClientShellState {
                         creating: false,
                     },
                 ));
+                self.begin_worktree_presets(outcome); // fork: presets
                 true
             }
             (
@@ -435,6 +436,7 @@ impl ClientShellState {
                             opening: false,
                         },
                     ));
+                    self.begin_worktree_presets(outcome); // fork: presets
                 }
                 true
             }

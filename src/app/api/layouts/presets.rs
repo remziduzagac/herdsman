@@ -19,8 +19,8 @@ use bytes::Bytes;
 
 use super::*;
 use crate::api::schema::{
-    PresetDescription, PresetLoadParams, PresetNameParams, PresetNode, PresetPane,
-    PresetRenameParams, PresetSaveParams, PresetSummary, SuccessResponse,
+    PresetApplyParams, PresetDefaultParams, PresetDescription, PresetLoadParams, PresetNameParams,
+    PresetNode, PresetPane, PresetRenameParams, PresetSaveParams, PresetSummary, SuccessResponse,
 };
 use file::PresetFile;
 use store::{PresetStore, StoreError};
@@ -179,18 +179,91 @@ impl App {
                 None => return encode_error(id, "workspace_not_found", "no active workspace"),
             },
         };
-        let folder = self
-            .seed_cwd_from_workspace(ws_idx)
-            .unwrap_or_else(|| self.state.workspaces[ws_idx].identity_cwd.clone());
+        self.open_preset(id, &preset, &env, ws_idx, None, params.focus)
+    }
+
+    pub(in crate::app::api) fn handle_preset_apply(
+        &mut self,
+        id: String,
+        params: PresetApplyParams,
+    ) -> String {
+        let preset = match preset_store().read(&params.name) {
+            Ok(preset) => preset,
+            Err(err) => return store_error(id, err),
+        };
+        let env = match params::load_env(&preset.params, &params.params) {
+            Ok(env) => env,
+            Err(err) => return encode_error(id, err.code, err.message),
+        };
+        let Some((ws_idx, _)) = self.parse_tab_id(&params.tab_id) else {
+            return encode_error(
+                id,
+                "tab_not_found",
+                format!("tab {} not found", params.tab_id),
+            );
+        };
+        self.open_preset(id, &preset, &env, ws_idx, Some(params.tab_id), params.focus)
+    }
+
+    pub(in crate::app::api) fn handle_preset_default(
+        &mut self,
+        id: String,
+        params: PresetDefaultParams,
+    ) -> String {
+        let folder = match (params.cwd.as_deref(), params.workspace_id.as_deref()) {
+            (Some(cwd), _) => Some(crate::worktree::expand_tilde_path(cwd)),
+            (None, Some(workspace_id)) => match self.parse_workspace_id(workspace_id) {
+                Some(ws_idx) => Some(self.preset_folder(ws_idx)),
+                None => {
+                    return encode_error(
+                        id,
+                        "workspace_not_found",
+                        format!("workspace {workspace_id} not found"),
+                    )
+                }
+            },
+            (None, None) => self.state.active.map(|ws_idx| self.preset_folder(ws_idx)),
+        };
+        let repo = folder
+            .as_deref()
+            .and_then(crate::workspace::git_space_metadata)
+            .map(|space| space.repo_name);
+        let name = self
+            .state
+            .fork
+            .presets
+            .default_for(params.kind, repo.as_deref())
+            .map(str::to_owned);
+        encode_success(id, ResponseResult::PresetDefault { name })
+    }
+
+    /// The folder a preset's panes start in, in the workspace at `ws_idx`.
+    fn preset_folder(&self, ws_idx: usize) -> PathBuf {
+        self.seed_cwd_from_workspace(ws_idx)
+            .unwrap_or_else(|| self.state.workspaces[ws_idx].identity_cwd.clone())
+    }
+
+    /// Open `preset` in the workspace at `ws_idx`: as a new tab, or in place
+    /// of `tab_id`'s panes. Then type each pane's command into its shell.
+    fn open_preset(
+        &mut self,
+        id: String,
+        preset: &PresetFile,
+        env: &[(String, String)],
+        ws_idx: usize,
+        tab_id: Option<String>,
+        focus: bool,
+    ) -> String {
+        let folder = self.preset_folder(ws_idx);
 
         let response = self.handle_layout_apply(
             id,
             LayoutApplyParams {
-                workspace_id: Some(self.public_workspace_id(ws_idx)),
-                tab_id: None,
+                workspace_id: tab_id.is_none().then(|| self.public_workspace_id(ws_idx)),
+                tab_id,
                 tab_label: preset.label.clone(),
-                focus: params.focus,
-                root: layout_node(&preset.root, &folder, &env),
+                focus,
+                root: layout_node(&preset.root, &folder, env),
             },
         );
         if let Ok(SuccessResponse {
@@ -686,6 +759,138 @@ mod tests {
         // Compared as a path: Windows reports a live folder with a trailing separator.
         assert!(Path::new(&second.cwd.unwrap()).ends_with("docs"));
         super::super::super::test_support::shutdown_test_runtimes(&mut app);
+    }
+
+    #[tokio::test]
+    async fn apply_replaces_a_tabs_panes_with_the_preset_and_adds_no_tab() {
+        let _clean = CleanUp;
+        let mut app = app_with_workspace();
+        let folder = preset_dir().join("repo");
+        std::fs::create_dir_all(&folder).unwrap();
+        app.state.workspaces[0].identity_cwd = folder.clone();
+        std::fs::write(
+            preset_dir().join("dev.toml"),
+            "label = \"dev\"\n[root]\nsplit = \"right\"\nratio = 0.5\n\
+             [root.first]\nlabel = \"agent\"\n\
+             [root.second]\nlabel = \"shell\"\n",
+        )
+        .unwrap();
+        let tab_id = app.public_tab_id(0, 0).expect("first tab");
+
+        let response = call(
+            &mut app,
+            Method::PresetApply(PresetApplyParams {
+                name: "dev".into(),
+                tab_id,
+                focus: true,
+                params: Default::default(),
+            }),
+        );
+        let ResponseResult::LayoutApply { layout } = success(&response) else {
+            panic!("expected the layout.apply answer");
+        };
+        assert!(matches!(layout.root, LayoutNode::Split { .. }));
+        let workspace = &app.state.workspaces[0];
+        assert_eq!(workspace.tabs.len(), 1);
+        assert_eq!(workspace.tabs[0].custom_name.as_deref(), Some("dev"));
+        assert_eq!(workspace.tabs[0].panes.len(), 2);
+        super::super::super::test_support::shutdown_test_runtimes(&mut app);
+    }
+
+    #[test]
+    fn apply_reports_a_missing_preset_or_tab_and_changes_nothing() {
+        let _clean = CleanUp;
+        let mut app = app_with_workspace();
+        std::fs::create_dir_all(preset_dir()).unwrap();
+        std::fs::write(preset_dir().join("dev.toml"), "[root]\n").unwrap();
+        std::fs::write(
+            preset_dir().join("pr.toml"),
+            "[params]\npr = { required = true }\n[root]\n",
+        )
+        .unwrap();
+        let tab_id = app.public_tab_id(0, 0).expect("first tab");
+        let apply = |name: &str, tab_id: &str| {
+            Method::PresetApply(PresetApplyParams {
+                name: name.into(),
+                tab_id: tab_id.into(),
+                focus: true,
+                params: Default::default(),
+            })
+        };
+
+        assert_eq!(
+            error_code(&call(&mut app, apply("missing", &tab_id))),
+            "preset_not_found"
+        );
+        assert_eq!(
+            error_code(&call(&mut app, apply("dev", "w9:t9"))),
+            "tab_not_found"
+        );
+        // The preset and its values are checked before the tab: the CLI checks
+        // a preset with an empty tab id before creating anything.
+        assert_eq!(
+            error_code(&call(&mut app, apply("missing", ""))),
+            "preset_not_found"
+        );
+        assert_eq!(
+            error_code(&call(&mut app, apply("pr", ""))),
+            "missing_preset_param"
+        );
+        assert_eq!(
+            error_code(&call(&mut app, apply("dev", ""))),
+            "tab_not_found"
+        );
+        assert_eq!(app.state.workspaces[0].tabs.len(), 1);
+        assert_eq!(app.state.workspaces[0].tabs[0].panes.len(), 1);
+    }
+
+    #[test]
+    fn default_names_the_repositorys_preset_then_the_general_one() {
+        let _clean = CleanUp;
+        let mut app = app_with_workspace();
+        let repo = preset_dir().join("herdsman");
+        for dir in [".git/objects", ".git/refs", "src"] {
+            std::fs::create_dir_all(repo.join(dir)).unwrap();
+        }
+        std::fs::write(repo.join(".git/HEAD"), "ref: refs/heads/main\n").unwrap();
+        let elsewhere = preset_dir().join("notes");
+        std::fs::create_dir_all(&elsewhere).unwrap();
+        app.state.fork.presets = toml::from_str(
+            "workspace = \"dev\"\nworktree = \"worktree\"\n\
+             [projects.herdsman]\nworkspace = \"herdsman\"\n",
+        )
+        .unwrap();
+        let default = |app: &mut App, kind, cwd: &Path| {
+            let response = call(
+                app,
+                Method::PresetDefault(PresetDefaultParams {
+                    kind,
+                    workspace_id: None,
+                    cwd: Some(cwd.display().to_string()),
+                }),
+            );
+            let ResponseResult::PresetDefault { name } = success(&response) else {
+                panic!("expected a preset_default answer: {response}");
+            };
+            name
+        };
+
+        use crate::api::schema::PresetDefaultKind::{Workspace, Worktree};
+        assert_eq!(
+            default(&mut app, Workspace, &repo.join("src")).as_deref(),
+            Some("herdsman")
+        );
+        assert_eq!(
+            default(&mut app, Worktree, &repo).as_deref(),
+            Some("worktree")
+        );
+        assert_eq!(
+            default(&mut app, Workspace, &elsewhere).as_deref(),
+            Some("dev")
+        );
+
+        app.state.fork.presets = Default::default();
+        assert_eq!(default(&mut app, Workspace, &repo), None);
     }
 
     #[test]

@@ -3,6 +3,7 @@ use crossterm::event::{KeyCode, KeyModifiers};
 mod io;
 mod keybinds;
 mod model;
+mod presets; // fork: presets
 mod sidebar;
 mod sound;
 mod tab_bar;
@@ -28,6 +29,7 @@ pub use self::{
         ToastClipboardPosition, ToastConfig, ToastDelivery, ToastHerdsmanPosition,
         UpdateChannelConfig, MAX_TOAST_DELAY_SECONDS,
     },
+    presets::PresetsConfig, // fork: presets
     sidebar::{
         AgentSidebarToken, AgentsSidebarConfig, SidebarConfig, SidebarTokenStyle,
         SpaceSidebarToken, SpacesSidebarConfig,
