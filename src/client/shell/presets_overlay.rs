@@ -20,7 +20,11 @@ pub(super) fn render_presets_overlay(
         inner.x,
         inner.y,
         inner.width,
-        "tab presets",
+        if list.creation.is_some() {
+            "new workspace · tab preset"
+        } else {
+            "tab presets"
+        },
         Style::default()
             .fg(p.text)
             .bg(p.panel_bg)
@@ -191,6 +195,8 @@ pub(super) fn render_presets_overlay(
             format!(" {error}"),
             Style::default().fg(p.red).bg(p.panel_bg),
         )
+    } else if list.creation.is_some() {
+        (" ↑/↓ select · None starts a plain shell".to_owned(), muted)
     } else if list.entries.is_empty() {
         (String::new(), muted)
     } else {
@@ -205,7 +211,15 @@ pub(super) fn render_presets_overlay(
     button(
         b,
         *primary,
-        " ↵ open ",
+        if let Some(creation) = &list.creation {
+            if creation.previous.is_some() {
+                " ↵ choose "
+            } else {
+                " ↵ create "
+            }
+        } else {
+            " ↵ open "
+        },
         Style::default()
             .fg(contrast(p))
             .bg(p.accent)

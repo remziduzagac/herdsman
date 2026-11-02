@@ -109,7 +109,7 @@ Raw socket method names use dot notation:
 | Popup | `popup.close` |
 | Layout | `layout.export`, `layout.apply`, `layout.set_split_ratio` |
 | Equal pane sizes | `layout.equalize` |
-| Tab presets | `preset.list`, `preset.get`, `preset.save`, `preset.load`, `preset.edit`, `preset.rename`, `preset.delete` |
+| Tab presets | `preset.list`, `preset.get`, `preset.save`, `preset.load`, `preset.apply`, `preset.default`, `preset.edit`, `preset.rename`, `preset.delete` |
 | Agent | `agent.list`, `agent.get`, `agent.read`, `agent.explain`, `agent.send_keys`, `agent.prompt`, `agent.wait`, `agent.rename`, `agent.focus`, `agent.start`, `agent.view.set`, `agent.view.clear` |
 | Events | `events.subscribe`, `events.wait` |
 | Integrations | `integration.install`, `integration.uninstall` |
@@ -431,6 +431,8 @@ A [preset](/docs/presets/) is a tab's layout saved under a name, as a TOML file 
 {"id":"req_save","method":"preset.save","params":{"name":"dev","pane_id":"w1:p2"}}
 {"id":"req_load","method":"preset.load","params":{"name":"dev","workspace_id":"w2","focus":false}}
 {"id":"req_pr","method":"preset.load","params":{"name":"pr","params":{"pr":"42"}}}
+{"id":"req_apply","method":"preset.apply","params":{"name":"dev","tab_id":"w3:t1"}}
+{"id":"req_default","method":"preset.default","params":{"kind":"worktree","workspace_id":"w1"}}
 ```
 
 - `preset.save` saves a tab as `name`: the tab `tab_id`, the tab holding `pane_id`, or the active tab.
@@ -446,6 +448,16 @@ A [preset](/docs/presets/) is a tab's layout saved under a name, as a TOML file 
   preset's parameters by name; every pane gets each as an environment variable, the name in upper case. A
   name the preset does not declare fails with `unknown_preset_param`, a required one left out with
   `missing_preset_param`, and a value holding NUL with `invalid_preset_param`; no tab opens.
+- `preset.apply` opens a preset in an existing tab, `tab_id`, in place of the panes it holds, and answers as
+  `preset.load` does. It takes `params` and `focus` as `preset.load` does; an unknown tab fails with
+  `tab_not_found`, checked after the preset and its values. The preset's panes open in a new tab that takes
+  the old one's place, so `layout.tab_id` in the answer is the tab to use from then on. Clients use it to start
+  a new workspace from a preset: create the workspace, then apply the preset to the tab in the answer.
+- `preset.default` answers `type: "preset_default"` with `name`, the preset the config's
+  [`[presets]`](/docs/presets/#start-a-workspace-from-a-preset) names for a new workspace, or no `name` when
+  it names none. `kind` is `workspace` (the default) or `worktree`; the folder that picks the repository is
+  `cwd`, else `workspace_id`'s folder, else the active workspace's. The name is not checked against the saved
+  presets.
 - `params`, in `preset.get`'s and `preset.list`'s answers, lists the parameters a preset declares: `name`,
   `required` when it must be given, `default` and `description`.
 - `preset.list` answers `type: "preset_list"` with `presets[]`: `name`, `path`, `label`, `panes` (the pane

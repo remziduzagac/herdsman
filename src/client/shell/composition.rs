@@ -674,6 +674,8 @@ impl ClientShellState {
                     &self.config.palette,
                 )?;
                 occlusion.cover(rendered.area);
+                self.hits.fork.creation_preset =
+                    self.render_creation_preset(&mut composed, rendered.area); // fork: presets
                 self.hits.overlay_primary = rendered.primary;
                 self.hits.overlay_clear = rendered.clear;
                 self.hits.overlay_cancel = rendered.cancel;

@@ -1533,6 +1533,30 @@
       ]
     },
     {
+      "id": "presets",
+      "title": "Presets",
+      "keys": [
+        {
+          "key": "presets.workspace",
+          "type": "string",
+          "default": "unset",
+          "description": "The tab preset a new workspace starts from, preselected in the TUI's preset choice. Unset starts a plain shell."
+        },
+        {
+          "key": "presets.worktree",
+          "type": "string",
+          "default": "unset",
+          "description": "The tab preset a new or newly opened worktree starts from, in any repository."
+        },
+        {
+          "key": "presets.projects",
+          "type": "table",
+          "default": "{}",
+          "description": "Per repository, by the name the sidebar shows for it: [presets.projects.<repo>] with workspace (its main checkout) and worktree (its worktrees), each winning over the general setting."
+        }
+      ]
+    },
+    {
       "id": "remote",
       "title": "Remote",
       "keys": [

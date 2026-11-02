@@ -94,6 +94,10 @@ impl ClientShellState {
                     return;
                 }
                 if action == crate::input::KeybindAction::NewWorkspace {
+                    // fork: presets
+                    if self.begin_workspace_presets(outcome) {
+                        return;
+                    }
                     if self.config.prompt_new_workspace_name {
                         self.open_new_workspace_overlay();
                     } else {
@@ -371,6 +375,7 @@ impl ClientShellState {
         kind: PendingEndpointKind,
         outcome: &mut ClientShellInput,
     ) -> bool {
+        let kind = self.creation_preset_request(&method, kind); // fork: presets
         let changes_focus = match &method {
             crate::api::schema::Method::WorkspaceFocus(_)
             | crate::api::schema::Method::TabFocus(_)
@@ -385,6 +390,7 @@ impl ClientShellState {
             crate::api::schema::Method::PaneSplit(params) => params.focus,
             crate::api::schema::Method::PaneStack(params) => params.focus, // fork: stacks
             crate::api::schema::Method::PresetLoad(params) => params.focus, // fork: presets
+            crate::api::schema::Method::PresetApply(params) => params.focus, // fork: presets
             _ => false,
         };
         if changes_focus {
@@ -532,6 +538,7 @@ impl ClientShellState {
         {
             return (false, Vec::new());
         }
+        let pending = self.reconcile_creation_result(pending, &result); // fork: presets
         if let PendingEndpointKind::PaneLinkResolve { target } = pending.kind {
             return self.complete_link_hover(target, result);
         }

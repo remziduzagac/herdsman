@@ -25,6 +25,10 @@ One layout slot holds several panes and shows one at a time, while the hidden on
 
 A tab's layout saved under a name opens again as a new tab in any workspace, from the `prefix+t` list or a tab's right-click menu, with each pane starting its saved command, such as an agent. A preset can declare parameters, such as a PR number, that it asks for when it opens and hands to every pane as environment variables. See [Tab presets](/docs/presets/). *0.3.0*
 
+### Workspaces from a preset
+
+A new workspace or worktree can start from a tab preset instead of a plain shell. Creating one shows a preset choice with the default from your config selected, set for every workspace, every worktree, or per repository in `[presets]`; `--preset` does the same from the CLI. See [Start a workspace from a preset](/docs/presets/#start-a-workspace-from-a-preset). *0.4.0*
+
 ## Sidebar
 
 ### Worktree sections

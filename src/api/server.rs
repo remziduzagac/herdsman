@@ -675,6 +675,8 @@ pub(crate) fn api_method_name(method: &Method) -> &'static str {
         Method::PresetRename(_) => "preset.rename",
         Method::PresetDelete(_) => "preset.delete",
         Method::PresetEdit(_) => "preset.edit",
+        Method::PresetApply(_) => "preset.apply",
+        Method::PresetDefault(_) => "preset.default",
         Method::PaneNeighbor(_) => "pane.neighbor",
         Method::PaneEdges(_) => "pane.edges",
         Method::PaneFocusDirection(_) => "pane.focus_direction",

@@ -41,13 +41,15 @@ const CLIENT_SHELL_METHODS: &[&str] = &[
     "pane.stacks", // fork: stacks
     "pane.swap",
     "pane.zoom",
-    "preset.delete", // fork: presets
-    "preset.edit",   // fork: presets
-    "preset.get",    // fork: presets
-    "preset.list",   // fork: presets
-    "preset.load",   // fork: presets
-    "preset.rename", // fork: presets
-    "preset.save",   // fork: presets
+    "preset.apply",   // fork: presets
+    "preset.default", // fork: presets
+    "preset.delete",  // fork: presets
+    "preset.edit",    // fork: presets
+    "preset.get",     // fork: presets
+    "preset.list",    // fork: presets
+    "preset.load",    // fork: presets
+    "preset.rename",  // fork: presets
+    "preset.save",    // fork: presets
     "product_announcement.dismiss",
     "release_notes.dismiss",
     "server.reload_config",

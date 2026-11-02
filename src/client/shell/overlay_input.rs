@@ -630,6 +630,10 @@ impl ClientShellState {
             return;
         }
 
+        // fork: presets
+        if self.route_creation_preset_key(key, outcome) {
+            return;
+        }
         if self.route_worktree_overlay_key(key, outcome) {
             return;
         }

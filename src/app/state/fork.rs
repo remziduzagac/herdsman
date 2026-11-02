@@ -22,6 +22,8 @@ pub(crate) struct ForkState {
     pub(crate) split_into_stack: bool,
     /// Named groups of linked worktrees.
     pub(crate) worktree_groups: WorktreeGroups,
+    /// The presets new workspaces start from, from the config's `[presets]`.
+    pub(crate) presets: crate::config::PresetsConfig,
 }
 
 impl ForkState {
@@ -46,6 +48,7 @@ impl ForkState {
             position: config.ui.stack_strip_position,
             separator: config.ui.stack_strip_separator,
         };
+        self.presets = config.presets.clone();
     }
 
     /// A workspace's metadata tokens, with `worktree_group` added for a linked

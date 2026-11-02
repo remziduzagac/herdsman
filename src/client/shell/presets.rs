@@ -18,6 +18,9 @@ use crate::api::schema::{
     PresetSaveParams, PresetSummary, ResponseResult,
 };
 
+mod creation;
+pub(super) use creation::{CreationPicker, CreationRequest, CreationState};
+
 const MAX_NAME_LEN: usize = 64;
 
 /// The presets list.
@@ -26,6 +29,7 @@ pub(super) struct PresetsOverlay {
     /// The workspace a preset opens in: the tab's when the list came from a
     /// tab's menu, else the focused one.
     pub(super) workspace_id: Option<String>,
+    pub(super) creation: Option<CreationPicker>,
     pub(super) entries: Vec<PresetSummary>,
     pub(super) selected: usize,
     pub(super) query: TextEditor,
@@ -45,6 +49,7 @@ impl PresetsOverlay {
     pub(super) fn new(workspace_id: Option<String>) -> Self {
         Self {
             workspace_id,
+            creation: None,
             entries: Vec::new(),
             selected: 0,
             query: TextEditor::default(),
@@ -114,6 +119,7 @@ impl PresetsOverlay {
 /// What a `preset.*` request was for, so its answer can be handled.
 #[derive(Debug)]
 pub(super) enum PresetsRequest {
+    Creation(CreationRequest),
     List,
     Load,
     Delete,
@@ -416,6 +422,7 @@ impl ClientShellState {
             }
         }
         let plain = !list.search_focused && modifiers.is_empty();
+        let manage = plain && list.creation.is_none();
         let action = match code {
             KeyCode::Esc => ListKey::Close,
             KeyCode::Enter => ListKey::Load,
@@ -447,16 +454,16 @@ impl ClientShellState {
                 list.search_focused = true;
                 ListKey::Handled
             }
-            KeyCode::Char('e') if plain => ListKey::Edit,
-            KeyCode::Char('r') if plain => ListKey::Rename,
-            KeyCode::Char('d') if plain => match list.selected_entry() {
+            KeyCode::Char('e') if manage => ListKey::Edit,
+            KeyCode::Char('r') if manage => ListKey::Rename,
+            KeyCode::Char('d') if manage => match list.selected_entry() {
                 Some(entry) => ListKey::Delete(entry.name.clone()),
                 None => ListKey::Handled,
             },
             _ => ListKey::Handled,
         };
         match action {
-            ListKey::Close => self.overlay = None,
+            ListKey::Close => self.close_creation_picker(),
             ListKey::Load => self.load_selected_preset(outcome),
             ListKey::Edit => self.edit_selected_preset(outcome),
             ListKey::Rename => self.rename_selected_preset(),
@@ -498,6 +505,9 @@ impl ClientShellState {
     }
 
     fn load_selected_preset(&mut self, outcome: &mut ClientShellInput) {
+        if self.accept_creation_preset(outcome) {
+            return;
+        }
         let Some(ClientShellOverlay::Presets(list)) = self.overlay.as_mut() else {
             return;
         };
@@ -618,6 +628,9 @@ impl ClientShellState {
     ) -> bool {
         use crossterm::event::{MouseButton, MouseEventKind};
 
+        if self.handle_creation_preset_mouse(mouse, point, outcome) {
+            return true;
+        }
         let Some(ClientShellOverlay::Presets(list)) = self.overlay.as_mut() else {
             return false;
         };
@@ -637,7 +650,7 @@ impl ClientShellState {
                 outcome.repaint = true;
                 list.confirm_delete = None;
                 if super::contains(self.hits.overlay_cancel, point) {
-                    self.overlay = None;
+                    self.close_creation_picker();
                 } else if super::contains(self.hits.worktree_search, point) {
                     list.search_focused = true;
                 } else if let Some((_, index)) = self
@@ -670,6 +683,15 @@ impl ClientShellState {
         outcome: &mut ClientShellInput,
     ) -> bool {
         match (request, result) {
+            (PresetsRequest::Creation(request), result) => {
+                self.receive_creation_preset_result(request, result, outcome)
+            }
+            (PresetsRequest::List, _)
+                if matches!(self.overlay.as_ref(),
+                Some(ClientShellOverlay::Presets(list)) if list.creation.is_some()) =>
+            {
+                false
+            }
             (PresetsRequest::List, Ok(ResponseResult::PresetList { presets })) => {
                 let Some(ClientShellOverlay::Presets(list)) = self.overlay.as_mut() else {
                     return false;

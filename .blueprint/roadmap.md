@@ -7,5 +7,5 @@ Status: **not started**. Next: the initial design.
 ## Later
 
 - The navigator: one window for go-to, commands and jump labels ([#30](https://github.com/remziduzagac/herdsman/issues/30), [#31](https://github.com/remziduzagac/herdsman/issues/31), [#32](https://github.com/remziduzagac/herdsman/issues/32)).
-- Worktree setup steps and presets for new worktrees ([#33](https://github.com/remziduzagac/herdsman/issues/33), [#37](https://github.com/remziduzagac/herdsman/issues/37)).
+- Setup steps for new worktrees, such as copying `.env` or running an install ([#33](https://github.com/remziduzagac/herdsman/issues/33)). New workspaces and worktrees already start from a tab preset ([#37](https://github.com/remziduzagac/herdsman/issues/37)).
 - Reordering a stack's members ([#41](https://github.com/remziduzagac/herdsman/issues/41)).
