@@ -31,6 +31,7 @@ mod image_files;
 mod input;
 mod loop_config;
 mod notifications;
+mod reload; // fork: update-handoff
 mod shell;
 mod shell_runtime;
 mod startup;
@@ -377,6 +378,7 @@ fn run_client_with_mode(
     let terminal_restore_failed = terminal_guard.restore().is_err();
 
     if let Err(err) = result {
+        reload::after_handoff(&err); // fork: update-handoff
         let _ = writeln!(io::stderr(), "herdsman: {err}");
         rt.shutdown_timeout(Duration::from_millis(100));
         crate::logging::shutdown("client");

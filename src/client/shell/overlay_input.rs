@@ -482,6 +482,9 @@ impl ClientShellState {
     ) {
         use crossterm::event::KeyModifiers;
 
+        if self.route_update_dialog_key(key, outcome) {
+            return;
+        } // fork: update-handoff
         if matches!(self.overlay, Some(ClientShellOverlay::Onboarding)) {
             if matches!(
                 key.code,

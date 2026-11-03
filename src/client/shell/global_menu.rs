@@ -4,6 +4,7 @@ use super::*;
 pub(super) enum ClientGlobalMenuAction {
     Binding(crate::input::KeybindAction),
     WhatsNew,
+    Update, // fork: update-handoff
 }
 
 pub(super) fn global_menu_attention(snapshot: &ClientShellSnapshot) -> bool {
@@ -89,6 +90,7 @@ impl ClientShellState {
         }) else {
             return;
         };
+        let action = self.update_menu_action(action); // fork: update-handoff
         if action == ClientGlobalMenuAction::WhatsNew
             && self
                 .snapshot
@@ -104,6 +106,7 @@ impl ClientShellState {
                 self.record_binding(crate::input::KeybindMatch::Action(binding), outcome)
             }
             ClientGlobalMenuAction::WhatsNew => self.open_release_notes(),
+            ClientGlobalMenuAction::Update => self.open_update_dialog(outcome), // fork: update-handoff
         }
         outcome.repaint = true;
     }

@@ -470,6 +470,22 @@
           "description": "Check remziduzagac.github.io/herdsman for new Herdsman versions in the background."
         },
         {
+          "key": "update.auto.handoff",
+          "type": "boolean",
+          "default": "false",
+          "description": "Let the server update itself: install new releases (install-script installs) and hand off to a newer binary on disk, when no agent is working or blocked and nobody has typed for five minutes. Pane processes keep running. See [Update without restarting](/docs/updates/)."
+        },
+        {
+          "key": "update.auto.integrations",
+          "type": "enum",
+          "default": "\"update\"",
+          "description": "What automatic mode does about installed agent integrations that are out of date: update them and list the files changed, or only show the notice. Used when update.auto.handoff is on.",
+          "values": [
+            "update",
+            "notify"
+          ]
+        },
+        {
           "key": "update.manifest_check",
           "type": "boolean",
           "default": "true",

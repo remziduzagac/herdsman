@@ -22,6 +22,8 @@ use std::time::{Duration, Instant};
 use interprocess::local_socket::traits::Stream as _;
 use serde::{Deserialize, Deserializer};
 
+// fork: update-handoff
+pub(crate) mod handoff;
 mod system_packages; // fork: system packages
 
 const STABLE_UPDATE_MANIFEST_URL: &str = "https://remziduzagac.github.io/herdsman/latest.json";

@@ -164,6 +164,7 @@ impl App {
                 .flatten(),
             self.restored_worktree_validation_retry_at,
             self.next_auto_update_check,
+            self.state.fork.update.next_deadline(now), // fork: update-handoff
             self.next_agent_manifest_update_check,
             self.agent_metadata_deadline,
             self.pending_agent_resume_deadline,

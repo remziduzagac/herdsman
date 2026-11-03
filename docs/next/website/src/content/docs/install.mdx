@@ -182,6 +182,8 @@ When both servers support agent-status transfer, live handoff preserves hook-rep
 
 Live handoff does not apply to Homebrew, mise, or Nix package-manager updates. For those installs, update with the package manager, then run Herdsman again to reconnect with the updated client. The compatible old server keeps running. Restart it later with `herdsman server stop` or `herdsman session stop <name>` only when you want server-side changes from the new release.
 
+herdsman can also update and hand off from the app, or on its own at a quiet moment: see [Update without restarting](/docs/updates/).
+
 ### Preview builds
 
 Every push to herdsman's `test` branch publishes a preview build, ahead of the next release. Previews get less testing than releases and can break. The newest preview has its own [documentation](https://remziduzagac.github.io/herdsman/docs/preview/).

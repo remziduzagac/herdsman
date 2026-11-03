@@ -113,6 +113,7 @@ Raw socket method names use dot notation:
 | Agent | `agent.list`, `agent.get`, `agent.read`, `agent.explain`, `agent.send_keys`, `agent.prompt`, `agent.wait`, `agent.rename`, `agent.focus`, `agent.start`, `agent.view.set`, `agent.view.clear` |
 | Events | `events.subscribe`, `events.wait` |
 | Integrations | `integration.install`, `integration.uninstall` |
+| Updates | `update.status`, `update.install`, `update.handoff`, `update.integrations`, `update.skip` |
 | Plugins | `plugin.link`, `plugin.list`, `plugin.unlink`, `plugin.enable`, `plugin.disable`, `plugin.action.list`, `plugin.action.invoke`, `plugin.log.list`, `plugin.pane.open`, `plugin.pane.focus`, `plugin.pane.close` |
 
 `agent.wait` is server-owned and event-driven. It pins the resolved pane occupant so a replacement cannot satisfy the wait. `agent.prompt` accepts an optional `wait` object with `until` and `timeout_ms`; this submits the prompt and starts the wait in one request, avoiding a race between separate calls. If the resolved agent is already `blocked`, `agent.prompt` returns `agent_blocked` without sending input or starting the wait.
@@ -467,6 +468,35 @@ A [preset](/docs/presets/) is a tab's layout saved under a name, as a TOML file 
   in a popup pane and answers `type: "ok"`.
 - Names use lowercase letters, digits, `-` and `_`. Errors: `invalid_preset_name`, `preset_not_found`,
   `preset_exists`, `invalid_preset` (with the file's line), `preset_io_failed` and `preset_edit_failed`.
+
+### Updates
+
+The methods behind [Update without restarting](/docs/updates/). They act on the server you send them to.
+
+```json
+{"id":"req_status","method":"update.status","params":{}}
+{"id":"req_install","method":"update.install","params":{}}
+{"id":"req_handoff","method":"update.handoff","params":{}}
+{"id":"req_integrations","method":"update.integrations","params":{}}
+{"id":"req_skip","method":"update.skip","params":{"version":"0.5.0"}}
+```
+
+- `update.status` answers `type: "update_status"` with `status`: `running` (the server's version), `installed` (the
+  binary on disk, when it is another version), `available` (a newer release on `channel`, unless it is installed or
+  skipped), `self_update` (whether this install updates itself; when not, `install_command` says how),
+  `installing` and `install_error`, `handoff` (`"ready"` when the server can move to the binary on disk,
+  `"unsupported"` when it must restart instead) and `handoff_error`, `integrations[]` (each outdated integration's
+  `agent`, `installed` and `expected` versions and `paths`), `auto` (present when automatic mode is on, with
+  `waiting_for`: `agents_busy` or `recent_input`) and `skipped`.
+- `update.install` starts installing `available` in the background and answers with the status at once, with
+  `installing: true`. Ask `update.status` until `installing` is false: then `handoff` is `"ready"`, or
+  `install_error` says what went wrong. Errors: `self_update_unsupported`, `no_update`.
+- `update.handoff` moves the server to the binary on disk, as `server.live_handoff` does, and answers before the
+  server's connections close. Errors: `nothing_to_hand_off`, `handoff_unsupported`, `handoff_failed` (the old
+  server keeps running).
+- `update.integrations` updates every installed integration that is out of date and answers
+  `type: "integrations_updated"` with `updated[]`: `agent` and `paths`. It never installs a new one.
+- `update.skip` remembers `version` as skipped, so `available` leaves it out, and answers with the status.
 
 ## Agent view queries
 

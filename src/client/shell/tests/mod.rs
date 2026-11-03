@@ -266,4 +266,5 @@ mod popup_focus_projection;
 mod presets; // fork: presets
 mod stacks; // fork: stacks
 mod startup_overlays;
+mod update_dialog; // fork: update-handoff
 mod worktree_groups; // fork: worktree groups

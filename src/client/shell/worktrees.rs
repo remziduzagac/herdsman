@@ -533,6 +533,7 @@ impl ClientShellState {
                 PendingEndpointKind::Generic
                 | PendingEndpointKind::ProductAnnouncementDismiss { .. }
                 | PendingEndpointKind::ReleaseNotesDismiss
+                | PendingEndpointKind::UpdateDialog(_) // fork: update-handoff
                 | PendingEndpointKind::PopupCommand
                 | PendingEndpointKind::ReloadConfig
                 | PendingEndpointKind::IntegrationList

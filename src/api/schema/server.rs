@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+mod update; // fork: update-handoff
+pub use update::*; // fork: update-handoff
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema, Default)]
 pub struct PingParams {}
 

@@ -538,6 +538,10 @@ impl ClientShellState {
         {
             return (false, Vec::new());
         }
+        // fork: update-handoff
+        if let PendingEndpointKind::UpdateDialog(request) = pending.kind {
+            return self.receive_update_result(request, result);
+        }
         let pending = self.reconcile_creation_result(pending, &result); // fork: presets
         if let PendingEndpointKind::PaneLinkResolve { target } = pending.kind {
             return self.complete_link_hover(target, result);
@@ -636,6 +640,7 @@ impl ClientShellState {
                     }
                 };
             }
+            PendingEndpointKind::UpdateDialog(_) => unreachable!("handled above"), // fork: update-handoff
             PendingEndpointKind::ReleaseNotesDismiss => {
                 return match result {
                     Ok(_) => (false, Vec::new()),

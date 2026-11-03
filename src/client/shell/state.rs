@@ -283,6 +283,7 @@ pub(super) enum ClientShellOverlayKind {
     Onboarding,
     ProductAnnouncement,
     ReleaseNotes,
+    UpdateDialog, // fork: update-handoff
     Rename,
     ConfirmClose,
     Help,
@@ -602,6 +603,7 @@ pub(super) enum ClientShellOverlay {
     Onboarding,
     ProductAnnouncement(crate::app::state::ProductAnnouncementState),
     ReleaseNotes(crate::app::state::ReleaseNotesState),
+    UpdateDialog(super::fork::UpdateDialog), // fork: update-handoff
     Rename(ClientRenameOverlay),
     ConfirmClose(ClientConfirmCloseOverlay),
     Help(ClientHelpOverlay),
@@ -621,6 +623,7 @@ impl ClientShellOverlay {
             Self::Onboarding => ClientShellOverlayKind::Onboarding,
             Self::ProductAnnouncement(_) => ClientShellOverlayKind::ProductAnnouncement,
             Self::ReleaseNotes(_) => ClientShellOverlayKind::ReleaseNotes,
+            Self::UpdateDialog(_) => ClientShellOverlayKind::UpdateDialog, // fork: update-handoff
             Self::Rename(_) => ClientShellOverlayKind::Rename,
             Self::ConfirmClose(_) => ClientShellOverlayKind::ConfirmClose,
             Self::Help(_) => ClientShellOverlayKind::Help,
@@ -644,6 +647,7 @@ pub(super) enum PendingEndpointKind {
         id: String,
     },
     ReleaseNotesDismiss,
+    UpdateDialog(super::fork::UpdateRequest), // fork: update-handoff
     PopupCommand,
     ReloadConfig,
     IntegrationList,
@@ -1613,6 +1617,7 @@ impl ClientShellState {
                 Some(_) => {}
             }
         }
+        self.project_update_chrome(&mut snapshot); // fork: update-handoff
         self.snapshot = Some(snapshot);
         self.reconcile_pending_workspace_highlight();
         let pending_surface = self.pending_pane_surface.take();

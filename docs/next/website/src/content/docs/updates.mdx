@@ -1,0 +1,36 @@
+---
+title: Update without restarting
+description: herdsman offers to update and hand its server off to the new binary from the app, or does it on its own at a quiet moment, so pane processes and agents keep running.
+---
+
+A herdsman server can move to a new binary with a live handoff: the new server takes over every pane, with its processes, scrollback and agents still running. herdsman offers that from the app when there is something to do, and can do it on its own.
+
+## From the app
+
+When there is something to do, "update ready" shows at the right of the bar and on its item in the global menu. Click either to open the update dialog. It lists what applies, with the choice that keeps pane processes running selected:
+
+- **A new release** on your channel, for installs made with the install script: **Update and hand off** installs it and moves the server to it; **Update only** installs it and leaves the server running its version; **Skip this version** hides it until the next release.
+- **The server runs an older binary than the one installed**, after `herdsman update`, a package manager upgrade, or **Update only**: **Hand off** moves the server to it. A server that cannot hand off, such as one on Windows or one a release says must restart, is shown with that reason instead.
+- **Outdated agent integrations**: **Update integrations** rewrites the installed ones that are out of date and lists the files. It never installs one you have not installed, and writes a file kept elsewhere through its symlink, so a hook script in a dotfiles repository is changed there.
+
+Homebrew, mise, Nix, apt, dnf and pacman installs are updated by their package manager; the dialog shows the command. Once the package manager has replaced the binary, the dialog offers the handoff.
+
+After a handoff the app reconnects by itself and starts again from the new binary, in the same session and on Unix in the same terminal. On a saved SSH machine, the dialog acts on that machine's server and names it.
+
+## On its own
+
+Turn on automatic mode in the [configuration](/docs/configuration/):
+
+```toml
+[update.auto]
+handoff = true            # off by default
+integrations = "update"   # or "notify" to keep only the notice
+```
+
+The server then does the same work on its own, at a quiet moment: no agent working or blocked, and nobody typing in an attached client for five minutes. It installs a new release (install-script installs), hands off to a newer binary on disk, and updates outdated integrations, with a notice listing the files it changed. Every machine makes the same edit, so a change under a dotfiles repository needs committing from one machine only.
+
+A machine that is never quiet keeps showing "update ready" as before. A handoff that fails leaves the old server running, says so, and is not tried again for that version.
+
+## From scripts
+
+The same actions are API methods: `update.status`, `update.install`, `update.handoff`, `update.integrations` and `update.skip`, listed under [Updates](/docs/socket-api/#updates) in the socket API.

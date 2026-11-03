@@ -5,6 +5,8 @@ use serde::{de, Deserialize, Deserializer, Serialize};
 
 // fork: presets
 use super::PresetsConfig;
+// fork: update-handoff
+use super::AutoUpdateConfig;
 use super::{
     ActionKeybinds, BindingConfig, CommandKeybindConfig, IndexedKeybind, Keybinds, SidebarConfig,
     SoundConfig, TabBarRightEntryConfig, ThemeConfig, DEFAULT_MOBILE_WIDTH_THRESHOLD,
@@ -35,6 +37,8 @@ impl UpdateChannelConfig {
 pub struct UpdateConfig {
     pub channel: UpdateChannelConfig,
     pub version_check: bool,
+    // fork: update-handoff
+    pub auto: AutoUpdateConfig,
     pub manifest_check: bool,
 }
 
@@ -43,6 +47,7 @@ impl Default for UpdateConfig {
         Self {
             channel: default_update_channel(),
             version_check: true,
+            auto: AutoUpdateConfig::default(), // fork: update-handoff
             manifest_check: true,
         }
     }
