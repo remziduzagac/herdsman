@@ -253,6 +253,7 @@ impl ClientShellState {
                             ClientShellOverlay::Onboarding
                                 | ClientShellOverlay::ProductAnnouncement(_)
                                 | ClientShellOverlay::ReleaseNotes(_)
+                                | ClientShellOverlay::UpdateDialog(_) // fork: update-handoff
                         )
                     ) {
                         self.reconcile_input_source();
@@ -286,6 +287,7 @@ impl ClientShellState {
                             ClientShellOverlay::Onboarding
                                 | ClientShellOverlay::ProductAnnouncement(_)
                                 | ClientShellOverlay::ReleaseNotes(_)
+                                | ClientShellOverlay::UpdateDialog(_) // fork: update-handoff
                         )
                     ) {
                         self.reconcile_input_source();
@@ -626,6 +628,7 @@ impl ClientShellState {
                 ClientShellOverlay::Onboarding
                     | ClientShellOverlay::ProductAnnouncement(_)
                     | ClientShellOverlay::ReleaseNotes(_)
+                    | ClientShellOverlay::UpdateDialog(_) // fork: update-handoff
             )
         ) {
             if key.kind == KeyEventKind::Press {
@@ -1104,6 +1107,7 @@ impl ClientShellState {
                 ClientShellOverlay::Onboarding
                     | ClientShellOverlay::ProductAnnouncement(_)
                     | ClientShellOverlay::ReleaseNotes(_)
+                    | ClientShellOverlay::UpdateDialog(_) // fork: update-handoff
             )
         ) || self
             .copy_mode

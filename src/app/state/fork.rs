@@ -8,6 +8,7 @@ use crate::config::Config;
 use crate::ui::StripPlacement;
 use crate::workspace::Workspace;
 
+pub(crate) mod update;
 mod worktree_groups;
 
 pub(crate) use worktree_groups::{normalize_group_name, WorktreeGroups};
@@ -24,6 +25,8 @@ pub(crate) struct ForkState {
     pub(crate) worktree_groups: WorktreeGroups,
     /// The presets new workspaces start from, from the config's `[presets]`.
     pub(crate) presets: crate::config::PresetsConfig,
+    /// Updating the server and handing it off to a new binary.
+    pub(crate) update: update::UpdateState,
 }
 
 impl ForkState {
@@ -49,6 +52,7 @@ impl ForkState {
             separator: config.ui.stack_strip_separator,
         };
         self.presets = config.presets.clone();
+        self.update.auto = config.update.auto;
     }
 
     /// A workspace's metadata tokens, with `worktree_group` added for a linked

@@ -607,6 +607,12 @@ pub(crate) fn api_method_name(method: &Method) -> &'static str {
         Method::ServerStop(_) => "server.stop",
         Method::ServerLiveHandoff(_) => "server.live_handoff",
         Method::ServerReloadConfig(_) => "server.reload_config",
+        // fork: update-handoff
+        Method::UpdateStatus(_) => "update.status",
+        Method::UpdateInstall(_) => "update.install",
+        Method::UpdateHandoff(_) => "update.handoff",
+        Method::UpdateIntegrations(_) => "update.integrations",
+        Method::UpdateSkip(_) => "update.skip",
         Method::ServerSshAgentRegister(_) => "server.ssh_agent.register",
         Method::ServerAgentManifests(_) => "server.agent_manifests",
         Method::ServerReloadAgentManifests(_) => "server.reload_agent_manifests",

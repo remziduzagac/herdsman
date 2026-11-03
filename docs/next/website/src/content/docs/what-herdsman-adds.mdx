@@ -60,3 +60,7 @@ herdsman has its own versions, install script, Homebrew tap, signed apt, dnf and
 ### Updates that respect your package manager
 
 `herdsman update` and the in-app update notice point apt, dnf and pacman installs at their package manager instead of replacing a file it owns. See [Update](/docs/install/#update). *0.1.0*
+
+### Update without restarting
+
+The app offers to update and hand the server off to the new binary, so pane processes and agents keep running, and then comes back on the new version by itself. It also offers a handoff after a package manager upgrade, and updates outdated agent integrations. With `[update.auto] handoff = true`, the server does all of it on its own at a quiet moment. See [Update without restarting](/docs/updates/). *0.4.0*

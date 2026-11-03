@@ -2,6 +2,7 @@ use super::*;
 
 mod presets_overlay; // fork: presets
 mod settings_overlay;
+mod update_dialog_overlay; // fork: update-handoff
 mod worktree_overlays;
 
 #[derive(Default)]
@@ -62,6 +63,7 @@ pub(crate) fn render_client_overlay(
         ClientShellOverlay::ReleaseNotes(v) => {
             render_release_notes_overlay(b, v, &s.update_install_command, p)
         }
+        ClientShellOverlay::UpdateDialog(v) => update_dialog_overlay::render_update_dialog(b, v, p), // fork: update-handoff
         ClientShellOverlay::Rename(v) => render_rename_overlay(b, v, p),
         ClientShellOverlay::ConfirmClose(v) => render_confirm_close_overlay(b, v, p),
         ClientShellOverlay::Help(v) => render_help_overlay(b, v, k, p),

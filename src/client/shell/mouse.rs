@@ -352,6 +352,7 @@ impl ClientShellState {
         now: std::time::Instant,
     ) -> ClientShellInput {
         let mut outcome = ClientShellInput::default();
+        self.poll_update_status(now, &mut outcome); // fork: update-handoff
         if self
             .selection_repaint_deadline
             .is_some_and(|deadline| now >= deadline)
@@ -685,6 +686,9 @@ impl ClientShellState {
     pub(super) fn handle_mouse(&mut self, mouse: MouseEvent, outcome: &mut ClientShellInput) {
         self.update_link_hover(mouse, outcome);
         let point = (mouse.column, mouse.row);
+        if self.handle_update_dialog_mouse(&mouse, outcome) {
+            return;
+        } // fork: update-handoff
         if self.mode == ClientShellMode::Navigate
             && self.workspace_preview_action_blocked()
             && self.overlay.is_none()

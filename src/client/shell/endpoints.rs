@@ -203,6 +203,7 @@ impl ClientShellState {
         {
             endpoint.methods = methods;
         }
+        self.refresh_update_chrome(); // fork: update-handoff
     }
 
     pub(crate) fn endpoint_projection_available(&self, endpoint_id: &ClientEndpointId) -> bool {
@@ -672,6 +673,7 @@ impl ClientShellState {
         };
         if changed {
             self.snapshot = self.endpoints[index].snapshot.clone();
+            self.refresh_update_chrome(); // fork: update-handoff
         }
         changed
     }

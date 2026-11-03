@@ -7,6 +7,11 @@ Each herdsman release names the herdr release it is built on. Versions are herds
 
 ### Added
 
+- Update without restarting: the update dialog, opened from "update ready", installs a new release and hands
+  the server off to it, hands off after a package manager upgrade, and updates outdated agent integrations. The
+  app then reconnects and restarts on the new binary by itself. `[update.auto] handoff = true` lets the server
+  do this on its own when no agent is busy and nobody is typing. New API methods `update.status`,
+  `update.install`, `update.handoff`, `update.integrations` and `update.skip`.
 - Workspaces from a preset: creating a workspace, New worktree and Open worktree... offer a tab preset as
   the new workspace's first tab, with the default from the new `[presets]` config section selected. Defaults
   are set for every workspace, every worktree, and per repository in `[presets.projects.<repo>]`.

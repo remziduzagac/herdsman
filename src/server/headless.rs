@@ -83,6 +83,7 @@ mod notifications;
 mod render;
 mod retained_surface;
 mod surface_interest;
+mod update; // fork: update-handoff
 
 // Producers can refill even a bounded channel while it is being drained.
 // Yield to scheduled work and rendering between batches; select! below
@@ -1850,6 +1851,7 @@ impl HeadlessServer {
         if self.handoff_in_progress && Self::ignore_client_event_during_handoff(&ev) {
             return false;
         }
+        self.note_update_input(&ev); // fork: update-handoff
 
         match ev {
             ServerEvent::ClientConnected {
@@ -2918,6 +2920,9 @@ impl HeadlessServer {
             Self::reject_api_request_for_shutdown(msg);
             return false;
         }
+        let Some(msg) = self.handle_update_request(msg) else {
+            return false; // fork: update-handoff
+        };
 
         let frozen_alt_screen_read = match self.alt_screen_read_conflict(&msg.request) {
             AltScreenReadConflict::None => None,
@@ -3340,6 +3345,7 @@ impl HeadlessServer {
         {
             self.app.run_auto_update_check();
         }
+        self.tick_update_handoff(now); // fork: update-handoff
 
         if self
             .app

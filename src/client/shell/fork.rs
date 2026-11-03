@@ -3,11 +3,15 @@
 //! herdsman's own module. `shell.rs` and `state.rs` reach it through hooks
 //! marked `// fork: worktree groups` and `// fork: agents collapse`.
 
+mod update_dialog;
+pub(super) use update_dialog::{UpdateDialog, UpdateRequest, UpdateState};
+
 /// herdsman's own client state, beside the base project's in `ClientShellState`.
 #[derive(Debug, Default)]
 pub(super) struct ForkState {
     /// The agents panel shows only its header; the spaces list takes the rest.
     pub(super) agents_collapsed: bool,
+    pub(super) updates: UpdateState,
     pub(super) creation_generation: u64,
     pub(super) creation: Option<super::presets::CreationState>,
 }
@@ -24,6 +28,7 @@ impl ForkState {
 /// herdsman's click targets, rebuilt with the rest of the hit map each frame.
 #[derive(Debug, Default)]
 pub(super) struct ForkHits {
+    pub(super) update_label: ratatui::layout::Rect,
     pub(super) creation_preset: ratatui::layout::Rect,
     pub(super) worktree_group_headers: Vec<super::sidebar::worktree_groups::GroupHeaderHit>,
     /// The agents panel's title, which collapses or opens it.

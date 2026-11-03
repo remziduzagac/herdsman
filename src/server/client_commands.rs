@@ -58,6 +58,11 @@ const CLIENT_SHELL_METHODS: &[&str] = &[
     "tab.focus",
     "tab.move",
     "tab.rename",
+    "update.handoff",      // fork: update-handoff
+    "update.install",      // fork: update-handoff
+    "update.integrations", // fork: update-handoff
+    "update.skip",         // fork: update-handoff
+    "update.status",       // fork: update-handoff
     "workspace.close",
     "workspace.create",
     "workspace.focus",

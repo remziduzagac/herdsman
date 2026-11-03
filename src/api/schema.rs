@@ -59,6 +59,17 @@ pub enum Method {
     ServerAgentManifests(EmptyParams),
     #[serde(rename = "server.reload_agent_manifests")]
     ServerReloadAgentManifests(EmptyParams),
+    // fork: update-handoff
+    #[serde(rename = "update.status")]
+    UpdateStatus(EmptyParams),
+    #[serde(rename = "update.install")]
+    UpdateInstall(EmptyParams),
+    #[serde(rename = "update.handoff")]
+    UpdateHandoff(EmptyParams),
+    #[serde(rename = "update.integrations")]
+    UpdateIntegrations(EmptyParams),
+    #[serde(rename = "update.skip")]
+    UpdateSkip(UpdateSkipParams),
     #[serde(rename = "notification.show")]
     NotificationShow(NotificationShowParams),
     #[serde(rename = "product_announcement.dismiss")]

@@ -121,8 +121,9 @@ Steps 3 to 5 run in that worktree. `git merge --abort` returns to the start. Dur
 - **Config reference**, `docs/next/website/src/data/config-reference.json`: take theirs, then re-add
   the seven stack entries: `keys.focus_stacked`, `keys.next_stacked`, `keys.previous_stacked`,
   `keys.stack_pane`, `keys.close_stacked`, `ui.stack_strip_position` and `ui.stack_strip_separator`;
-  the two equalize entries, `keys.equalize_widths` and `keys.equalize_heights`; and the three presets
-  entries, `presets.workspace`, `presets.worktree` and `presets.projects`.
+  the two equalize entries, `keys.equalize_widths` and `keys.equalize_heights`; the three presets
+  entries, `presets.workspace`, `presets.worktree` and `presets.projects`; and the two update entries,
+  `update.auto.handoff` and `update.auto.integrations`.
   `just maintenance-test` fails until they are back.
 - **Lists both sides extend**, such as the `Method` enum, method names, `CLIENT_SHELL_METHODS`,
   keybinding tables and defaults: keep both. `CLIENT_SHELL_METHODS` must stay sorted.
@@ -404,6 +405,45 @@ The herdr files below carry hooks marked `// fork: presets`.
 | Docs, sections | `cli-reference.mdx`, `socket-api.mdx` (Tab presets), `skills/herdsman/SKILL.md` |
 
 The presets page, `presets.mdx`, is herdsman's own, in the sidebar after the stacks page.
+
+### Update and handoff
+
+The update dialog, automatic mode and the client's return after a handoff live in herdsman's own files:
+
+- `update/handoff.rs`: what a running server needs from the updater: whether the install updates itself,
+  installing the newest release over the binary it started from, and describing a binary on disk through its
+  `status client --json`;
+- `app/state/fork/update.rs`: the server's update state and the decisions on it, with their tests;
+- `server/headless/update.rs`: the `update.*` methods, the binary check on the server loop, and automatic mode;
+- `api/schema/server/update.rs`: the methods' types;
+- `config/auto_update.rs`: the `[update.auto]` table;
+- `client/reload.rs`: a local client that loses its server to a handoff waits for the new one and starts again
+  from the binary on disk;
+- `client/shell/fork/update_dialog.rs` and `client/shell/fork/update_dialog/status.rs`: the dialog's state, its
+  `update.*` requests and polling; `client/shell/update_dialog_overlay.rs` draws it; its tests are in
+  `client/shell/tests/update_dialog.rs`.
+
+The herdr files below carry hooks marked `// fork: update-handoff`.
+
+| Area | Files |
+| --- | --- |
+| Updater | `update.rs` |
+| Method | `api/schema.rs`, `api/schema/server.rs`, `api/schema/response.rs`, `api/server.rs` |
+| Server | `server/headless.rs` (requests, input, the loop tick), `app/runtime.rs` (the loop's next wakeup) |
+| Advertising | `server/client_commands.rs` |
+| Config | `config.rs`, `config/model.rs` (`[update]` gains `auto`) |
+| Client | `client/mod.rs` |
+| Client state | `client/shell/state.rs`, `client/shell/endpoints.rs`, `client/shell/actions.rs` |
+| Client input | `client/shell/{input,input_source,mouse,overlay_input}.rs` |
+| Bar, menu and dialog | `client/shell/{composition,global_menu,overlays,worktrees}.rs` |
+| Test wiring | `client/shell/tests/mod.rs` |
+| Generated | `docs/next/api/herdsman-api.schema.json` |
+| Docs data | `docs/next/website/src/data/config-reference.json` |
+| Docs | `install.mdx` (a pointer to `updates.mdx`), `socket-api.mdx` (Updates), `astro.config.mjs` (sidebar) |
+
+The `update.*` methods are JSON methods advertised to client shells, their shapes pinned in
+`server/client_commands/fork_methods.rs`. No bincode struct, frozen codec or `PROTOCOL_VERSION` changed. A client
+attached to a server without them keeps today's "update ready" label and notice.
 
 ### Layout items in the pane menu
 

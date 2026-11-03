@@ -156,6 +156,13 @@ pub enum ResponseResult {
     LayoutEqualized {
         layout: LayoutDescription,
     },
+    // fork: update-handoff
+    UpdateStatus {
+        status: super::server::UpdateStatus,
+    },
+    IntegrationsUpdated {
+        updated: Vec<super::server::UpdatedIntegration>,
+    },
     // fork: presets
     PresetList {
         presets: Vec<PresetSummary>,
