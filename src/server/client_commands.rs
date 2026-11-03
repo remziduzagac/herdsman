@@ -321,7 +321,7 @@ mod tests {
             actual.remove("pane.link.resolve").as_deref(),
             Some("f5e4a3e01453ae7b188f127ce951c12c20e0bebcc17cc364eeb6d1a01fd5bf81")
         );
-        fork_methods::remove_pinned(&mut actual); // fork: stacks, worktree groups, equalize, presets
+        fork_methods::remove_pinned(&mut actual); // fork: stacks, worktree groups, equalize, presets, update-handoff
 
         assert_eq!(
             actual, expected,

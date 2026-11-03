@@ -7,8 +7,7 @@
 
 use super::*;
 use crate::api::schema::{
-    Method, OutdatedIntegration, ResponseResult, ServerLiveHandoffParams, UpdateHandoff,
-    UpdatedIntegration,
+    Method, OutdatedIntegration, ResponseResult, UpdateHandoff, UpdatedIntegration,
 };
 use crate::app::state::fork::update::{
     self as state, StatusInputs, UpdateState, DISK_CHECK_INTERVAL, INTEGRATION_CHECK_INTERVAL,
@@ -235,7 +234,7 @@ impl HeadlessServer {
         let (Some(exe), Some(binary)) = (update.exe.clone(), update.disk.clone()) else {
             return Err(io::Error::other("nothing to hand off to"));
         };
-        let result = self.perform_live_handoff(ServerLiveHandoffParams {
+        let result = self.perform_live_handoff(crate::api::schema::ServerLiveHandoffParams {
             import_exe: Some(exe.display().to_string()),
             expected_protocol: Some(binary.protocol),
             expected_version: Some(binary.version.clone()),

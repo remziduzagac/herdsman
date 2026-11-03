@@ -2,7 +2,7 @@
 //! frozen generation-1 fixture.
 //!
 //! herdsman's own module. `client_commands.rs` reaches it through hooks marked
-//! `// fork: stacks, worktree groups, equalize, presets`.
+//! `// fork:` with the feature names.
 
 use std::collections::BTreeMap;
 
@@ -69,6 +69,26 @@ pub(super) fn remove_pinned(actual: &mut BTreeMap<String, String>) {
     assert_eq!(
         actual.remove("preset.save").as_deref(),
         Some("1ef7397d832adbbf8c68b921936c449376fd790ae0c1440240e1222fe22d5876")
+    );
+    assert_eq!(
+        actual.remove("update.handoff").as_deref(),
+        Some("f88eccac0ca78cf7fc6fc52ef26ff2935ffc458e7974af363141f31a37bd7a5d")
+    );
+    assert_eq!(
+        actual.remove("update.install").as_deref(),
+        Some("40c1849f9ace1e26dc0be5785aafcfe8f37acf7a7e38ce73c2cce83e5dbb369a")
+    );
+    assert_eq!(
+        actual.remove("update.integrations").as_deref(),
+        Some("840597ea2c27bdb84583c37a28b0735792f318b5353c0756198fddda821bb981")
+    );
+    assert_eq!(
+        actual.remove("update.skip").as_deref(),
+        Some("1ca82d7a492163dda19ca7b1fc46bf44307b4726663f93dfdecbcc3b91d3b961")
+    );
+    assert_eq!(
+        actual.remove("update.status").as_deref(),
+        Some("7f2f98ad414cbf6726bac4802fa0ed7c8f8297d3530fcdf02418a3164c6883f2")
     );
     assert_eq!(
         actual.remove("workspace.set_worktree_group").as_deref(),

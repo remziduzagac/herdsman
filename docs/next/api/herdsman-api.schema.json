@@ -4791,6 +4791,17 @@
           ],
           "type": "string"
         },
+        "UpdateSkipParams": {
+          "properties": {
+            "version": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "version"
+          ],
+          "type": "object"
+        },
         "WorkspaceCloseParams": {
           "properties": {
             "close_group": {
@@ -5228,6 +5239,86 @@
             },
             "params": {
               "$ref": "#/schemas/request/$defs/EmptyParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "update.status",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/EmptyParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "update.install",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/EmptyParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "update.handoff",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/EmptyParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "update.integrations",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/EmptyParams"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "update.skip",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/schemas/request/$defs/UpdateSkipParams"
             }
           },
           "required": [
@@ -8554,6 +8645,40 @@
           ],
           "type": "string"
         },
+        "OutdatedIntegration": {
+          "properties": {
+            "agent": {
+              "description": "The agent, such as `claude` or `codex`.",
+              "type": "string"
+            },
+            "expected": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "installed": {
+              "description": "The installed integration's version; absent for one without a version mark.",
+              "format": "uint32",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "paths": {
+              "description": "The files an update writes.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "agent",
+            "expected"
+          ],
+          "type": "object"
+        },
         "PaneDirection": {
           "enum": [
             "left",
@@ -10786,6 +10911,41 @@
             },
             {
               "properties": {
+                "status": {
+                  "$ref": "#/schemas/success_response/$defs/UpdateStatus"
+                },
+                "type": {
+                  "const": "update_status",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "status"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "integrations_updated",
+                  "type": "string"
+                },
+                "updated": {
+                  "items": {
+                    "$ref": "#/schemas/success_response/$defs/UpdatedIntegration"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "type",
+                "updated"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
                 "presets": {
                   "items": {
                     "$ref": "#/schemas/success_response/$defs/PresetSummary"
@@ -11705,6 +11865,155 @@
             "focused",
             "pane_count",
             "agent_status"
+          ],
+          "type": "object"
+        },
+        "UpdateAuto": {
+          "description": "The automatic mode's state.",
+          "properties": {
+            "waiting_for": {
+              "description": "What the server waits for before acting on its own, such as\n`agents_busy` or `recent_input`; absent when nothing is pending.",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "type": "object"
+        },
+        "UpdateHandoff": {
+          "oneOf": [
+            {
+              "enum": [
+                "unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "const": "ready",
+              "description": "The binary on disk is newer and the server can move to it.",
+              "type": "string"
+            },
+            {
+              "const": "unsupported",
+              "description": "The binary on disk is newer, but this server cannot hand off: restart it.",
+              "type": "string"
+            }
+          ]
+        },
+        "UpdateStatus": {
+          "description": "What the server knows about updating itself.",
+          "properties": {
+            "auto": {
+              "anyOf": [
+                {
+                  "$ref": "#/schemas/success_response/$defs/UpdateAuto"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Present when `[update] auto_handoff` is on."
+            },
+            "available": {
+              "description": "The newest release on `channel`, when it is newer than both.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "channel": {
+              "description": "`stable` or `preview`.",
+              "type": "string"
+            },
+            "handoff": {
+              "anyOf": [
+                {
+                  "$ref": "#/schemas/success_response/$defs/UpdateHandoff"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Whether the server can hand off to the binary on disk."
+            },
+            "handoff_error": {
+              "description": "Why the last handoff failed.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "install_command": {
+              "description": "How to update an install a package manager owns.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "install_error": {
+              "description": "Why the last install failed.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "installed": {
+              "description": "The version of the binary on disk, when it differs from `running`.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "installing": {
+              "description": "An install started by `update.install` is still running.",
+              "type": "boolean"
+            },
+            "integrations": {
+              "description": "Installed integrations older than this version expects.",
+              "items": {
+                "$ref": "#/schemas/success_response/$defs/OutdatedIntegration"
+              },
+              "type": "array"
+            },
+            "running": {
+              "description": "The running server's version.",
+              "type": "string"
+            },
+            "self_update": {
+              "description": "Whether this install can update itself (an install-script install).",
+              "type": "boolean"
+            },
+            "skipped": {
+              "description": "The release the user chose to skip.",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "running",
+            "channel",
+            "self_update"
+          ],
+          "type": "object"
+        },
+        "UpdatedIntegration": {
+          "properties": {
+            "agent": {
+              "type": "string"
+            },
+            "paths": {
+              "description": "The files written.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "agent"
           ],
           "type": "object"
         },
