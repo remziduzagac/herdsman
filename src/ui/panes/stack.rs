@@ -53,3 +53,28 @@ pub(super) fn resize_hidden_stack_members(
         );
     }
 }
+
+/// In a zoomed tab, size the zoomed pane's hidden stack members like it, so
+/// switching members while zoomed never reflows them.
+pub(super) fn resize_zoomed_hidden_members(
+    app: &AppState,
+    terminal_runtimes: &TerminalRuntimeRegistry,
+    workspace_index: usize,
+    tab: &crate::workspace::Tab,
+    area: Rect,
+    cell_size: crate::kitty_graphics::HostCellSize,
+) {
+    let zoomed = tab.layout.focused();
+    let multi_pane = tab.layout.pane_count() > 1;
+    let pane_inner = pane_inner_rect(area, zoomed_pane_borders(app, multi_pane));
+    let pane_inner = content_rect(app, tab, zoomed, pane_inner);
+    resize_hidden_stack_members(
+        app,
+        terminal_runtimes,
+        workspace_index,
+        tab,
+        zoomed,
+        pane_inner,
+        cell_size,
+    );
+}

@@ -63,4 +63,4 @@ The JSON API methods behind these commands are listed under
 - **A stack of one becomes a plain pane.** Closing the visible member shows the next one, or the previous one when it was last.
 - **Hidden members keep their size.** They are resized with the visible member, so switching never reflows them.
 - **Done means unseen.** An agent that finishes in a hidden member reads `done`, not `idle`, until you reveal it.
-- **Zoom hides the strip.** Zooming a member shows only that pane, as zoom always does.
+- **Zoom keeps the strip.** Zooming a member fills the tab with it and its stack's strip. Switching members, from the strip or with the keys, stays zoomed.

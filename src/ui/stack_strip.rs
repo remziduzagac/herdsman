@@ -215,16 +215,14 @@ pub(crate) fn stack_member_at(
         .map(|(_, member)| *member)
 }
 
-/// Draw the strip of every stack visible in a rendered tab.
+/// Draw the strip of every stack visible in a rendered tab, including the
+/// zoomed pane's.
 pub(super) fn render_stack_strips(
     app: &AppState,
     tab: &Tab,
     pane_infos: &[PaneInfo],
     buf: &mut Buffer,
 ) {
-    if tab.zoomed {
-        return;
-    }
     for info in pane_infos {
         let Some((members, active)) = tab.layout.stack_members(info.id) else {
             continue;
@@ -467,21 +465,30 @@ mod tests {
     }
 
     #[test]
-    fn zoomed_stack_member_fills_the_tab_without_a_strip() {
-        let (mut app, [_, _, shell]) = stacked_app(TabBarPositionConfig::Top);
-        app.workspaces[0].tabs[0].zoomed = true;
+    fn zoomed_stack_member_fills_the_tab_and_keeps_its_strip() {
+        for position in [TabBarPositionConfig::Top, TabBarPositionConfig::Bottom] {
+            let (mut app, [_, _, shell]) = stacked_app(position);
+            app.workspaces[0].tabs[0].zoomed = true;
 
-        let (infos, buffer) = render(&app);
+            let (infos, buffer) = render(&app);
 
-        let [info] = &infos[..] else {
-            panic!("zoom shows one pane");
-        };
-        assert_eq!(info.id, shell);
-        assert_eq!(info.inner_rect, pane_inner_rect(info.rect, info.borders));
-        let top_rows = (0..3)
-            .map(|y| row_text(&buffer, Rect::new(0, y, 80, 1)))
-            .collect::<String>();
-        assert!(!top_rows.contains("1 agent"), "{top_rows:?}");
+            let [info] = &infos[..] else {
+                panic!("zoom shows one pane");
+            };
+            assert_eq!(info.id, shell);
+            assert_eq!(info.rect, Rect::new(0, 0, 80, 12), "{position:?}");
+            let rows = split_strip(
+                pane_inner_rect(info.rect, info.borders),
+                placement(position, true),
+            )
+            .unwrap();
+            assert_eq!(info.inner_rect, rows.content, "{position:?}");
+            let text = row_text(&buffer, rows.strip);
+            assert!(
+                text.contains("1 agent") && text.contains("2 shell"),
+                "{position:?}: {text:?}"
+            );
+        }
     }
 
     #[test]

@@ -314,7 +314,6 @@ impl App {
             .then(|| {
                 let ws = self.state.workspaces.get(ws_idx)?;
                 let tab = ws.tabs.get(ws.find_tab_index_for_pane(pane_id)?)?;
-                (!tab.zoomed).then_some(())?;
                 crate::ui::stack_member_at(&self.state, tab, pane_id, params.column, params.width)
             })
             .flatten();
@@ -605,9 +604,22 @@ mod tests {
         assert_eq!(focus_stack_strip(&mut app, root, 1, bottom, 2), root);
         app.state.fork.stack_strip.separator = false;
         assert_eq!(focus_stack_strip(&mut app, b, 1, bottom, 2), b);
-        app.state.workspaces[0].tabs[0].zoomed = true;
-        assert_eq!(focus_stack_strip(&mut app, b, 1, bottom, 1), b);
         assert!(!app.state.workspaces[0].tabs[0].layout.is_visible(a));
+    }
+
+    #[test]
+    fn pane_focus_stack_strip_in_a_zoomed_tab_switches_members_and_keeps_the_zoom() {
+        let (mut app, _, a, b) = app_with_stack();
+        app.state.workspaces[0].tabs[0].zoomed = true;
+
+        assert_eq!(
+            focus_stack_strip(&mut app, b, 1, PaneContentEdge::Bottom, 2),
+            a
+        );
+        let tab = &app.state.workspaces[0].tabs[0];
+        assert!(tab.zoomed);
+        assert_eq!((tab.layout.focused(), tab.layout.is_visible(b)), (a, false));
+        app.state.assert_invariants_for_test();
     }
 
     #[test]
