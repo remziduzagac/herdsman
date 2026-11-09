@@ -63,7 +63,7 @@ jobs:
           PACKAGES_SIGNING_KEY: ${{ secrets.PACKAGES_SIGNING_KEY }}
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q createrepo-c
+          sudo apt-get install -y -q createrepo-c apt-utils
           scripts/package-repos _site
 
       - name: Build the preview manifest
