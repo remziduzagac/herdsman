@@ -18,6 +18,11 @@ Each herdsman release names the herdr release it is built on. Versions are herds
   `herdsman workspace create`, `worktree create` and `worktree open` take `--preset <name>` and the
   preset's values with `--param`.
 
+### Changed
+
+- A zoomed stack member keeps its stack's strip, so its other members stay in sight and a click switches
+  to one without leaving zoom.
+
 ## [0.3.0] - 2026-10-21
 
 Based on herdr 0.9.5 (`2ecf19a9`), as 0.2.0 is.

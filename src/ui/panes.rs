@@ -329,6 +329,7 @@ pub(super) fn resize_tab_panes(
             runtime_for_tab_pane(app, terminal_runtimes, workspace_index, tab, focused_id)
         {
             let pane_inner = pane_inner_rect(area, zoomed_pane_borders(app, multi_pane));
+            let pane_inner = stack::content_rect(app, tab, focused_id, pane_inner); // fork: stacks
             let inner_rect = terminal_inner_rect(rt, pane_inner, app.pane_scrollbars);
             if !app.direct_attach_resize_locks.contains(terminal_id) {
                 rt.resize(
@@ -339,6 +340,15 @@ pub(super) fn resize_tab_panes(
                 );
             }
         }
+        // fork: stacks
+        stack::resize_zoomed_hidden_members(
+            app,
+            terminal_runtimes,
+            workspace_index,
+            tab,
+            area,
+            cell_size,
+        );
         return;
     }
 
@@ -401,6 +411,19 @@ pub(super) fn compute_pane_infos_for_tab(
         let focused_id = tab.layout.focused();
         let borders = zoomed_pane_borders(app, multi_pane);
         let pane_inner = pane_inner_rect(area, borders);
+        let pane_inner = stack::content_rect(app, tab, focused_id, pane_inner); // fork: stacks
+
+        // fork: stacks
+        if resize_panes {
+            stack::resize_zoomed_hidden_members(
+                app,
+                terminal_runtimes,
+                ws_idx,
+                tab,
+                area,
+                cell_size,
+            );
+        }
         let mut inner_rect = pane_inner;
         let mut scrollbar_rect = None;
         if let Some(rt) = app.runtime_for_pane_in_workspace(terminal_runtimes, ws_idx, focused_id) {
