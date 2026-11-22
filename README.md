@@ -24,23 +24,6 @@ Early. [CHANGELOG.md](CHANGELOG.md) lists each release and the herdr release it 
 Preview builds of upcoming changes are available to installs made with the install script, not
 to Homebrew, mise, Nix or the package repositories: `herdsman channel set preview`.
 
-## Use at your own risk
-
-herdsman runs shells, commands and coding agents on your machine and on the machines you connect
-it to. Agents running in it can use its CLI to type into, start and close other panes, and
-features such as live handoff, worktree removal and integration installs change running
-processes and files. herdsman makes no guarantee about what the agents it hosts do, or that it is
-free of bugs. You use it at your own risk and are responsible for what happens on your machines,
-so:
-
-- review what an agent proposes and does before you accept it;
-- keep backups, and keep your work under version control;
-- use your agent's own permission settings;
-- treat features marked experimental, such as live handoff, as ones that can fail.
-
-herdsman is provided "as is", without warranty of any kind and without liability for any damage or
-loss, including lost work or data, as sections 7 and 8 of the [licence](LICENSE) say.
-
 ## Install
 
 ```bash
@@ -77,6 +60,23 @@ the rest of the tools and how to run the tests.
 - `herdsman --help` for the CLI, and `herdsman --skill` for the agent skill.
 - [MAINTAINING.md](MAINTAINING.md): branches, versions, and how herdr releases are merged in.
 - [CONTRIBUTING.md](CONTRIBUTING.md): issues, pull requests, building and testing.
+
+## Use at your own risk
+
+herdsman runs shells, commands and coding agents on your machine and on the machines you connect
+it to. Agents running in it can use its CLI to type into, start and close other panes, and
+features such as live handoff, worktree removal and integration installs change running
+processes and files. herdsman makes no guarantee about what the agents it hosts do, or that it is
+free of bugs. You use it at your own risk and are responsible for what happens on your machines,
+so:
+
+- review what an agent proposes and does before you accept it;
+- keep backups, and keep your work under version control;
+- use your agent's own permission settings;
+- treat features marked experimental, such as live handoff, as ones that can fail.
+
+herdsman is provided "as is", without warranty of any kind and without liability for any damage or
+loss, including lost work or data, as sections 7 and 8 of the [licence](LICENSE) say.
 
 ## Licence
 
