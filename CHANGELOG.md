@@ -5,6 +5,8 @@ Each herdsman release names the herdr release it is built on. Versions are herds
 
 ## Unreleased
 
+Based on herdr 0.9.5 (`2ecf19a9`), as 0.3.0 is.
+
 ### Added
 
 - Update without restarting: the update dialog, opened from "update ready", installs a new release and hands
