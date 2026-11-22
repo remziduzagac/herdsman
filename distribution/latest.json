@@ -1,23 +1,42 @@
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "protocol": 22,
   "endpoint_generation": 1,
-  "notes": "Based on herdr 0.9.5 (`2ecf19a9`), as 0.2.0 is.\n\n### Added\n\n- Tab presets: save a tab's layout under a name with Save tab as preset... in its right-click menu or\n  `herdsman preset save`, and open it again as a new tab in any workspace from the `prefix+t` list or\n  `herdsman preset load`. Each pane starts in the workspace's folder and runs its saved command, such as\n  an agent. A preset is a TOML file in `~/.config/herdsman/presets/`, editable from the list with `e` or\n  with `herdsman preset edit`.\n- Preset parameters: a preset's `[params]` table declares values it takes when it opens, given with\n  `herdsman preset load <name> --param <name>=<value>` or asked for by the presets list. Every pane gets them\n  as environment variables, such as `$PR`, for its command to use.\n- Tokyo Night Storm and Moon themes, `tokyo-night-storm` and `tokyo-night-moon`, which switch to Tokyo\n  Night Day in light mode. All four Tokyo Night themes now take their colours from the official\n  tokyonight.nvim palettes.\n- The agents panel collapses to its header, so the spaces list gets the sidebar's height: click its title or\n  press `prefix+a` (`keys.toggle_agent_panel`) to collapse or open it, and set\n  `[ui] agent_panel_start_collapsed = true` to start collapsed.",
+  "notes": "Based on herdr 0.9.5 (`2ecf19a9`), as 0.3.0 is.\n\n### Added\n\n- Update without restarting: the update dialog, opened from \"update ready\", installs a new release and hands\n  the server off to it, hands off after a package manager upgrade, and updates outdated agent integrations. The\n  app then reconnects and restarts on the new binary by itself. `[update.auto] handoff = true` lets the server\n  do this on its own when no agent is busy and nobody is typing. New API methods `update.status`,\n  `update.install`, `update.handoff`, `update.integrations` and `update.skip`.\n- Workspaces from a preset: creating a workspace, New worktree and Open worktree... offer a tab preset as\n  the new workspace's first tab, with the default from the new `[presets]` config section selected. Defaults\n  are set for every workspace, every worktree, and per repository in `[presets.projects.<repo>]`.\n  `herdsman workspace create`, `worktree create` and `worktree open` take `--preset <name>` and the\n  preset's values with `--param`.\n\n### Changed\n\n- A zoomed stack member keeps its stack's strip, so its other members stay in sight and a click switches\n  to one without leaving zoom.",
   "assets": {
-    "linux-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-linux-x86_64",
-    "linux-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-linux-aarch64",
-    "macos-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-macos-x86_64",
-    "macos-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-macos-aarch64",
-    "windows-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.3.0/herdsman-windows-x86_64.zip"
+    "linux-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.4.0/herdsman-linux-x86_64",
+    "linux-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.4.0/herdsman-linux-aarch64",
+    "macos-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.4.0/herdsman-macos-x86_64",
+    "macos-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.4.0/herdsman-macos-aarch64",
+    "windows-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.4.0/herdsman-windows-x86_64.zip"
   },
   "sha256": {
-    "linux-x86_64": "891c7ec2fb10bf183206313fce9164552b20f5c6a5fe36eec6ef7bf649cfc5a3",
-    "linux-aarch64": "88b8a3bc20a044c5dc05f7c661568473c6bf5cd13e0973ab550c1334501f2a4b",
-    "macos-x86_64": "65e5f503a252dc980d026e62da60fc54fab89d3e9b2e5e958e3242330d869055",
-    "macos-aarch64": "c04a9efcc46489a61ba03985f48bb83d658a41a9be1addb0d361e40946b6c7a9",
-    "windows-x86_64": "7ffc37e03ec9acf6863f3243a253831d0c49fb1b87cf85bedb15794f7843f51a"
+    "linux-x86_64": "c6e706fbb578d9e491ed1de54db63c44f322075e3f5fce4b092537b76a3ed238",
+    "linux-aarch64": "866e57c16b5c6d8ba8ce3c2fce9d3b2918069527dfafbf6ab91c2c9fb367c34a",
+    "macos-x86_64": "7109f5dd3a2ee23060eabb9feda65a5ab09fca6bd4fb008588c205426dc86a72",
+    "macos-aarch64": "a77cff5b8f5541c52035357593522313354da189c1429367e0fcb3255a0127b0",
+    "windows-x86_64": "f9b81c40c57a6cb51c13b0441992ea99de67a0730657acd16a0fe733e0ba8dad"
   },
   "releases": {
+    "0.4.0": {
+      "notes": "Based on herdr 0.9.5 (`2ecf19a9`), as 0.3.0 is.\n\n### Added\n\n- Update without restarting: the update dialog, opened from \"update ready\", installs a new release and hands\n  the server off to it, hands off after a package manager upgrade, and updates outdated agent integrations. The\n  app then reconnects and restarts on the new binary by itself. `[update.auto] handoff = true` lets the server\n  do this on its own when no agent is busy and nobody is typing. New API methods `update.status`,\n  `update.install`, `update.handoff`, `update.integrations` and `update.skip`.\n- Workspaces from a preset: creating a workspace, New worktree and Open worktree... offer a tab preset as\n  the new workspace's first tab, with the default from the new `[presets]` config section selected. Defaults\n  are set for every workspace, every worktree, and per repository in `[presets.projects.<repo>]`.\n  `herdsman workspace create`, `worktree create` and `worktree open` take `--preset <name>` and the\n  preset's values with `--param`.\n\n### Changed\n\n- A zoomed stack member keeps its stack's strip, so its other members stay in sight and a click switches\n  to one without leaving zoom.",
+      "protocol": 22,
+      "endpoint_generation": 1,
+      "assets": {
+        "linux-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.4.0/herdsman-linux-x86_64",
+        "linux-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.4.0/herdsman-linux-aarch64",
+        "macos-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.4.0/herdsman-macos-x86_64",
+        "macos-aarch64": "https://github.com/remziduzagac/herdsman/releases/download/v0.4.0/herdsman-macos-aarch64",
+        "windows-x86_64": "https://github.com/remziduzagac/herdsman/releases/download/v0.4.0/herdsman-windows-x86_64.zip"
+      },
+      "sha256": {
+        "linux-x86_64": "c6e706fbb578d9e491ed1de54db63c44f322075e3f5fce4b092537b76a3ed238",
+        "linux-aarch64": "866e57c16b5c6d8ba8ce3c2fce9d3b2918069527dfafbf6ab91c2c9fb367c34a",
+        "macos-x86_64": "7109f5dd3a2ee23060eabb9feda65a5ab09fca6bd4fb008588c205426dc86a72",
+        "macos-aarch64": "a77cff5b8f5541c52035357593522313354da189c1429367e0fcb3255a0127b0",
+        "windows-x86_64": "f9b81c40c57a6cb51c13b0441992ea99de67a0730657acd16a0fe733e0ba8dad"
+      }
+    },
     "0.3.0": {
       "notes": "Based on herdr 0.9.5 (`2ecf19a9`), as 0.2.0 is.\n\n### Added\n\n- Tab presets: save a tab's layout under a name with Save tab as preset... in its right-click menu or\n  `herdsman preset save`, and open it again as a new tab in any workspace from the `prefix+t` list or\n  `herdsman preset load`. Each pane starts in the workspace's folder and runs its saved command, such as\n  an agent. A preset is a TOML file in `~/.config/herdsman/presets/`, editable from the list with `e` or\n  with `herdsman preset edit`.\n- Preset parameters: a preset's `[params]` table declares values it takes when it opens, given with\n  `herdsman preset load <name> --param <name>=<value>` or asked for by the presets list. Every pane gets them\n  as environment variables, such as `$PR`, for its command to use.\n- Tokyo Night Storm and Moon themes, `tokyo-night-storm` and `tokyo-night-moon`, which switch to Tokyo\n  Night Day in light mode. All four Tokyo Night themes now take their colours from the official\n  tokyonight.nvim palettes.\n- The agents panel collapses to its header, so the spaces list gets the sidebar's height: click its title or\n  press `prefix+a` (`keys.toggle_agent_panel`) to collapse or open it, and set\n  `[ui] agent_panel_start_collapsed = true` to start collapsed.",
       "protocol": 22,
